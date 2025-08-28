@@ -13,7 +13,8 @@ import {
   ZoomOut,
   MousePointer,
   Link,
-  Hand
+  Hand,
+  Cpu
 } from 'lucide-react';
 
 // Working Node Component (based on original DiagramShape)
@@ -88,7 +89,19 @@ function WorkingNode({
     output: ArrowRight
   }[node.type];
   
-  const iconColor = node.borderColor;
+  const getIconColor = (nodeType: AIFlowNode['type']) => {
+    const colors = {
+      agent: '#0ea5e9',
+      sensor: '#22c55e', 
+      skill: '#f59e0b',
+      decision: '#ef4444',
+      input: '#8b5cf6',
+      output: '#06b6d4'
+    };
+    return colors[nodeType];
+  };
+  
+  const iconColor = getIconColor(node.type);
 
   return (
     <div
@@ -102,18 +115,18 @@ function WorkingNode({
         width: node.width,
         height: node.height,
         backgroundColor: node.color,
-        border: `${node.borderWidth}px solid ${isSelected ? '#3b82f6' : node.borderColor}`,
-        borderRadius: '8px',
-        padding: '8px',
+        border: `1px solid ${isSelected ? '#000000' : '#e5e7eb'}`,
+        borderRadius: '12px',
+        padding: '16px',
         cursor: mode === 'connect' ? 'crosshair' : (isDragging ? 'grabbing' : 'grab'),
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '14px',
-        fontWeight: '500',
-        color: '#374151',
-        boxShadow: isSelected ? '0 0 0 2px #3b82f6, 0 4px 8px rgba(0, 0, 0, 0.15)' : '0 2px 4px rgba(0, 0, 0, 0.1)',
+        fontSize: '13px',
+        fontWeight: '400',
+        color: '#1f2937',
+        boxShadow: isSelected ? '0 0 0 1px #000000, 0 8px 24px rgba(0, 0, 0, 0.08)' : '0 1px 3px rgba(0, 0, 0, 0.06)',
         transition: isDragging ? 'none' : 'all 0.2s',
         userSelect: 'none',
         zIndex: isDragging ? 1000 : (isSelected ? 100 : 1),
@@ -123,27 +136,27 @@ function WorkingNode({
       {/* Connection points */}
       <div style={{
         position: 'absolute',
-        top: '-4px',
+        top: '-3px',
         left: '50%',
         transform: 'translateX(-50%)',
-        width: '8px',
-        height: '8px',
-        backgroundColor: '#6b7280',
+        width: '6px',
+        height: '6px',
+        backgroundColor: '#9ca3af',
         borderRadius: '50%',
-        border: '2px solid white',
+        border: '1px solid white',
         opacity: mode === 'connect' || isSelected ? 1 : 0,
         transition: 'opacity 0.2s'
       }} />
       <div style={{
         position: 'absolute',
-        bottom: '-4px',
+        bottom: '-3px',
         left: '50%',
         transform: 'translateX(-50%)',
-        width: '8px',
-        height: '8px',
-        backgroundColor: '#6b7280',
+        width: '6px',
+        height: '6px',
+        backgroundColor: '#9ca3af',
         borderRadius: '50%',
-        border: '2px solid white',
+        border: '1px solid white',
         opacity: mode === 'connect' || isSelected ? 1 : 0,
         transition: 'opacity 0.2s'
       }} />
@@ -154,11 +167,6 @@ function WorkingNode({
       <div style={{ textAlign: 'center', lineHeight: '1.2' }}>
         {node.label}
       </div>
-      {node.description && (
-        <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px', textAlign: 'center' }}>
-          {node.description.length > 15 ? node.description.slice(0, 15) + '...' : node.description}
-        </div>
-      )}
     </div>
   );
 }
@@ -225,7 +233,10 @@ function WorkingCanvas({
   zoom,
   pan,
   onPanChange,
-  mode 
+  mode,
+  onZoomIn,
+  onZoomOut,
+  onSetMode
 }: {
   nodes: AIFlowNode[];
   connections: AIFlowConnection[];
@@ -239,6 +250,9 @@ function WorkingCanvas({
   pan: { x: number; y: number };
   onPanChange: (pan: { x: number; y: number }) => void;
   mode: AIFlowMode;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onSetMode: (mode: AIFlowMode) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPanning, setIsPanning] = useState(false);
@@ -316,11 +330,11 @@ function WorkingCanvas({
       style={{
         flex: 1,
         overflow: 'hidden',
-        background: isDragOver ? '#e0f2fe' : '#f9fafb',
+        background: isDragOver ? '#f8f9fa' : '#ffffff',
         position: 'relative',
         cursor: mode === 'pan' ? (isPanning ? 'grabbing' : 'grab') : 
                mode === 'connect' ? 'crosshair' : 'default',
-        border: isDragOver ? '2px dashed #0284c7' : 'none',
+        border: isDragOver ? '2px dashed #9ca3af' : 'none',
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
@@ -347,11 +361,11 @@ function WorkingCanvas({
           width: '5000px',
           height: '5000px',
           backgroundImage: `
-            linear-gradient(to right, #e5e7eb 1px, transparent 1px),
-            linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)
+            linear-gradient(to right, #f3f4f6 1px, transparent 1px),
+            linear-gradient(to bottom, #f3f4f6 1px, transparent 1px)
           `,
           backgroundSize: '20px 20px',
-          opacity: 0.3
+          opacity: 0.4
         }} />
 
         {/* Connections */}
@@ -380,7 +394,7 @@ function WorkingCanvas({
             top: '20px',
             left: '50%',
             transform: 'translateX(-50%)',
-            background: '#3b82f6',
+            background: '#000000',
             color: 'white',
             padding: '8px 16px',
             borderRadius: '20px',
@@ -407,7 +421,7 @@ function WorkingCanvas({
               top: selectedNode.y - 8,
               width: '32px',
               height: '32px',
-              background: '#ef4444',
+              background: '#000000',
               color: 'white',
               border: 'none',
               borderRadius: '50%',
@@ -420,11 +434,11 @@ function WorkingCanvas({
               transition: 'all 0.2s'
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.background = '#dc2626';
+              e.currentTarget.style.background = '#374151';
               e.currentTarget.style.transform = 'scale(1.1)';
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.background = '#ef4444';
+              e.currentTarget.style.background = '#000000';
               e.currentTarget.style.transform = 'scale(1)';
             }}
           >
@@ -440,7 +454,7 @@ function WorkingCanvas({
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          background: '#0284c7',
+          background: '#000000',
           color: 'white',
           padding: '16px 24px',
           borderRadius: '12px',
@@ -452,6 +466,44 @@ function WorkingCanvas({
           Drop node here
         </div>
       )}
+      
+      {/* Floating Tools Panel */}
+      <div style={{
+        position: 'absolute',
+        bottom: '24px',
+        left: '24px',
+        background: '#ffffff',
+        border: '1px solid #e5e7eb',
+        borderRadius: '12px',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+        padding: '8px',
+        zIndex: 1000
+      }}>
+        <Button onClick={onZoomOut}>
+          <ZoomOut size={16} />
+        </Button>
+        <span style={{ fontSize: '13px', minWidth: '50px', textAlign: 'center', color: '#1f2937', padding: '0 8px' }}>
+          {Math.round(zoom * 100)}%
+        </span>
+        <Button onClick={onZoomIn}>
+          <ZoomIn size={16} />
+        </Button>
+        
+        <div style={{ width: '1px', height: '20px', background: '#e5e7eb', margin: '0 4px' }} />
+        
+        <Button active={mode === 'select'} onClick={() => onSetMode('select')}>
+          <MousePointer size={16} />
+        </Button>
+        <Button active={mode === 'connect'} onClick={() => onSetMode('connect')}>
+          <Link size={16} />
+        </Button>
+        <Button active={mode === 'pan'} onClick={() => onSetMode('pan')}>
+          <Hand size={16} />
+        </Button>
+      </div>
     </div>
   );
 }
@@ -463,8 +515,8 @@ function WorkingNodePalette({ onAddNode, nodes, onUpdateNode }: {
   onUpdateNode: (id: string, updates: Partial<AIFlowNode>) => void;
 }) {
   const nodeTypes = [
-    { type: 'agent' as const, icon: Bot, label: 'AI Agent', color: '#3b82f6' },
-    { type: 'sensor' as const, icon: Eye, label: 'Sensor', color: '#10b981' },
+    { type: 'agent' as const, icon: Bot, label: 'AI Agent', color: '#0ea5e9' },
+    { type: 'sensor' as const, icon: Eye, label: 'Sensor', color: '#22c55e' },
     { type: 'skill' as const, icon: Wrench, label: 'Skill', color: '#f59e0b' },
     { type: 'decision' as const, icon: GitBranch, label: 'Decision', color: '#ef4444' },
     { type: 'input' as const, icon: ArrowLeft, label: 'Input', color: '#8b5cf6' },
@@ -481,10 +533,11 @@ function WorkingNodePalette({ onAddNode, nodes, onUpdateNode }: {
       width: '250px', 
       borderRight: '1px solid #e5e7eb', 
       background: '#ffffff',
-      padding: '16px',
+      boxShadow: '2px 0 12px rgba(0, 0, 0, 0.06)',
+      padding: '20px',
       overflowY: 'auto'
     }}>
-      <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#374151' }}>
+      <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px', color: '#111827' }}>
         AI Flow Nodes
       </h3>
       
@@ -496,9 +549,9 @@ function WorkingNodePalette({ onAddNode, nodes, onUpdateNode }: {
             onDragStart={(e) => handleDragStart(e, nodeType.type)}
             onClick={() => onAddNode(nodeType.type, 100, 100)}
             style={{
-              padding: '12px',
-              border: '2px dashed #d1d5db',
-              borderRadius: '8px',
+              padding: '16px',
+              border: '1px solid #e5e7eb',
+              borderRadius: '10px',
               cursor: 'grab',
               display: 'flex',
               alignItems: 'center',
@@ -507,20 +560,20 @@ function WorkingNodePalette({ onAddNode, nodes, onUpdateNode }: {
               userSelect: 'none',
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.borderColor = nodeType.color;
-              e.currentTarget.style.background = nodeType.color + '10';
+              e.currentTarget.style.borderColor = '#9ca3af';
+              e.currentTarget.style.background = '#f9fafb';
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.borderColor = '#d1d5db';
+              e.currentTarget.style.borderColor = '#e5e7eb';
               e.currentTarget.style.background = 'transparent';
             }}
           >
-            <nodeType.icon size={20} color={nodeType.color} />
+            <nodeType.icon size={18} color={nodeType.color} />
             <div>
-              <div style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
+              <div style={{ fontSize: '13px', fontWeight: '400', color: '#1f2937' }}>
                 {nodeType.label}
               </div>
-              <div style={{ fontSize: '12px', color: '#6b7280' }}>
+              <div style={{ fontSize: '11px', color: '#9ca3af' }}>
                 Drag to canvas or click to add
               </div>
             </div>
@@ -529,13 +582,13 @@ function WorkingNodePalette({ onAddNode, nodes, onUpdateNode }: {
       </div>
 
       <div>
-        <h4 style={{ fontSize: '16px', fontWeight: '500', marginBottom: '12px', color: '#374151' }}>
+        <h4 style={{ fontSize: '16px', fontWeight: '500', marginBottom: '16px', color: '#111827' }}>
           Templates
         </h4>
         <div 
           style={{
             padding: '12px',
-            border: '1px solid #d1d5db',
+            border: '1px solid #e5e7eb',
             borderRadius: '8px',
             cursor: 'pointer',
             marginBottom: '8px',
@@ -545,25 +598,25 @@ function WorkingNodePalette({ onAddNode, nodes, onUpdateNode }: {
             // Create Assassin's Creed Brotherhood nodes with custom labels
             onAddNode('input', 50, 200, 'Mission Brief', 'Receive assassination target and intel');
             onAddNode('sensor', 250, 120, 'Eagle Vision', 'Scan environment for threats and opportunities');
-            onAddNode('agent', 450, 80, 'Ezio Auditore', 'Master strategist, plans the approach and coordinates team');
-            onAddNode('agent', 450, 160, 'Altaïr Ibn-LaAhad', 'Legendary assassin, executes high-priority eliminations');
-            onAddNode('agent', 450, 240, 'Bayek of Siwa', 'Hidden One, investigates targets and gathers intelligence');
-            onAddNode('agent', 450, 320, 'Edward Kenway', 'Pirate assassin, handles naval operations and combat');
-            onAddNode('skill', 700, 100, 'Hidden Blade', 'Silent assassination technique');
-            onAddNode('skill', 700, 180, 'Free Running', 'Parkour and escape routes');
-            onAddNode('skill', 700, 260, 'Combat Training', 'Sword fighting and counter-attacks');
-            onAddNode('decision', 900, 200, 'Mission Success?', 'Evaluate if target eliminated and escape completed');
-            onAddNode('output', 1100, 200, 'Brotherhood Report', 'Mission status and next objectives');
+            onAddNode('agent', 450, 50, 'Ezio Auditore', 'Master strategist, plans the approach and coordinates team');
+            onAddNode('agent', 450, 170, 'Altaïr Ibn-LaAhad', 'Legendary assassin, executes high-priority eliminations');
+            onAddNode('agent', 450, 290, 'Bayek of Siwa', 'Hidden One, investigates targets and gathers intelligence');
+            onAddNode('agent', 450, 410, 'Edward Kenway', 'Pirate assassin, handles naval operations and combat');
+            onAddNode('skill', 700, 90, 'Hidden Blade', 'Silent assassination technique');
+            onAddNode('skill', 700, 210, 'Free Running', 'Parkour and escape routes');
+            onAddNode('skill', 700, 330, 'Combat Training', 'Sword fighting and counter-attacks');
+            onAddNode('decision', 900, 230, 'Mission Success?', 'Evaluate if target eliminated and escape completed');
+            onAddNode('output', 1100, 230, 'Brotherhood Report', 'Mission status and next objectives');
           }}
           onMouseOver={(e) => {
-            e.currentTarget.style.background = '#f3f4f6';
+            e.currentTarget.style.background = '#f9fafb';
           }}
           onMouseOut={(e) => {
             e.currentTarget.style.background = 'transparent';
           }}
         >
-          <div style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Assassin's Creed Brotherhood</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Ezio, Altaïr, Bayek & Edward coordinate a mission</div>
+          <div style={{ fontSize: '13px', fontWeight: '400', color: '#1f2937' }}>Assassin's Creed Brotherhood</div>
+          <div style={{ fontSize: '11px', color: '#9ca3af' }}>Ezio, Altaïr, Bayek & Edward coordinate a mission</div>
         </div>
       </div>
     </div>
@@ -587,12 +640,12 @@ function Button({
       onClick={onClick}
       disabled={disabled}
       style={{
-        padding: '8px 12px',
-        fontSize: '14px',
-        border: '1px solid #d1d5db',
-        borderRadius: '6px',
-        background: active ? '#3b82f6' : '#ffffff',
-        color: active ? '#ffffff' : '#374151',
+        padding: '10px 16px',
+        fontSize: '13px',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
+        background: active ? '#000000' : '#ffffff',
+        color: active ? '#ffffff' : '#1f2937',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
         display: 'inline-flex',
@@ -602,7 +655,7 @@ function Button({
       }}
       onMouseOver={(e) => {
         if (!disabled && !active) {
-          e.currentTarget.style.background = '#f3f4f6';
+          e.currentTarget.style.background = '#f9fafb';
         }
       }}
       onMouseOut={(e) => {
@@ -653,18 +706,18 @@ export function WorkingAIFlowBuilder() {
   const [nodes, setNodes] = useState<AIFlowNode[]>(initialState?.nodes || []);
   const [connections, setConnections] = useState<AIFlowConnection[]>(initialState?.connections || []);
   const [selectedNode, setSelectedNode] = useState<AIFlowNode | null>(null);
-  const [zoom, setZoom] = useState(initialState?.zoom || 1);
+  const [zoom, setZoom] = useState(1.0);
   const [pan, setPan] = useState<{ x: number; y: number }>(initialState?.pan || { x: 0, y: 0 });
   const [mode, setMode] = useState<AIFlowMode>('select');
 
   const addNode = (type: AIFlowNode['type'], x: number, y: number, customLabel?: string, customDescription?: string) => {
     const nodeDefaults = {
-      agent: { width: 140, height: 80, color: '#3b82f620', label: 'AI Agent' },
-      sensor: { width: 120, height: 60, color: '#10b98120', label: 'Sensor' },
-      skill: { width: 120, height: 60, color: '#f59e0b20', label: 'Skill' },
-      decision: { width: 100, height: 80, color: '#ef444420', label: 'Decision' },
-      input: { width: 100, height: 60, color: '#8b5cf620', label: 'Input' },
-      output: { width: 100, height: 60, color: '#06b6d420', label: 'Output' },
+      agent: { width: 140, height: 80, color: '#f0f9ff', label: 'AI Agent' },
+      sensor: { width: 120, height: 60, color: '#f0fdf4', label: 'Sensor' },
+      skill: { width: 120, height: 60, color: '#fffbeb', label: 'Skill' },
+      decision: { width: 100, height: 80, color: '#fef2f2', label: 'Decision' },
+      input: { width: 100, height: 60, color: '#faf5ff', label: 'Input' },
+      output: { width: 100, height: 60, color: '#f0fdfa', label: 'Output' },
     };
 
     const defaults = nodeDefaults[type];
@@ -679,8 +732,8 @@ export function WorkingAIFlowBuilder() {
       description: customDescription || '',
       config: {},
       color: defaults.color,
-      borderColor: defaults.color.replace('20', ''),
-      borderWidth: 2,
+      borderColor: '#e5e7eb',
+      borderWidth: 1,
     };
     
     setNodes(prevNodes => [...prevNodes, newNode]);
@@ -710,14 +763,14 @@ export function WorkingAIFlowBuilder() {
       fromY: 0,
       toX: 0,
       toY: 0,
-      color: '#6b7280',
+      color: '#9ca3af',
       width: 2,
     };
     setConnections([...connections, newConnection]);
   };
 
-  const zoomIn = () => setZoom(Math.min(zoom * 1.2, 3));
-  const zoomOut = () => setZoom(Math.max(zoom / 1.2, 0.3));
+  const zoomIn = () => setZoom(Math.min(zoom + 0.1, 3));
+  const zoomOut = () => setZoom(Math.max(zoom - 0.1, 0.3));
 
   // Auto-save to localStorage whenever state changes
   useEffect(() => {
@@ -739,46 +792,34 @@ export function WorkingAIFlowBuilder() {
   }, [selectedNode]);
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#f3f4f6' }}>
-      {/* Toolbar */}
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#ffffff' }}>
+      {/* Top Bar with Helix Logo */}
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
-        gap: '8px', 
-        padding: '12px', 
+        justifyContent: 'space-between',
+        padding: '16px 24px', 
         borderBottom: '1px solid #e5e7eb', 
         background: '#ffffff',
-        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
       }}>
-        <Button onClick={zoomOut}>
-          <ZoomOut size={16} />
-        </Button>
-        <span style={{ fontSize: '14px', minWidth: '60px', textAlign: 'center', color: '#374151' }}>
-          {Math.round(zoom * 100)}%
-        </span>
-        <Button onClick={zoomIn}>
-          <ZoomIn size={16} />
-        </Button>
+        <a href="/" style={{ 
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontSize: '24px', 
+          fontWeight: 'bold', 
+          color: '#111827',
+          letterSpacing: '-0.025em',
+          textDecoration: 'none',
+          cursor: 'pointer'
+        }}>
+          <Cpu size={20} />
+          Helix
+        </a>
         
-        <div style={{ width: '1px', height: '24px', background: '#d1d5db', margin: '0 8px' }} />
-        
-        <Button active={mode === 'select'} onClick={() => setMode('select')}>
-          <MousePointer size={16} />
-          Select
-        </Button>
-        <Button active={mode === 'connect'} onClick={() => setMode('connect')}>
-          <Link size={16} />
-          Connect
-        </Button>
-        <Button active={mode === 'pan'} onClick={() => setMode('pan')}>
-          <Hand size={16} />
-          Pan
-        </Button>
-        
-        <div style={{ marginLeft: 'auto' }}>
-          <span style={{ fontSize: '14px', color: '#6b7280' }}>
-            Nodes: {nodes.length} | Connections: {connections.length}
-          </span>
+        <div style={{ fontSize: '14px', color: '#6b7280' }}>
+          Nodes: {nodes.length} | Connections: {connections.length}
         </div>
       </div>
 
@@ -799,6 +840,9 @@ export function WorkingAIFlowBuilder() {
           pan={pan}
           onPanChange={setPan}
           mode={mode}
+          onZoomIn={zoomIn}
+          onZoomOut={zoomOut}
+          onSetMode={setMode}
         />
 
         {/* Properties Panel */}
@@ -806,6 +850,7 @@ export function WorkingAIFlowBuilder() {
           width: '250px', 
           borderLeft: '1px solid #e5e7eb', 
           background: '#ffffff',
+          boxShadow: '-2px 0 12px rgba(0, 0, 0, 0.06)',
           overflowY: 'auto'
         }}>
           <AIPropertiesPanel

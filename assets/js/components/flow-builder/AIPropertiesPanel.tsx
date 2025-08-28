@@ -20,20 +20,20 @@ export function AIPropertiesPanel({
 
   if (!selectedNode && !selectedConnection) {
     return (
-      <div className="p-4">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800">Properties</h3>
-        <div className="text-sm text-gray-500">
+      <div style={{ padding: '24px' }}>
+        <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '24px', color: '#111827' }}>Properties</h3>
+        <div style={{ fontSize: '13px', color: '#9ca3af', lineHeight: '1.5' }}>
           Select a node or connection to edit its properties.
         </div>
         
-        <div className="mt-8 p-3 bg-gray-50 rounded-lg">
-          <h4 className="text-sm font-semibold mb-2 text-gray-700">AI Node Types</h4>
-          <div className="space-y-2 text-xs text-gray-600">
-            <div><strong>Agent:</strong> Core AI reasoning unit with configurable models and prompts</div>
-            <div><strong>Sensor:</strong> Input source for real-time data collection</div>
-            <div><strong>Skill:</strong> Specialized capability like API calls or data processing</div>
-            <div><strong>Decision:</strong> Conditional logic for flow routing</div>
-            <div><strong>Input/Output:</strong> Entry and exit points for the flow</div>
+        <div style={{ marginTop: '32px', padding: '20px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #f3f4f6' }}>
+          <h4 style={{ fontSize: '14px', fontWeight: '500', marginBottom: '16px', color: '#1f2937' }}>Node Types</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px', color: '#6b7280', lineHeight: '1.4' }}>
+            <div><strong style={{ color: '#1f2937' }}>Agent:</strong> Core AI reasoning unit</div>
+            <div><strong style={{ color: '#1f2937' }}>Sensor:</strong> Real-time data collection</div>
+            <div><strong style={{ color: '#1f2937' }}>Skill:</strong> Specialized capabilities</div>
+            <div><strong style={{ color: '#1f2937' }}>Decision:</strong> Conditional logic routing</div>
+            <div><strong style={{ color: '#1f2937' }}>Input/Output:</strong> Flow entry/exit points</div>
           </div>
         </div>
       </div>
@@ -109,44 +109,100 @@ export function AIPropertiesPanel({
     const config = getNodeTypeConfig(node.type);
 
     return (
-      <div className="space-y-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: '400', color: '#1f2937', marginBottom: '8px' }}>Label</label>
           <input
             type="text"
             value={node.label}
             onChange={(e) => handleNodeUpdate({ label: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              border: '1px solid #e5e7eb',
+              borderRadius: '10px',
+              fontSize: '14px',
+              background: '#ffffff',
+              outline: 'none',
+              transition: 'all 0.2s',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = '#9ca3af';
+              e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '#e5e7eb';
+              e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.04)';
+            }}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: '400', color: '#1f2937', marginBottom: '8px' }}>Description</label>
           <textarea
             value={node.description}
             onChange={(e) => handleNodeUpdate({ description: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm h-16"
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              border: '1px solid #e5e7eb',
+              borderRadius: '10px',
+              fontSize: '14px',
+              background: '#ffffff',
+              outline: 'none',
+              resize: 'vertical',
+              minHeight: '80px',
+              transition: 'all 0.2s',
+              fontFamily: 'inherit',
+              lineHeight: '1.5',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
+            }}
             placeholder="Optional description..."
+            onFocus={(e) => {
+              e.target.style.borderColor = '#9ca3af';
+              e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '#e5e7eb';
+              e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.04)';
+            }}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: '400', color: '#1f2937', marginBottom: '8px' }}>Background Color</label>
           <input
             type="color"
-            value={node.color.replace('20', '')} // Remove transparency
+            value={node.color.replace('20', '')}
             onChange={(e) => handleNodeUpdate({ color: e.target.value + '20' })}
-            className="w-full h-8 border border-gray-300 rounded-md"
+            style={{
+              width: '100%',
+              height: '40px',
+              border: '1px solid #e5e7eb',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              background: '#ffffff',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
+            }}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Border Color</label>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: '400', color: '#1f2937', marginBottom: '8px' }}>Border Color</label>
           <input
             type="color"
             value={node.borderColor}
             onChange={(e) => handleNodeUpdate({ borderColor: e.target.value })}
-            className="w-full h-8 border border-gray-300 rounded-md"
+            style={{
+              width: '100%',
+              height: '40px',
+              border: '1px solid #e5e7eb',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              background: '#ffffff',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
+            }}
           />
         </div>
 
@@ -251,12 +307,20 @@ export function AIPropertiesPanel({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+        <label style={{ display: 'block', fontSize: '13px', fontWeight: '400', color: '#1f2937', marginBottom: '8px' }}>Color</label>
         <input
           type="color"
           value={connection.color}
           onChange={(e) => handleConnectionUpdate({ color: e.target.value })}
-          className="w-full h-8 border border-gray-300 rounded-md"
+          style={{
+            width: '100%',
+            height: '40px',
+            border: '1px solid #e5e7eb',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            background: '#ffffff',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
+          }}
         />
       </div>
 
@@ -276,46 +340,84 @@ export function AIPropertiesPanel({
   );
 
   return (
-    <div className="p-4">
-      <h3 className="text-lg font-semibold mb-4 text-gray-800">Properties</h3>
+    <div style={{ padding: '24px' }}>
+      <h3 style={{ fontSize: '16px', fontWeight: '500', marginBottom: '24px', color: '#1f2937' }}>Properties</h3>
 
       {selectedNode && (
         <>
-          <div className="flex mb-4 border-b">
+          <div style={{ display: 'flex', marginBottom: '20px', borderBottom: '1px solid #f3f4f6' }}>
             <button
               onClick={() => setActiveTab('properties')}
-              className={`px-3 py-2 text-sm font-medium ${
-                activeTab === 'properties'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+              style={{
+                padding: '12px 16px',
+                fontSize: '13px',
+                fontWeight: '400',
+                border: 'none',
+                background: 'transparent',
+                color: activeTab === 'properties' ? '#1f2937' : '#9ca3af',
+                borderBottom: activeTab === 'properties' ? '2px solid #000000' : '2px solid transparent',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
             >
               Properties
             </button>
             <button
               onClick={() => setActiveTab('config')}
-              className={`px-3 py-2 text-sm font-medium ${
-                activeTab === 'config'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+              style={{
+                padding: '12px 16px',
+                fontSize: '13px',
+                fontWeight: '400',
+                border: 'none',
+                background: 'transparent',
+                color: activeTab === 'config' ? '#1f2937' : '#9ca3af',
+                borderBottom: activeTab === 'config' ? '2px solid #000000' : '2px solid transparent',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
             >
               Configuration
             </button>
           </div>
 
-          <div className="mb-3">
-            <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
+          <div style={{ marginBottom: '20px' }}>
+            <span style={{
+              display: 'inline-block',
+              padding: '6px 12px',
+              background: '#f3f4f6',
+              color: '#1f2937',
+              fontSize: '11px',
+              fontWeight: '500',
+              borderRadius: '6px',
+              letterSpacing: '0.05em'
+            }}>
               {selectedNode.type.toUpperCase()}
             </span>
           </div>
 
           {renderNodeProperties(selectedNode)}
           
-          <div className="mt-6 pt-4 border-t">
+          <div style={{ marginTop: '32px', paddingTop: '20px', borderTop: '1px solid #f3f4f6' }}>
             <button
               onClick={() => onDeleteNode(selectedNode.id)}
-              className="w-full px-3 py-2 bg-red-500 text-white text-sm font-medium rounded-md hover:bg-red-600 transition-colors"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                background: '#000000',
+                color: '#ffffff',
+                fontSize: '13px',
+                fontWeight: '400',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = '#374151';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = '#000000';
+              }}
             >
               Delete Node
             </button>
