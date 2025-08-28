@@ -457,7 +457,11 @@ function WorkingCanvas({
 }
 
 // Node Palette
-function WorkingNodePalette({ onAddNode }: { onAddNode: (type: AIFlowNode['type'], x: number, y: number) => void }) {
+function WorkingNodePalette({ onAddNode, nodes, onUpdateNode }: { 
+  onAddNode: (type: AIFlowNode['type'], x: number, y: number, customLabel?: string, customDescription?: string) => void;
+  nodes: AIFlowNode[];
+  onUpdateNode: (id: string, updates: Partial<AIFlowNode>) => void;
+}) {
   const nodeTypes = [
     { type: 'agent' as const, icon: Bot, label: 'AI Agent', color: '#3b82f6' },
     { type: 'sensor' as const, icon: Eye, label: 'Sensor', color: '#10b981' },
@@ -538,10 +542,18 @@ function WorkingNodePalette({ onAddNode }: { onAddNode: (type: AIFlowNode['type'
             transition: 'all 0.2s'
           }}
           onClick={() => {
-            // Create template nodes all at once
-            onAddNode('input', 50, 150);
-            onAddNode('agent', 250, 150);
-            onAddNode('output', 450, 150);
+            // Create Assassin's Creed Brotherhood nodes with custom labels
+            onAddNode('input', 50, 200, 'Mission Brief', 'Receive assassination target and intel');
+            onAddNode('sensor', 250, 120, 'Eagle Vision', 'Scan environment for threats and opportunities');
+            onAddNode('agent', 450, 80, 'Ezio Auditore', 'Master strategist, plans the approach and coordinates team');
+            onAddNode('agent', 450, 160, 'Altaïr Ibn-LaAhad', 'Legendary assassin, executes high-priority eliminations');
+            onAddNode('agent', 450, 240, 'Bayek of Siwa', 'Hidden One, investigates targets and gathers intelligence');
+            onAddNode('agent', 450, 320, 'Edward Kenway', 'Pirate assassin, handles naval operations and combat');
+            onAddNode('skill', 700, 100, 'Hidden Blade', 'Silent assassination technique');
+            onAddNode('skill', 700, 180, 'Free Running', 'Parkour and escape routes');
+            onAddNode('skill', 700, 260, 'Combat Training', 'Sword fighting and counter-attacks');
+            onAddNode('decision', 900, 200, 'Mission Success?', 'Evaluate if target eliminated and escape completed');
+            onAddNode('output', 1100, 200, 'Brotherhood Report', 'Mission status and next objectives');
           }}
           onMouseOver={(e) => {
             e.currentTarget.style.background = '#f3f4f6';
@@ -550,56 +562,8 @@ function WorkingNodePalette({ onAddNode }: { onAddNode: (type: AIFlowNode['type'
             e.currentTarget.style.background = 'transparent';
           }}
         >
-          <div style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Simple Flow</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Input → Agent → Output</div>
-        </div>
-        
-        <div 
-          style={{
-            padding: '12px',
-            border: '1px solid #d1d5db',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            marginBottom: '8px',
-            transition: 'all 0.2s'
-          }}
-          onClick={() => {
-            // Create complex AI processing pipeline template
-            // First create all the nodes with predetermined IDs
-            const nodeIds = {
-              input: 'pipeline-input-' + Date.now(),
-              sensor: 'pipeline-sensor-' + Date.now(),
-              decision1: 'pipeline-decision1-' + Date.now(),
-              agent1: 'pipeline-agent1-' + Date.now(),
-              agent2: 'pipeline-agent2-' + Date.now(),
-              skill1: 'pipeline-skill1-' + Date.now(),
-              skill2: 'pipeline-skill2-' + Date.now(),
-              skill3: 'pipeline-skill3-' + Date.now(),
-              decision2: 'pipeline-decision2-' + Date.now(),
-              output: 'pipeline-output-' + Date.now(),
-            };
-
-            // Create nodes
-            onAddNode('input', 50, 120);
-            onAddNode('sensor', 50, 220);
-            onAddNode('decision', 250, 150);
-            onAddNode('agent', 450, 100);
-            onAddNode('agent', 450, 200);
-            onAddNode('skill', 650, 80);
-            onAddNode('skill', 650, 120);
-            onAddNode('skill', 650, 180);
-            onAddNode('decision', 850, 150);
-            onAddNode('output', 1050, 150);
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.background = '#f3f4f6';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.background = 'transparent';
-          }}
-        >
-          <div style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>AI Processing Pipeline</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Complex flow with sensors, decisions, and skills</div>
+          <div style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Assassin's Creed Brotherhood</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Ezio, Altaïr, Bayek & Edward coordinate a mission</div>
         </div>
       </div>
     </div>
@@ -693,7 +657,7 @@ export function WorkingAIFlowBuilder() {
   const [pan, setPan] = useState<{ x: number; y: number }>(initialState?.pan || { x: 0, y: 0 });
   const [mode, setMode] = useState<AIFlowMode>('select');
 
-  const addNode = (type: AIFlowNode['type'], x: number, y: number) => {
+  const addNode = (type: AIFlowNode['type'], x: number, y: number, customLabel?: string, customDescription?: string) => {
     const nodeDefaults = {
       agent: { width: 140, height: 80, color: '#3b82f620', label: 'AI Agent' },
       sensor: { width: 120, height: 60, color: '#10b98120', label: 'Sensor' },
@@ -711,8 +675,8 @@ export function WorkingAIFlowBuilder() {
       y,
       width: defaults.width,
       height: defaults.height,
-      label: defaults.label,
-      description: '',
+      label: customLabel || defaults.label,
+      description: customDescription || '',
       config: {},
       color: defaults.color,
       borderColor: defaults.color.replace('20', ''),
@@ -820,7 +784,7 @@ export function WorkingAIFlowBuilder() {
 
       {/* Main Content */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <WorkingNodePalette onAddNode={addNode} />
+        <WorkingNodePalette onAddNode={addNode} nodes={nodes} onUpdateNode={updateNode} />
 
         <WorkingCanvas
           nodes={nodes}
