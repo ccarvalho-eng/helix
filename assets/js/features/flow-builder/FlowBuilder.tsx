@@ -20,11 +20,12 @@ import {
 } from 'reactflow';
 
 import { AIFlowNode as OriginalAIFlowNode } from './types';
-import { getTemplate, TemplateType, getAllTemplates } from './templates';
+import { getTemplate, TemplateType, getAllTemplates, getFeaturedTemplates } from './templates';
 import { PropertiesPanel } from './components/properties';
 import { ErrorBoundary } from '../../components/ui/ErrorBoundary';
 import { ThemeProvider, useThemeContext } from './contexts/ThemeContext';
 import { ThemeToggle } from './components/ThemeToggle';
+import { Modal } from './components/Modal';
 import {
   Bot,
   Eye,
@@ -141,9 +142,10 @@ const edgeTypes: EdgeTypes = {};
 
 
 // Node Palette (same as original but adapted for React Flow)  
-function ReactFlowNodePalette({ onAddNode, onAddTemplate }: {
+function ReactFlowNodePalette({ onAddNode, onAddTemplate, onOpenTemplatesModal }: {
   onAddNode: (type: ReactFlowAINode['type'], customLabel?: string, customDescription?: string) => void;
   onAddTemplate: (templateType: TemplateType) => void;
+  onOpenTemplatesModal: () => void;
 }) {
   const nodeTypes = [
     { type: 'agent' as const, icon: Bot, label: 'AI Agent', color: '#0ea5e9' },
@@ -193,7 +195,7 @@ function ReactFlowNodePalette({ onAddNode, onAddTemplate }: {
         </h4>
         {(() => {
           const difficultyRank: Record<'simple' | 'medium' | 'advanced', number> = { simple: 0, medium: 1, advanced: 2 };
-          const templates = getAllTemplates().sort((a, b) => difficultyRank[a.difficulty] - difficultyRank[b.difficulty]);
+          const templates = getFeaturedTemplates().sort((a, b) => difficultyRank[a.difficulty] - difficultyRank[b.difficulty]);
           return templates.map((t) => (
             <div
               key={t.id}
@@ -238,6 +240,30 @@ function ReactFlowNodePalette({ onAddNode, onAddTemplate }: {
             </div>
           ));
         })()}
+        <div 
+          className="react-flow-node-palette__see-all-link"
+          style={{
+            marginTop: 12,
+            padding: '8px 12px',
+            fontSize: 14,
+            color: '#6b7280',
+            textAlign: 'center',
+            cursor: 'pointer',
+            borderRadius: 6,
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#f3f4f6';
+            e.currentTarget.style.color = '#374151';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = '#6b7280';
+          }}
+          onClick={onOpenTemplatesModal}
+        >
+          See all templates →
+        </div>
       </div>
     </div>
   );
@@ -283,6 +309,7 @@ function FlowBuilderInternal() {
   const [isPropertiesOpen, setIsPropertiesOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [modalNodeId, setModalNodeId] = useState<string | null>(null);
+  const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
@@ -585,6 +612,7 @@ function FlowBuilderInternal() {
       if (e.key === 'Escape') {
         setIsPaletteOpen(false);
         setIsPropertiesOpen(false);
+        setIsTemplatesModalOpen(false);
       }
     };
 
@@ -646,7 +674,7 @@ function FlowBuilderInternal() {
               ×
             </button>
           )}
-          <ReactFlowNodePalette onAddNode={addNode} onAddTemplate={addTemplate} />
+          <ReactFlowNodePalette onAddNode={addNode} onAddTemplate={addTemplate} onOpenTemplatesModal={() => setIsTemplatesModalOpen(true)} />
         </div>
 
         {/* React Flow Canvas */}
@@ -729,6 +757,66 @@ function FlowBuilderInternal() {
           onClick={() => { setIsPaletteOpen(false); setIsPropertiesOpen(false); }}
         />
       )}
+
+      {/* Templates modal */}
+      <Modal
+        isOpen={isTemplatesModalOpen}
+        onClose={() => setIsTemplatesModalOpen(false)}
+        title="All Templates"
+        size="large"
+      >
+        <div className="flow-builder__templates-grid">
+          {getAllTemplates().map((template) => (
+            <div
+              key={template.id}
+              className="flow-builder__template-card"
+              onClick={() => {
+                addTemplate(template.id as TemplateType);
+                setIsTemplatesModalOpen(false);
+              }}
+            >
+              <div className="flow-builder__template-card-header">
+                <h3 className="flow-builder__template-card-title">{template.name}</h3>
+                {(() => {
+                  const badgeStyles: Record<'simple' | 'medium' | 'advanced', React.CSSProperties> = {
+                    simple: {
+                      backgroundColor: '#ecfdf5',
+                      color: '#065f46',
+                      border: '1px solid #a7f3d0',
+                    },
+                    medium: {
+                      backgroundColor: '#fffbeb',
+                      color: '#92400e',
+                      border: '1px solid #fde68a',
+                    },
+                    advanced: {
+                      backgroundColor: '#fef2f2',
+                      color: '#7f1d1d',
+                      border: '1px solid #fecaca',
+                    },
+                  };
+                  return (
+                    <span style={{
+                      fontSize: 12,
+                      padding: '2px 8px',
+                      borderRadius: 9999,
+                      textTransform: 'capitalize',
+                      ...badgeStyles[template.difficulty],
+                    }}>
+                      {template.difficulty}
+                    </span>
+                  );
+                })()}
+              </div>
+              <p className="flow-builder__template-card-description">{template.description}</p>
+              <div className="flow-builder__template-card-stats">
+                <span>{template.nodes.length} nodes</span>
+                <span>{template.connections.length} connections</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Modal>
 
       {/* Node details modal */}
       {modalNodeId && (

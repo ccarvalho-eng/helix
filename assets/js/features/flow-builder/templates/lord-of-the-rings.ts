@@ -184,7 +184,16 @@ export const lordOfTheRingsTemplate: Template = {
 			label: "Elven Cloak",
 			description: "Stealth and concealment",
 			x: 860,
-			y: 320,
+			y: 300,
+			config: { skill_type: "custom" },
+		},
+		{
+			id: "elven-bow",
+			type: "skill",
+			label: "Elven Bow",
+			description: "Precise archery and long-range combat",
+			x: 860,
+			y: 370,
 			config: { skill_type: "custom" },
 		},
 		{
@@ -193,7 +202,7 @@ export const lordOfTheRingsTemplate: Template = {
 			label: "Dwarf Craft",
 			description: "Stonework, cave navigation, durability",
 			x: 860,
-			y: 400,
+			y: 440,
 			config: { skill_type: "custom" },
 		},
 		{
@@ -202,7 +211,7 @@ export const lordOfTheRingsTemplate: Template = {
 			label: "Horn of Gondor",
 			description: "Signal for aid and regrouping",
 			x: 860,
-			y: 480,
+			y: 510,
 			config: { skill_type: "custom" },
 		},
 
@@ -357,13 +366,19 @@ export const lordOfTheRingsTemplate: Template = {
 		},
 		{
 			source: "legolas",
-			target: "elven-cloak",
+			target: "elven-bow",
 			sourceHandle: "right",
 			targetHandle: "left",
 		},
 		{
 			source: "gimli",
 			target: "dwarf-craft",
+			sourceHandle: "right",
+			targetHandle: "left",
+		},
+		{
+			source: "legolas",
+			target: "elven-cloak",
 			sourceHandle: "right",
 			targetHandle: "left",
 		},
@@ -389,6 +404,12 @@ export const lordOfTheRingsTemplate: Template = {
 		},
 		{
 			source: "elven-cloak",
+			target: "path-choice",
+			sourceHandle: "right",
+			targetHandle: "left",
+		},
+		{
+			source: "elven-bow",
 			target: "path-choice",
 			sourceHandle: "right",
 			targetHandle: "left",

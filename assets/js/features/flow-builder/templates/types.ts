@@ -26,4 +26,4 @@ export interface Template {
   connections: TemplateConnection[];
 }
 
-export type TemplateType = 'assassins-creed' | 'lotr' | 'the-witcher';
+export type TemplateType = 'assassins-creed' | 'lotr' | 'the-witcher' | 'zelda';
