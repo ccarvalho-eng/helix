@@ -52,6 +52,15 @@ export function PropertiesPanel({
             <div className="properties-panel__help-item">
               <span className="properties-panel__help-label">Resize:</span> Drag corners when selected
             </div>
+            <div className="properties-panel__help-item">
+              <span className="properties-panel__help-label">Navigate:</span> Scroll to pan, Cmd+Scroll to zoom
+            </div>
+            <div className="properties-panel__help-item">
+              <span className="properties-panel__help-label">Box Select:</span> Drag on empty space to select multiple
+            </div>
+            <div className="properties-panel__help-item">
+              <span className="properties-panel__help-label">Minimap:</span> Use overview map (bottom-right) to navigate
+            </div>
           </div>
         </div>
 
@@ -67,6 +76,16 @@ export function PropertiesPanel({
             <div className="properties-panel__shortcut">
               <kbd className="properties-panel__kbd">Del</kbd>
               <span>Delete selected node</span>
+            </div>
+            <div className="properties-panel__shortcut">
+              <kbd className="properties-panel__kbd">Ctrl+Scroll</kbd>
+              <span>or</span>
+              <kbd className="properties-panel__kbd">⌘+Scroll</kbd>
+              <span>Zoom in/out</span>
+            </div>
+            <div className="properties-panel__shortcut">
+              <kbd className="properties-panel__kbd">Scroll</kbd>
+              <span>Pan canvas</span>
             </div>
           </div>
         </div>
