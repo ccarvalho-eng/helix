@@ -17,20 +17,20 @@ import {
   Position,
   ReactFlowProvider,
   NodeResizer,
-  type ColorMode,
 } from 'reactflow';
 
 import { AIFlowNode as OriginalAIFlowNode } from './types';
+import { getTemplate, TemplateType, getAllTemplates } from './templates';
 import { PropertiesPanel } from './components/properties';
 import { ErrorBoundary } from '../../components/ui/ErrorBoundary';
 import { ThemeProvider, useThemeContext } from './contexts/ThemeContext';
 import { ThemeToggle } from './components/ThemeToggle';
-import { 
-  Bot, 
-  Eye, 
-  Wrench, 
-  GitBranch, 
-  ArrowLeft, 
+import {
+  Bot,
+  Eye,
+  Wrench,
+  GitBranch,
+  ArrowLeft,
   ArrowRight,
   Cpu,
   Circle,
@@ -53,11 +53,11 @@ function FlowNode({ data, selected, ...nodeProps }: { data: ReactFlowAINode; sel
     input: ArrowLeft,
     output: ArrowRight
   }[data.type];
-  
+
   const getIconColor = (nodeType: ReactFlowAINode['type']) => {
     const colors = {
       agent: '#0ea5e9',
-      sensor: '#22c55e', 
+      sensor: '#22c55e',
       skill: '#f59e0b',
       decision: '#ef4444',
       input: '#8b5cf6',
@@ -65,7 +65,7 @@ function FlowNode({ data, selected, ...nodeProps }: { data: ReactFlowAINode; sel
     };
     return colors[nodeType];
   };
-  
+
   const iconColor = getIconColor(data.type);
 
   // Use smaller, fixed dimensions for better canvas appearance
@@ -104,7 +104,7 @@ function FlowNode({ data, selected, ...nodeProps }: { data: ReactFlowAINode; sel
         minWidth={parseInt(width)}
         minHeight={parseInt(height)}
       />
-      
+
       {/* React Flow Handles for connections - Left and Right only */}
       <Handle
         type="target"
@@ -139,9 +139,9 @@ const edgeTypes: EdgeTypes = {};
 
 
 // Node Palette (same as original but adapted for React Flow)  
-function ReactFlowNodePalette({ onAddNode, onAddTemplate }: { 
+function ReactFlowNodePalette({ onAddNode, onAddTemplate }: {
   onAddNode: (type: ReactFlowAINode['type'], customLabel?: string, customDescription?: string) => void;
-  onAddTemplate: () => void;
+  onAddTemplate: (templateType: TemplateType) => void;
 }) {
   const nodeTypes = [
     { type: 'agent' as const, icon: Bot, label: 'AI Agent', color: '#0ea5e9' },
@@ -162,7 +162,7 @@ function ReactFlowNodePalette({ onAddNode, onAddTemplate }: {
       <h3 className="react-flow-node-palette__title">
         AI Flow Nodes
       </h3>
-      
+
       <div className="react-flow-node-palette__nodes">
         {nodeTypes.map((nodeType) => (
           <div
@@ -189,13 +189,53 @@ function ReactFlowNodePalette({ onAddNode, onAddTemplate }: {
         <h4 className="react-flow-node-palette__templates-title">
           Templates
         </h4>
-        <div 
-          className="react-flow-node-palette__template"
-          onClick={onAddTemplate}
-        >
-          <div className="react-flow-node-palette__template-title">Assassin's Creed Brotherhood</div>
-          <div className="react-flow-node-palette__template-description">Ezio, Altaïr, Bayek & Edward coordinate a mission</div>
-        </div>
+        {(() => {
+          const difficultyRank: Record<'simple' | 'medium' | 'advanced', number> = { simple: 0, medium: 1, advanced: 2 };
+          const templates = getAllTemplates().sort((a, b) => difficultyRank[a.difficulty] - difficultyRank[b.difficulty]);
+          return templates.map((t) => (
+            <div
+              key={t.id}
+              className="react-flow-node-palette__template"
+              onClick={() => onAddTemplate(t.id as TemplateType)}
+            >
+              <div className="react-flow-node-palette__template-title">
+                {t.name}
+                {(() => {
+                  const badgeStyles: Record<'simple' | 'medium' | 'advanced', React.CSSProperties> = {
+                    simple: {
+                      backgroundColor: '#ecfdf5', // emerald-50
+                      color: '#065f46', // emerald-800
+                      border: '1px solid #a7f3d0', // emerald-200
+                    },
+                    medium: {
+                      backgroundColor: '#fffbeb', // amber-50
+                      color: '#92400e', // amber-800
+                      border: '1px solid #fde68a', // amber-200
+                    },
+                    advanced: {
+                      backgroundColor: '#fef2f2', // rose-50
+                      color: '#7f1d1d', // rose-900
+                      border: '1px solid #fecaca', // rose-200
+                    },
+                  };
+                  return (
+                    <span style={{
+                      marginLeft: 8,
+                      fontSize: 12,
+                      padding: '2px 8px',
+                      borderRadius: 9999,
+                      textTransform: 'capitalize',
+                      ...badgeStyles[t.difficulty],
+                    }}>
+                      {t.difficulty}
+                    </span>
+                  );
+                })()}
+              </div>
+              <div className="react-flow-node-palette__template-description">{t.description}</div>
+            </div>
+          ));
+        })()}
       </div>
     </div>
   );
@@ -232,7 +272,7 @@ const loadFromLocalStorage = () => {
 function FlowBuilderInternal() {
   const { theme } = useThemeContext();
   const initialState = loadFromLocalStorage();
-  
+
   const [nodes, setNodes, onNodesChange] = useNodesState<ReactFlowAINode>(initialState?.nodes || []);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialState?.edges || []);
   const [selectedNode, setSelectedNode] = useState<ReactFlowAINode | null>(null);
@@ -268,9 +308,9 @@ function FlowBuilderInternal() {
     const newNode: Node<ReactFlowAINode> = {
       id: nodeData.id,
       type: 'aiFlowNode',
-      position: { 
-        x: Math.random() * 400 + 100, 
-        y: Math.random() * 400 + 100 
+      position: {
+        x: Math.random() * 400 + 100,
+        y: Math.random() * 400 + 100
       },
       data: nodeData,
       style: {
@@ -285,9 +325,14 @@ function FlowBuilderInternal() {
   // Handle connections
   const onConnect = useCallback(
     (connection: Connection) => {
+      if (!connection.source || !connection.target) return;
+
       const edge: Edge = {
-        ...connection,
         id: `${connection.source}-${connection.target}`,
+        source: connection.source,
+        target: connection.target,
+        sourceHandle: connection.sourceHandle,
+        targetHandle: connection.targetHandle,
         type: 'default', // Use default bezier edge
         markerEnd: {
           type: MarkerType.ArrowClosed,
@@ -317,7 +362,7 @@ function FlowBuilderInternal() {
       event.preventDefault();
 
       const type = event.dataTransfer.getData('application/reactflow') as ReactFlowAINode['type'];
-      
+
       if (typeof type === 'undefined' || !type || !reactFlowInstance) {
         return;
       }
@@ -389,7 +434,7 @@ function FlowBuilderInternal() {
         return node;
       })
     );
-    
+
     if (selectedNode?.id === id) {
       setSelectedNode({ ...selectedNode, ...updates });
     }
@@ -429,25 +474,13 @@ function FlowBuilderInternal() {
     });
   }, [setNodes]);
 
-  // Add template function with better spacing and connections
-  const addTemplate = useCallback(() => {
-    // Template nodes with increased spacing for better layout
-    const templateNodeConfigs = [
-      { id: 'mission-brief', type: 'input' as const, label: 'Mission Brief', description: 'Receive assassination target and intel', x: 100, y: 300 },
-      { id: 'eagle-vision', type: 'sensor' as const, label: 'Eagle Vision', description: 'Scan environment for threats and opportunities', x: 350, y: 200 },
-      { id: 'ezio', type: 'agent' as const, label: 'Ezio Auditore', description: 'Master strategist, plans the approach and coordinates team', x: 600, y: 100 },
-      { id: 'altair', type: 'agent' as const, label: 'Altaïr Ibn-LaAhad', description: 'Legendary assassin, executes high-priority eliminations', x: 600, y: 250 },
-      { id: 'bayek', type: 'agent' as const, label: 'Bayek of Siwa', description: 'Hidden One, investigates targets and gathers intelligence', x: 600, y: 400 },
-      { id: 'edward', type: 'agent' as const, label: 'Edward Kenway', description: 'Pirate assassin, handles naval operations and combat', x: 600, y: 550 },
-      { id: 'hidden-blade', type: 'skill' as const, label: 'Hidden Blade', description: 'Silent assassination technique', x: 900, y: 150 },
-      { id: 'free-running', type: 'skill' as const, label: 'Free Running', description: 'Parkour and escape routes', x: 900, y: 300 },
-      { id: 'combat-training', type: 'skill' as const, label: 'Combat Training', description: 'Sword fighting and counter-attacks', x: 900, y: 450 },
-      { id: 'mission-success', type: 'decision' as const, label: 'Mission Success?', description: 'Evaluate if target eliminated and escape completed', x: 1200, y: 325 },
-      { id: 'brotherhood-report', type: 'output' as const, label: 'Brotherhood Report', description: 'Mission status and next objectives', x: 1500, y: 325 },
-    ];
+  // Add template function using the new template system
+  const addTemplate = useCallback((templateType: TemplateType = 'assassins-creed') => {
+    const template = getTemplate(templateType);
+    const { nodes: templateNodes, connections: templateConnections } = template;
 
     // Create nodes
-    const newNodes = templateNodeConfigs.map(nodeTemplate => {
+    const newNodes = templateNodes.map(nodeTemplate => {
       const nodeDefaults = {
         agent: { width: 140, height: 80, color: '#f0f9ff' },
         sensor: { width: 120, height: 60, color: '#f0fdf4' },
@@ -467,7 +500,7 @@ function FlowBuilderInternal() {
         height: defaults.height,
         label: nodeTemplate.label,
         description: nodeTemplate.description,
-        config: {},
+        config: nodeTemplate.config || {},
         color: defaults.color,
         borderColor: '#e5e7eb',
         borderWidth: 1,
@@ -488,28 +521,6 @@ function FlowBuilderInternal() {
     });
 
     // Create template connections/edges
-    const templateConnections = [
-      // Mission Brief → Eagle Vision
-      { source: 'mission-brief', target: 'eagle-vision', sourceHandle: 'right', targetHandle: 'left' },
-      // Eagle Vision → All Agents
-      { source: 'eagle-vision', target: 'ezio', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'eagle-vision', target: 'altair', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'eagle-vision', target: 'bayek', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'eagle-vision', target: 'edward', sourceHandle: 'right', targetHandle: 'left' },
-      // Agents → Skills
-      { source: 'ezio', target: 'hidden-blade', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'altair', target: 'hidden-blade', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'ezio', target: 'free-running', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'bayek', target: 'free-running', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'edward', target: 'combat-training', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'altair', target: 'combat-training', sourceHandle: 'right', targetHandle: 'left' },
-      // Skills → Decision
-      { source: 'hidden-blade', target: 'mission-success', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'free-running', target: 'mission-success', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'combat-training', target: 'mission-success', sourceHandle: 'right', targetHandle: 'left' },
-      // Decision → Report
-      { source: 'mission-success', target: 'brotherhood-report', sourceHandle: 'right', targetHandle: 'left' },
-    ];
 
     const newEdges = templateConnections.map((conn, index) => ({
       id: `template-edge-${index}`,
@@ -544,7 +555,7 @@ function FlowBuilderInternal() {
           deleteNode(selectedNode.id);
         }
       }
-      
+
       // Duplicate node with Ctrl+D (Windows/Linux) or Cmd+D (Mac)
       if (e.key === 'd' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault(); // Prevent browser bookmark shortcut
@@ -566,7 +577,7 @@ function FlowBuilderInternal() {
           <Cpu size={20} />
           Helix
         </a>
-        
+
         <div className="flow-builder__header-controls">
           <div className="flow-builder__stats">
             <span className="flow-builder__stat">
@@ -600,7 +611,6 @@ function FlowBuilderInternal() {
             onDragOver={onDragOver}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
-            colorMode={theme as ColorMode}
             defaultViewport={initialState?.viewport || { x: 0, y: 0, zoom: 1 }}
             className="flow-canvas__reactflow"
             connectionLineStyle={{ stroke: '#9ca3af', strokeWidth: 2 }}
@@ -615,13 +625,12 @@ function FlowBuilderInternal() {
             panOnScroll={true}
             selectionOnDrag={true}
             panOnDrag={[1, 2]}
-            selectionMode="partial"
             zoomOnScroll={true}
             zoomOnPinch={true}
             zoomOnDoubleClick={false}
           >
             <Controls className="flow-canvas__controls" />
-            <MiniMap 
+            <MiniMap
               style={{
                 height: 120,
                 width: 200,
@@ -634,9 +643,9 @@ function FlowBuilderInternal() {
               position="bottom-right"
               offsetScale={0.8}
             />
-            <Background 
-              color="#f3f4f6" 
-              gap={20} 
+            <Background
+              color="#f3f4f6"
+              gap={20}
               size={1}
               className="flow-canvas__background"
             />
@@ -649,7 +658,7 @@ function FlowBuilderInternal() {
             selectedNode={selectedNode}
             selectedConnection={null}
             onUpdateNode={updateNode}
-            onUpdateConnection={() => {}}
+            onUpdateConnection={() => { }}
             onDeleteNode={deleteNode}
           />
         </div>

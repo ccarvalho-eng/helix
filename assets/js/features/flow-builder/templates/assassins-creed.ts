@@ -1,0 +1,43 @@
+import { Template } from './types';
+
+export const assassinsCreedTemplate: Template = {
+  id: 'assassins-creed',
+  name: "Assassin's Creed Brotherhood",
+  description: 'Ezio, Altaïr, Bayek & Edward coordinate a mission',
+  difficulty: 'simple',
+  nodes: [
+    { id: 'mission-brief', type: 'input', label: 'Mission Brief', description: 'Receive assassination target and intel', x: 100, y: 300 },
+    { id: 'eagle-vision', type: 'sensor', label: 'Eagle Vision', description: 'Scan environment for threats and opportunities', x: 350, y: 200, config: { source_type: 'sensor', filters: 'targets, guards' } },
+    { id: 'ezio', type: 'agent', label: 'Ezio Auditore', description: 'Master strategist, plans the approach and coordinates team', x: 600, y: 100, config: { model: 'gpt-4', temperature: 0.4, max_tokens: 512, system_prompt: 'Strategize and coordinate stealth operations.' } },
+    { id: 'altair', type: 'agent', label: 'Altaïr Ibn-LaAhad', description: 'Legendary assassin, executes high-priority eliminations', x: 600, y: 250, config: { model: 'gpt-4', temperature: 0.2, max_tokens: 400, system_prompt: 'Execute precise eliminations.' } },
+    { id: 'bayek', type: 'agent', label: 'Bayek of Siwa', description: 'Hidden One, investigates targets and gathers intelligence', x: 600, y: 400, config: { model: 'claude-3', temperature: 0.5, max_tokens: 600, system_prompt: 'Investigate and gather intel.' } },
+    { id: 'edward', type: 'agent', label: 'Edward Kenway', description: 'Pirate assassin, handles naval operations and combat', x: 600, y: 550, config: { model: 'llama-2', temperature: 0.6, max_tokens: 500, system_prompt: 'Handle naval operations and direct combat.' } },
+    { id: 'hidden-blade', type: 'skill', label: 'Hidden Blade', description: 'Silent assassination technique', x: 900, y: 150, config: { skill_type: 'custom' } },
+    { id: 'free-running', type: 'skill', label: 'Free Running', description: 'Parkour and escape routes', x: 900, y: 300, config: { skill_type: 'custom' } },
+    { id: 'combat-training', type: 'skill', label: 'Combat Training', description: 'Sword fighting and counter-attacks', x: 900, y: 450, config: { skill_type: 'custom' } },
+    { id: 'mission-success', type: 'decision', label: 'Mission Success?', description: 'Evaluate if target eliminated and escape completed', x: 1200, y: 325, config: { condition_type: 'simple', condition: 'target_eliminated && escaped' } },
+    { id: 'brotherhood-report', type: 'output', label: 'Brotherhood Report', description: 'Mission status and next objectives', x: 1500, y: 325 },
+  ],
+  connections: [
+    // Mission Brief → Eagle Vision
+    { source: 'mission-brief', target: 'eagle-vision', sourceHandle: 'right', targetHandle: 'left' },
+    // Eagle Vision → All Agents
+    { source: 'eagle-vision', target: 'ezio', sourceHandle: 'right', targetHandle: 'left' },
+    { source: 'eagle-vision', target: 'altair', sourceHandle: 'right', targetHandle: 'left' },
+    { source: 'eagle-vision', target: 'bayek', sourceHandle: 'right', targetHandle: 'left' },
+    { source: 'eagle-vision', target: 'edward', sourceHandle: 'right', targetHandle: 'left' },
+    // Agents → Skills
+    { source: 'ezio', target: 'hidden-blade', sourceHandle: 'right', targetHandle: 'left' },
+    { source: 'altair', target: 'hidden-blade', sourceHandle: 'right', targetHandle: 'left' },
+    { source: 'ezio', target: 'free-running', sourceHandle: 'right', targetHandle: 'left' },
+    { source: 'bayek', target: 'free-running', sourceHandle: 'right', targetHandle: 'left' },
+    { source: 'edward', target: 'combat-training', sourceHandle: 'right', targetHandle: 'left' },
+    { source: 'altair', target: 'combat-training', sourceHandle: 'right', targetHandle: 'left' },
+    // Skills → Decision
+    { source: 'hidden-blade', target: 'mission-success', sourceHandle: 'right', targetHandle: 'left' },
+    { source: 'free-running', target: 'mission-success', sourceHandle: 'right', targetHandle: 'left' },
+    { source: 'combat-training', target: 'mission-success', sourceHandle: 'right', targetHandle: 'left' },
+    // Decision → Report
+    { source: 'mission-success', target: 'brotherhood-report', sourceHandle: 'right', targetHandle: 'left' },
+  ],
+};
