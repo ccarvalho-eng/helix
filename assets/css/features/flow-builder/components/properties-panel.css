@@ -60,17 +60,17 @@
   font-weight: 500;
   border-radius: 4px;
   letter-spacing: 0.05em;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .properties-panel__fields {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .properties-panel__field {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .properties-panel__label {
@@ -108,7 +108,7 @@
 }
 
 .properties-panel__textarea {
-  min-height: 60px;
+  min-height: 56px;
   resize: vertical;
   line-height: 1.4;
 }
@@ -120,7 +120,7 @@
   background-position: right 12px center;
   background-repeat: no-repeat;
   background-size: 16px;
-  padding-right: 40px;
+  padding-right: 36px;
 }
 
 .properties-panel__color-input {
@@ -228,19 +228,19 @@
 }
 
 .properties-panel__config-section {
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .properties-panel__config-title {
   font-size: 13px;
   font-weight: 500;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   color: var(--flow-builder-text-primary);
 }
 
 .properties-panel__delete-section {
-  margin-top: 20px;
-  padding-top: 16px;
+  margin-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid var(--flow-builder-border);
 }
 
@@ -275,44 +275,44 @@
 }
 
 .properties-panel__empty {
-  padding: 24px;
+  padding: 16px;
 }
 
 .properties-panel__empty-title {
   font-size: 18px;
   font-weight: 600;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   color: var(--flow-builder-text-primary);
 }
 
 .properties-panel__empty-text {
   font-size: 13px;
   color: var(--flow-builder-text-muted);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .properties-panel__help {
-  margin-top: 32px;
-  padding: 20px;
+  margin-top: 16px;
+  padding: 12px;
   background: var(--flow-builder-button-hover-bg);
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid var(--flow-builder-border);
 }
 
 .properties-panel__help-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   color: var(--flow-builder-text-primary);
 }
 
 .properties-panel__help-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  font-size: 12px;
+  gap: 8px;
+  font-size: 11px;
   color: var(--flow-builder-text-secondary);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .properties-panel__help-item {
@@ -327,35 +327,35 @@
 
 /* Shortcuts section styling */
 .properties-panel__shortcuts {
-  margin-top: 16px;
-  padding-top: 12px;
+  margin-top: 10px;
+  padding-top: 8px;
   border-top: 1px solid var(--flow-builder-border);
 }
 
 .properties-panel__shortcuts-title {
   font-size: 12px;
   font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: var(--flow-builder-text-primary);
 }
 
 .properties-panel__shortcuts-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .properties-panel__shortcut {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 11px;
   color: var(--flow-builder-text-secondary);
 }
 
 .properties-panel__kbd {
   display: inline-block;
-  padding: 2px 6px;
+  padding: 1px 5px;
   background: var(--flow-builder-button-hover-bg);
   border: 1px solid var(--flow-builder-border);
   border-radius: 4px;

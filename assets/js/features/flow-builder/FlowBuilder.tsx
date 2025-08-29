@@ -281,6 +281,17 @@ function FlowBuilderInternal() {
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [isPropertiesOpen, setIsPropertiesOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener ? mq.addEventListener('change', update) : mq.addListener(update);
+    return () => {
+      mq.removeEventListener ? mq.removeEventListener('change', update) : mq.removeListener(update);
+    };
+  }, []);
 
   // Add node function
   const addNode = useCallback((type: ReactFlowAINode['type'], customLabel?: string, customDescription?: string) => {
@@ -580,7 +591,7 @@ function FlowBuilderInternal() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [selectedNode, deleteNode, duplicateNode]);
 
-  const hasAnyDrawerOpen = isPaletteOpen || isPropertiesOpen;
+  const hasAnyDrawerOpen = (isPaletteOpen || isPropertiesOpen) && isMobile;
 
   return (
     <div className="flow-builder">
@@ -623,7 +634,7 @@ function FlowBuilderInternal() {
 
       {/* Main Content */}
       <div className="flow-builder__content">
-        <div className={`react-flow-node-palette ${isPaletteOpen ? 'drawer drawer--left drawer--open' : 'drawer drawer--left'}`}>
+        <div className={`${isPaletteOpen ? 'drawer drawer--left drawer--open' : 'drawer drawer--left'}`}>
           {/* Mobile close button for palette */}
           {isPaletteOpen && (
             <button

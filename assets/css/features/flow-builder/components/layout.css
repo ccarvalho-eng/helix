@@ -107,6 +107,13 @@ body:has(.flow-builder) {
   .flow-canvas {
     height: calc(100vh - var(--flow-builder-header-height) - 140px);
   }
+
+  /* Hide drawers by default unless open */
+  .drawer--left:not(.drawer--open),
+  .drawer--right:not(.drawer--open) {
+    visibility: hidden;
+    pointer-events: none;
+  }
 }
 
 /* Hide properties panel entirely when width variable is 0 */
@@ -121,9 +128,20 @@ body:has(.flow-builder) {
   }
 }
 
+/* Ensure desktop drawers behave as normal static panels */
+@media (min-width: 769px) {
+  .drawer {
+    position: static;
+    transform: none !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+}
+
 /* Drawer styles for mobile */
 .drawer {
   position: relative;
+  background: var(--flow-builder-bg);
 }
 
 @media (max-width: 768px) {
@@ -173,23 +191,6 @@ body:has(.flow-builder) {
     border-radius: 6px;
     color: var(--flow-builder-button-text);
   }
-
-  .drawer__close {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    background: var(--flow-builder-button-bg);
-    border: 1px solid var(--flow-builder-button-border);
-    color: var(--flow-builder-button-text);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    line-height: 1;
-  }
 }
 
 @media (min-width: 769px) {
@@ -204,4 +205,32 @@ body:has(.flow-builder) {
   inset: 0;
   background: rgba(0, 0, 0, 0.3);
   z-index: 30;
+}
+
+/* Hide drawer close button on desktop */
+@media (min-width: 769px) {
+  .drawer__close {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .drawer__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    left: auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--flow-builder-button-bg);
+    border: 1px solid var(--flow-builder-button-border);
+    color: var(--flow-builder-button-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    line-height: 1;
+    z-index: 50;
+  }
 }
