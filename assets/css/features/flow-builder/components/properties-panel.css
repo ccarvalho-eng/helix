@@ -12,7 +12,7 @@
 }
 
 .properties-panel__content {
-  padding: 16px;
+  padding: 16px 20px 16px 16px;
 }
 
 .properties-panel__title {
@@ -142,15 +142,28 @@
   width: 100%;
   height: 4px;
   border-radius: 2px;
-  background: var(--flow-builder-border);
+  background: #e5e7eb;
 }
 
 .properties-panel__range::-moz-range-track {
   width: 100%;
   height: 4px;
   border-radius: 2px;
-  background: var(--flow-builder-border);
+  background: #e5e7eb;
   border: none;
+}
+
+/* Light mode - Blue progress fill */
+.properties-panel__range::-webkit-slider-progress {
+  background: #3b82f6;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.properties-panel__range::-moz-range-progress {
+  background: #3b82f6;
+  height: 4px;
+  border-radius: 2px;
 }
 
 .properties-panel__range::-webkit-slider-thumb {
