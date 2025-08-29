@@ -42,7 +42,8 @@ interface ReactFlowAINode extends OriginalAIFlowNode {
 }
 
 // Custom Node Component that matches the original design  
-function FlowNode({ data, selected }: { data: ReactFlowAINode; selected: boolean }) {
+function FlowNode({ data, selected, ...nodeProps }: { data: ReactFlowAINode; selected: boolean }) {
+  const { theme } = useThemeContext();
   const NodeIcon = {
     agent: Bot,
     sensor: Eye,
@@ -83,10 +84,8 @@ function FlowNode({ data, selected }: { data: ReactFlowAINode; selected: boolean
 
   const nodeStyle = {
     '--node-bg-color': data.color,
-    '--node-border-color': selected ? '#000000' : '#e5e7eb',
-    '--node-shadow': selected 
-      ? '0 0 0 1px #000000, 0 8px 24px rgba(0, 0, 0, 0.08)' 
-      : '0 1px 3px rgba(0, 0, 0, 0.06)',
+    '--node-border-color': '#e5e7eb',
+    '--node-shadow': '0 1px 3px rgba(0, 0, 0, 0.06)',
     // Remove fixed dimensions to allow resizing
     width: '100%',
     height: '100%',
@@ -99,7 +98,7 @@ function FlowNode({ data, selected }: { data: ReactFlowAINode; selected: boolean
     >
       {/* Node Resizer - only visible when selected */}
       <NodeResizer
-        color="#98c379"
+        color={theme === 'dark' ? "#98c379" : "#000000"}
         isVisible={selected}
         minWidth={parseInt(width)}
         minHeight={parseInt(height)}

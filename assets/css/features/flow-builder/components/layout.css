@@ -1,4 +1,11 @@
-/* Flow Builder Layout */
+/* Flow Builder Layout - Prevent page scrollbars */
+html:has(.flow-builder),
+body:has(.flow-builder) {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
 .flow-builder {
   width: 100vw;
   height: 100vh;
@@ -6,6 +13,9 @@
   flex-direction: column;
   background: var(--flow-builder-bg);
   overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 .flow-builder__header {
