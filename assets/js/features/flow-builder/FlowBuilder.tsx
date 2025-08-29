@@ -9,6 +9,7 @@ import {
   useEdgesState,
   Controls,
   Background,
+  MiniMap,
   NodeTypes,
   EdgeTypes,
   MarkerType,
@@ -611,8 +612,28 @@ function FlowBuilderInternal() {
             fitView
             attributionPosition="bottom-left"
             proOptions={{ hideAttribution: true }}
+            panOnScroll={true}
+            selectionOnDrag={true}
+            panOnDrag={[1, 2]}
+            selectionMode="partial"
+            zoomOnScroll={true}
+            zoomOnPinch={true}
+            zoomOnDoubleClick={false}
           >
             <Controls className="flow-canvas__controls" />
+            <MiniMap 
+              style={{
+                height: 120,
+                width: 200,
+                backgroundColor: theme === 'dark' ? '#1e1e1e' : '#ffffff',
+                border: `1px solid ${theme === 'dark' ? '#404040' : '#e5e7eb'}`,
+                borderRadius: '8px',
+              }}
+              zoomable
+              pannable
+              position="bottom-right"
+              offsetScale={0.8}
+            />
             <Background 
               color="#f3f4f6" 
               gap={20} 
