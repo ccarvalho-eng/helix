@@ -23,12 +23,6 @@ html, body {
   overflow-x: hidden;
 }
 
-/* Ensure no horizontal scrollbars */
-body {
-  min-width: 100vw;
-  max-width: 100vw;
-}
-
 /* Additional fixes for dark mode white space */
 html {
   overflow-x: hidden;
@@ -37,12 +31,6 @@ html {
 /* Ensure all containers respect viewport width */
 * {
   box-sizing: border-box;
-}
-
-/* Prevent any element from causing horizontal overflow */
-body > * {
-  max-width: 100vw;
-  overflow-x: hidden;
 }
 
 /* This file is for your main application CSS */
