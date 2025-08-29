@@ -7,7 +7,7 @@
   --flow-builder-sidebar-width: 250px;
   --flow-builder-properties-width: 320px;
   --flow-builder-properties-width-small: 250px;
-  
+
   /* Light theme colors */
   --flow-builder-bg: #ffffff;
   --flow-builder-border: #e5e7eb;
@@ -23,13 +23,29 @@
   --flow-builder-button-border: #d1d5db;
   --flow-builder-button-text: #374151;
   --flow-builder-button-hover-bg: #f9fafb;
-  
+
   /* Node defaults */
   --flow-node-border-radius: 12px;
   --flow-node-padding: 16px;
   --flow-node-font-size: 13px;
   --flow-node-font-weight: 400;
   --flow-node-transition: all 0.2s;
+}
+
+/* Responsive variable adjustments */
+@media (max-width: 1024px) {
+  :root {
+    --flow-builder-sidebar-width: 220px;
+    --flow-builder-properties-width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --flow-builder-sidebar-width: 180px;
+    --flow-builder-properties-width: 0px;
+    /* hide properties panel */
+  }
 }
 
 /* Dark theme colors - Using Atom One Dark global theme */

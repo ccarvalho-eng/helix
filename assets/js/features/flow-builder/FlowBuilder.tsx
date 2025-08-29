@@ -34,7 +34,9 @@ import {
   ArrowRight,
   Cpu,
   Circle,
-  Zap
+  Zap,
+  Menu,
+  Sliders
 } from 'lucide-react';
 
 // Extended node interface for React Flow
@@ -277,6 +279,8 @@ function FlowBuilderInternal() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialState?.edges || []);
   const [selectedNode, setSelectedNode] = useState<ReactFlowAINode | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [isPropertiesOpen, setIsPropertiesOpen] = useState(false);
 
   // Add node function
   const addNode = useCallback((type: ReactFlowAINode['type'], customLabel?: string, customDescription?: string) => {
@@ -418,6 +422,7 @@ function FlowBuilderInternal() {
   const onSelectionChange = useCallback(({ nodes: selectedNodes }: { nodes: Node<ReactFlowAINode>[] }) => {
     if (selectedNodes.length > 0) {
       setSelectedNode(selectedNodes[0].data);
+      setIsPropertiesOpen(true);
     } else {
       setSelectedNode(null);
     }
@@ -563,11 +568,19 @@ function FlowBuilderInternal() {
           duplicateNode(selectedNode.id);
         }
       }
+
+      // Escape closes drawers on mobile
+      if (e.key === 'Escape') {
+        setIsPaletteOpen(false);
+        setIsPropertiesOpen(false);
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [selectedNode, deleteNode, duplicateNode]);
+
+  const hasAnyDrawerOpen = isPaletteOpen || isPropertiesOpen;
 
   return (
     <div className="flow-builder">
@@ -590,12 +603,39 @@ function FlowBuilderInternal() {
             </span>
           </div>
           <ThemeToggle />
+          {/* Mobile burgers */}
+          <button
+            className="flow-builder__burger flow-builder__burger--left"
+            aria-label="Toggle node palette"
+            onClick={() => setIsPaletteOpen((v) => !v)}
+          >
+            <Menu size={18} />
+          </button>
+          <button
+            className="flow-builder__burger flow-builder__burger--right"
+            aria-label="Toggle properties"
+            onClick={() => setIsPropertiesOpen((v) => !v)}
+          >
+            <Sliders size={18} />
+          </button>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flow-builder__content">
-        <ReactFlowNodePalette onAddNode={addNode} onAddTemplate={addTemplate} />
+        <div className={`react-flow-node-palette ${isPaletteOpen ? 'drawer drawer--left drawer--open' : 'drawer drawer--left'}`}>
+          {/* Mobile close button for palette */}
+          {isPaletteOpen && (
+            <button
+              className="drawer__close drawer__close--left"
+              aria-label="Close node palette"
+              onClick={() => setIsPaletteOpen(false)}
+            >
+              ×
+            </button>
+          )}
+          <ReactFlowNodePalette onAddNode={addNode} onAddTemplate={addTemplate} />
+        </div>
 
         {/* React Flow Canvas */}
         <div className="flow-canvas">
@@ -653,7 +693,7 @@ function FlowBuilderInternal() {
         </div>
 
         {/* Properties Panel (same as original) */}
-        <div className="properties-panel">
+        <div className={`properties-panel ${isPropertiesOpen ? 'drawer drawer--right drawer--open' : 'drawer drawer--right'}`}>
           <PropertiesPanel
             selectedNode={selectedNode}
             selectedConnection={null}
@@ -663,6 +703,14 @@ function FlowBuilderInternal() {
           />
         </div>
       </div>
+
+      {/* Mobile backdrop */}
+      {hasAnyDrawerOpen && (
+        <div
+          className="flow-builder__backdrop"
+          onClick={() => { setIsPaletteOpen(false); setIsPropertiesOpen(false); }}
+        />
+      )}
     </div>
   );
 }
