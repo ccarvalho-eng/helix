@@ -23,10 +23,6 @@ export function getTemplate(templateType: TemplateType): Template {
   return templateRegistry[templateType];
 }
 
-export function getAllTemplates(): Template[] {
-  return Object.values(templateRegistry);
-}
-
 export function getTemplatesByCategory(category: TemplateCategory): Template[] {
   return Object.values(templateRegistry).filter(template => template.category === category);
 }
@@ -34,9 +30,4 @@ export function getTemplatesByCategory(category: TemplateCategory): Template[] {
 export function getFeaturedTemplates(): Template[] {
   // Show technology templates on the main page
   return getTemplatesByCategory('technology');
-}
-
-export function getModalTemplates(): Template[] {
-  // Show gaming templates in the "see all" modal
-  return getTemplatesByCategory('gaming');
 }

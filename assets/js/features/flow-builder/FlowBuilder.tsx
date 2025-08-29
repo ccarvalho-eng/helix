@@ -20,7 +20,7 @@ import {
 } from 'reactflow';
 
 import { AIFlowNode as OriginalAIFlowNode } from './types';
-import { getTemplate, TemplateType, getAllTemplates, getFeaturedTemplates, getTemplatesByCategory } from './templates';
+import { getTemplate, TemplateType, getFeaturedTemplates, getTemplatesByCategory } from './templates';
 import { Template } from './templates/types';
 import { PropertiesPanel } from './components/properties';
 import { ErrorBoundary } from '../../components/ui/ErrorBoundary';
