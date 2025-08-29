@@ -102,31 +102,7 @@ function CustomAIFlowNode({ data, selected }: { data: ReactFlowAINode; selected:
         minHeight: height,
       }}
     >
-      {/* React Flow Handles for connections - All 4 sides */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="top"
-        style={{
-          top: -3,
-          width: 6,
-          height: 6,
-          backgroundColor: '#9ca3af',
-          border: '1px solid white',
-        }}
-      />
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        id="bottom"
-        style={{
-          bottom: -3,
-          width: 6,
-          height: 6,
-          backgroundColor: '#9ca3af',
-          border: '1px solid white',
-        }}
-      />
+      {/* React Flow Handles for connections - Left and Right only */}
       <Handle
         type="target"
         position={Position.Left}
@@ -168,9 +144,7 @@ const nodeTypes: NodeTypes = {
 };
 
 // Custom edge type that matches original design
-const edgeTypes: EdgeTypes = {
-  // Use default bezier edge with custom styling
-};
+const edgeTypes: EdgeTypes = {};
 
 // Button component (same as original)
 function Button({ 
