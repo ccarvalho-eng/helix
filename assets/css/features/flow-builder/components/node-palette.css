@@ -43,6 +43,12 @@
   background: var(--flow-builder-button-hover-bg);
 }
 
+/* Dark theme - Green accent on hover */
+[data-theme="dark"] .node-palette__node:hover {
+  border-color: var(--theme-syntax-green);
+  background: var(--flow-builder-button-hover-bg);
+}
+
 .node-palette__node-info {
   display: flex;
   flex-direction: column;
@@ -81,6 +87,12 @@
 
 .node-palette__template:hover {
   background: var(--flow-builder-button-hover-bg);
+}
+
+/* Dark theme - Green accent for template hover */
+[data-theme="dark"] .node-palette__template:hover {
+  background: var(--flow-builder-button-hover-bg);
+  border-color: var(--theme-syntax-green);
 }
 
 .node-palette__template-title {
@@ -231,6 +243,12 @@
   background: var(--flow-builder-button-hover-bg);
 }
 
+/* Dark theme - Green accent for React Flow nodes */
+[data-theme="dark"] .react-flow-node-palette__node:hover {
+  border-color: var(--theme-syntax-green);
+  background: var(--flow-builder-button-hover-bg);
+}
+
 .react-flow-node-palette__node-info {
   display: flex;
   flex-direction: column;
@@ -269,6 +287,12 @@
 
 .react-flow-node-palette__template:hover {
   background: var(--flow-builder-button-hover-bg);
+}
+
+/* Dark theme - Green accent for React Flow template */
+[data-theme="dark"] .react-flow-node-palette__template:hover {
+  background: var(--flow-builder-button-hover-bg);
+  border-color: var(--theme-syntax-green);
 }
 
 .react-flow-node-palette__template-title {

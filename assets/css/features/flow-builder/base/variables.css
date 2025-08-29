@@ -32,20 +32,20 @@
   --flow-node-transition: all 0.2s;
 }
 
-/* Dark theme colors */
+/* Dark theme colors - Using Atom One Dark global theme */
 [data-theme="dark"] {
-  --flow-builder-bg: #1f2937;
-  --flow-builder-border: #374151;
-  --flow-builder-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  --flow-builder-text-primary: #f9fafb;
-  --flow-builder-text-secondary: #d1d5db;
-  --flow-builder-text-muted: #9ca3af;
-  --flow-builder-canvas-bg: #111827;
-  --flow-builder-panel-bg: #1f2937;
-  --flow-builder-input-bg: #374151;
-  --flow-builder-input-border: #4b5563;
-  --flow-builder-button-bg: #374151;
-  --flow-builder-button-border: #4b5563;
-  --flow-builder-button-text: #f9fafb;
-  --flow-builder-button-hover-bg: #4b5563;
+  --flow-builder-bg: var(--theme-bg-secondary);
+  --flow-builder-border: var(--theme-border-primary);
+  --flow-builder-shadow: var(--theme-shadow);
+  --flow-builder-text-primary: var(--theme-text-primary);
+  --flow-builder-text-secondary: var(--theme-text-secondary);
+  --flow-builder-text-muted: var(--theme-text-muted);
+  --flow-builder-canvas-bg: var(--theme-bg-primary);
+  --flow-builder-panel-bg: var(--theme-bg-secondary);
+  --flow-builder-input-bg: var(--theme-input-bg);
+  --flow-builder-input-border: var(--theme-input-border);
+  --flow-builder-button-bg: var(--theme-input-bg);
+  --flow-builder-button-border: var(--theme-input-border);
+  --flow-builder-button-text: var(--theme-text-primary);
+  --flow-builder-button-hover-bg: var(--theme-bg-tertiary);
 }

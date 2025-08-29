@@ -8,6 +8,13 @@
   margin: 20px;
 }
 
+/* Dark theme - Error styling with Atom colors */
+[data-theme="dark"] .error-boundary {
+  background: var(--theme-bg-tertiary);
+  color: var(--theme-syntax-red);
+  border: 1px solid var(--theme-syntax-red);
+}
+
 .error-boundary__title {
   font-size: 18px;
   font-weight: 600;
@@ -31,4 +38,14 @@
 
 .error-boundary__retry-btn:hover {
   background: #b91c1c;
+}
+
+/* Dark theme - Error button styling */
+[data-theme="dark"] .error-boundary__retry-btn {
+  background: var(--theme-syntax-red);
+  color: var(--theme-bg-primary);
+}
+
+[data-theme="dark"] .error-boundary__retry-btn:hover {
+  background: #c56565;
 }

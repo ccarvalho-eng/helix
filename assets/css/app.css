@@ -5,6 +5,9 @@
 /* React Flow styles */
 @import "reactflow/dist/style.css";
 
+/* Global theme */
+@import "./themes/atom-one-dark.css";
+
 /* Component styles */
 @import "./components.css";
 

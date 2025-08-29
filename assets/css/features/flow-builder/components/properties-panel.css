@@ -45,6 +45,12 @@
   border-bottom-color: var(--flow-builder-text-primary);
 }
 
+/* Dark theme - Use Atom green for active tab */
+[data-theme="dark"] .properties-panel__tab--active {
+  color: var(--theme-syntax-green);
+  border-bottom-color: var(--theme-syntax-green);
+}
+
 .properties-panel__node-type {
   display: inline-block;
   padding: 4px 8px;
@@ -95,6 +101,12 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+/* Dark theme - Green focus for inputs */
+[data-theme="dark"] .properties-panel__input:focus {
+  border-color: var(--theme-syntax-green);
+  box-shadow: 0 0 0 2px rgba(152, 195, 121, 0.2);
+}
+
 .properties-panel__textarea {
   min-height: 60px;
   resize: vertical;
@@ -123,6 +135,76 @@
   background: var(--flow-builder-border);
   outline: none;
   cursor: pointer;
+  appearance: none;
+}
+
+.properties-panel__range::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--flow-builder-border);
+}
+
+.properties-panel__range::-moz-range-track {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--flow-builder-border);
+  border: none;
+}
+
+.properties-panel__range::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--flow-builder-text-muted);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.properties-panel__range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--flow-builder-text-muted);
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+/* Dark theme - Green range slider */
+[data-theme="dark"] .properties-panel__range::-webkit-slider-thumb {
+  background: var(--theme-syntax-green);
+}
+
+[data-theme="dark"] .properties-panel__range::-moz-range-thumb {
+  background: var(--theme-syntax-green);
+}
+
+[data-theme="dark"] .properties-panel__range:focus::-webkit-slider-thumb {
+  background: var(--theme-syntax-green);
+  box-shadow: 0 0 0 3px rgba(152, 195, 121, 0.3);
+}
+
+[data-theme="dark"] .properties-panel__range:focus::-moz-range-thumb {
+  background: var(--theme-syntax-green);
+  box-shadow: 0 0 0 3px rgba(152, 195, 121, 0.3);
+}
+
+/* Dark theme - Green track styling */
+[data-theme="dark"] .properties-panel__range::-webkit-slider-runnable-track {
+  background: rgba(152, 195, 121, 0.3);
+}
+
+[data-theme="dark"] .properties-panel__range::-moz-range-track {
+  background: rgba(152, 195, 121, 0.3);
+}
+
+[data-theme="dark"] .properties-panel__range::-moz-range-progress {
+  background: var(--theme-syntax-green);
+  height: 4px;
+  border-radius: 2px;
 }
 
 .properties-panel__range-value {
@@ -164,6 +246,19 @@
 
 .properties-panel__delete-btn:hover {
   background: var(--flow-builder-text-secondary);
+}
+
+/* Dark theme - Subtle green accent for delete button */
+[data-theme="dark"] .properties-panel__delete-btn {
+  background: var(--theme-bg-tertiary);
+  color: var(--theme-text-primary);
+  border: 1px solid var(--theme-border-primary);
+}
+
+[data-theme="dark"] .properties-panel__delete-btn:hover {
+  background: var(--theme-syntax-green);
+  color: var(--theme-bg-primary);
+  border-color: var(--theme-syntax-green);
 }
 
 .properties-panel__empty {

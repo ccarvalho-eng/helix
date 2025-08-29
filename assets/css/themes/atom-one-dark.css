@@ -1,0 +1,92 @@
+/* ==========================================================================
+   Atom One Dark Global Theme
+   Based on the official Atom One Dark syntax theme
+   ========================================================================== */
+
+:root {
+  /* Light theme colors (default) */
+  --theme-bg-primary: #ffffff;
+  --theme-bg-secondary: #f9fafb;
+  --theme-bg-tertiary: #f3f4f6;
+  --theme-text-primary: #111827;
+  --theme-text-secondary: #6b7280;
+  --theme-text-muted: #9ca3af;
+  --theme-border-primary: #e5e7eb;
+  --theme-border-secondary: #d1d5db;
+  --theme-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  
+  /* Interactive colors */
+  --theme-button-bg: #111827;
+  --theme-button-text: #ffffff;
+  --theme-button-hover: #1f2937;
+  --theme-input-bg: #ffffff;
+  --theme-input-border: #d1d5db;
+  
+  /* Syntax highlighting colors (for future use) */
+  --theme-syntax-red: #dc2626;
+  --theme-syntax-green: #16a34a;
+  --theme-syntax-blue: #2563eb;
+  --theme-syntax-yellow: #ca8a04;
+  --theme-syntax-purple: #9333ea;
+  --theme-syntax-cyan: #0891b2;
+}
+
+/* Atom One Dark theme */
+[data-theme="dark"] {
+  /* Atom One Dark background colors */
+  --theme-bg-primary: #282c34;    /* Main editor background */
+  --theme-bg-secondary: #21252b;  /* Darker panels/sidebars */
+  --theme-bg-tertiary: #32363e;   /* Cards/elevated surfaces */
+  --theme-text-primary: #abb2bf;  /* Main foreground text */
+  --theme-text-secondary: #636d83; /* Secondary text/comments */
+  --theme-text-muted: #5c6370;    /* Muted text/disabled */
+  --theme-border-primary: #3e4451; /* Primary borders */
+  --theme-border-secondary: #2c313a; /* Subtle borders */
+  --theme-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  
+  /* Interactive elements with Atom One Dark style */
+  --theme-button-bg: #568af2;     /* Atom's blue accent */
+  --theme-button-text: #ffffff;
+  --theme-button-hover: #4078c0;  /* Darker blue on hover */
+  --theme-input-bg: #32363e;
+  --theme-input-border: #3e4451;
+  
+  /* Atom One Dark syntax colors */
+  --theme-syntax-red: #e06c75;    /* Variables, tags */
+  --theme-syntax-green: #98c379;  /* Strings */
+  --theme-syntax-blue: #61afef;   /* Functions, attributes */
+  --theme-syntax-yellow: #e5c07b; /* Classes, constants */
+  --theme-syntax-purple: #c678dd; /* Keywords, operators */
+  --theme-syntax-cyan: #56b6c2;   /* Support, regex */
+}
+
+/* Global body styling for Atom theme */
+body {
+  background: var(--theme-bg-primary);
+  color: var(--theme-text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Scrollbar styling for dark theme */
+[data-theme="dark"] ::-webkit-scrollbar {
+  width: 12px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: var(--theme-bg-secondary);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--theme-border-primary);
+  border-radius: 6px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-text-muted);
+}
+
+/* Selection styling */
+[data-theme="dark"] ::selection {
+  background: #3e4451;
+  color: var(--theme-text-primary);
+}

@@ -10,7 +10,7 @@
   justify-content: center;
   font-size: 13px;
   font-weight: 400;
-  color: #1f2937;
+  color: var(--flow-builder-text-primary);
   box-shadow: var(--node-shadow, 0 1px 3px rgba(0, 0, 0, 0.06));
   transition: all 0.2s;
   user-select: none;
@@ -23,6 +23,12 @@
 .flow-node--selected {
   border-color: #000000;
   box-shadow: 0 0 0 1px #000000, 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark theme - Green selection styling */
+[data-theme="dark"] .flow-node--selected {
+  border-color: var(--theme-syntax-green);
+  box-shadow: 0 0 0 2px var(--theme-syntax-green), 0 8px 24px rgba(152, 195, 121, 0.2);
 }
 
 .flow-node__icon {

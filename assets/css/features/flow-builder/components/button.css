@@ -27,3 +27,20 @@
   background: #000000;
   color: #ffffff;
 }
+
+/* Dark theme - Button styling */
+[data-theme="dark"] .btn {
+  border: 1px solid var(--theme-border-primary);
+  background: var(--theme-bg-tertiary);
+  color: var(--theme-text-primary);
+}
+
+[data-theme="dark"] .btn:hover:not(:disabled):not(.btn--active) {
+  background: var(--theme-border-primary);
+}
+
+[data-theme="dark"] .btn--active {
+  background: var(--theme-syntax-green);
+  color: var(--theme-bg-primary);
+  border-color: var(--theme-syntax-green);
+}

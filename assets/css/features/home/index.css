@@ -19,20 +19,20 @@
   --home-border-dashed-hover: #9ca3af;
 }
 
-/* Dark theme home colors */
+/* Dark theme home colors - Using Atom One Dark global theme */
 [data-theme="dark"] {
-  --home-bg: #1f2937;
-  --home-text-primary: #f9fafb;
-  --home-text-secondary: #d1d5db;
-  --home-text-muted: #9ca3af;
-  --home-border: #374151;
-  --home-card-bg: #111827;
-  --home-card-hover: #374151;
-  --home-button-bg: #f9fafb;
-  --home-button-text: #111827;
-  --home-button-hover: #e5e7eb;
-  --home-border-dashed: #4b5563;
-  --home-border-dashed-hover: #6b7280;
+  --home-bg: var(--theme-bg-primary);
+  --home-text-primary: var(--theme-text-primary);
+  --home-text-secondary: var(--theme-text-secondary);
+  --home-text-muted: var(--theme-text-muted);
+  --home-border: var(--theme-border-primary);
+  --home-card-bg: var(--theme-bg-tertiary);
+  --home-card-hover: var(--theme-border-primary);
+  --home-button-bg: var(--theme-button-bg);
+  --home-button-text: var(--theme-button-text);
+  --home-button-hover: var(--theme-button-hover);
+  --home-border-dashed: var(--theme-border-secondary);
+  --home-border-dashed-hover: var(--theme-border-primary);
 }
 
 /* Home page layout */
@@ -92,11 +92,21 @@
   color: var(--home-button-text);
   background: var(--home-button-bg);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .home-create-btn:hover {
   background: var(--home-button-hover);
+}
+
+/* Dark theme - Use Atom's green without effects */
+[data-theme="dark"] .home-create-btn {
+  background: var(--theme-syntax-green);
+  color: var(--theme-bg-primary);
+}
+
+[data-theme="dark"] .home-create-btn:hover {
+  background: #7fb069;
 }
 
 .home-create-btn svg {
@@ -158,6 +168,12 @@
 
 .home-workflow-card:hover {
   background: var(--home-card-hover);
+}
+
+/* Dark theme - Green accent on workflow card hover */
+[data-theme="dark"] .home-workflow-card:hover {
+  background: var(--home-card-hover);
+  border: 1px solid var(--theme-syntax-green);
 }
 
 .home-workflow-card__header {
@@ -240,6 +256,11 @@
 
 .home-empty-card__button:hover {
   color: var(--home-text-secondary);
+}
+
+/* Dark theme - Green accent for empty state button */
+[data-theme="dark"] .home-empty-card__button:hover {
+  color: var(--theme-syntax-green);
 }
 
 /* Footer */

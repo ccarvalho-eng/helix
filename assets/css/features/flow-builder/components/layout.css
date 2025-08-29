@@ -38,8 +38,27 @@
 }
 
 .flow-builder__stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   font-size: 14px;
   color: var(--flow-builder-text-secondary);
+}
+
+.flow-builder__stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.flow-builder__stat-icon {
+  color: var(--flow-builder-text-muted);
+  transition: color 0.2s ease;
+}
+
+/* Dark theme - Green icons for stats */
+[data-theme="dark"] .flow-builder__stat-icon {
+  color: var(--theme-syntax-green);
 }
 
 .flow-builder__content {

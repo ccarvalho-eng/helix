@@ -30,7 +30,9 @@ import {
   GitBranch, 
   ArrowLeft, 
   ArrowRight,
-  Cpu
+  Cpu,
+  Circle,
+  Zap
 } from 'lucide-react';
 
 // Extended node interface for React Flow
@@ -511,7 +513,14 @@ function FlowBuilderInternal() {
         
         <div className="flow-builder__header-controls">
           <div className="flow-builder__stats">
-            Nodes: {nodes.length} | Connections: {edges.length}
+            <span className="flow-builder__stat">
+              <Circle size={14} className="flow-builder__stat-icon" />
+              {nodes.length} nodes
+            </span>
+            <span className="flow-builder__stat">
+              <Zap size={14} className="flow-builder__stat-icon" />
+              {edges.length} connections
+            </span>
           </div>
           <ThemeToggle />
         </div>

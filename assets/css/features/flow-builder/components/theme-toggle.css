@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Theme Toggle Component
+   Theme Toggle Component - Atom One Dark Style
    ========================================================================== */
 
 .theme-toggle {
@@ -8,18 +8,19 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid var(--flow-builder-button-border);
+  border: 1px solid var(--theme-border-primary);
   border-radius: 8px;
-  background: var(--flow-builder-button-bg);
-  color: var(--flow-builder-button-text);
+  background: var(--theme-bg-tertiary);
+  color: var(--theme-text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .theme-toggle:hover {
-  background: var(--flow-builder-button-hover-bg);
+  background: var(--theme-border-primary);
+  border-color: var(--theme-text-muted);
   transform: translateY(-1px);
-  box-shadow: var(--flow-builder-shadow);
+  box-shadow: var(--theme-shadow);
 }
 
 .theme-toggle:active {
@@ -32,4 +33,16 @@
 
 .theme-toggle:hover svg {
   transform: scale(1.1);
+}
+
+/* Atom One Dark specific styling */
+[data-theme="dark"] .theme-toggle {
+  border-color: var(--theme-border-primary);
+  background: var(--theme-bg-tertiary);
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+  background: var(--theme-border-primary);
+  border-color: var(--theme-syntax-blue);
+  color: var(--theme-syntax-blue);
 }
