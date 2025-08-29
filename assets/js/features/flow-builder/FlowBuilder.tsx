@@ -404,6 +404,31 @@ function FlowBuilderInternal() {
     }
   }, [setNodes, setEdges, selectedNode]);
 
+  // Duplicate node function
+  const duplicateNode = useCallback((nodeId: string) => {
+    setNodes((nds) => {
+      const nodeToDuplicate = nds.find(node => node.id === nodeId);
+      if (!nodeToDuplicate) return nds;
+
+      const newNodeId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      const duplicatedNode: Node<ReactFlowAINode> = {
+        ...nodeToDuplicate,
+        id: newNodeId,
+        position: {
+          x: nodeToDuplicate.position.x + 20,
+          y: nodeToDuplicate.position.y + 20,
+        },
+        data: {
+          ...nodeToDuplicate.data,
+          id: newNodeId,
+        },
+        selected: false,
+      };
+
+      return [...nds, duplicatedNode];
+    });
+  }, [setNodes]);
+
   // Add template function with better spacing and connections
   const addTemplate = useCallback(() => {
     // Template nodes with increased spacing for better layout
@@ -513,16 +538,25 @@ function FlowBuilderInternal() {
   // Handle keyboard events
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Delete node with Delete/Backspace
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (selectedNode) {
           deleteNode(selectedNode.id);
+        }
+      }
+      
+      // Duplicate node with Ctrl+D (Windows/Linux) or Cmd+D (Mac)
+      if (e.key === 'd' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault(); // Prevent browser bookmark shortcut
+        if (selectedNode) {
+          duplicateNode(selectedNode.id);
         }
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedNode, deleteNode]);
+  }, [selectedNode, deleteNode, duplicateNode]);
 
   return (
     <div className="flow-builder">

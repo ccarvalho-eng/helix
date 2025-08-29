@@ -36,6 +36,40 @@ export function PropertiesPanel({
             <div className="properties-panel__help-item"><span className="properties-panel__help-label">Input/Output:</span> Flow entry/exit points</div>
           </div>
         </div>
+
+        <div className="properties-panel__help">
+          <h4 className="properties-panel__help-title">Quick Guide</h4>
+          <div className="properties-panel__help-list">
+            <div className="properties-panel__help-item">
+              <span className="properties-panel__help-label">Add Nodes:</span> Click or drag from palette
+            </div>
+            <div className="properties-panel__help-item">
+              <span className="properties-panel__help-label">Connect:</span> Drag from node handle to another
+            </div>
+            <div className="properties-panel__help-item">
+              <span className="properties-panel__help-label">Select:</span> Click node to view properties
+            </div>
+            <div className="properties-panel__help-item">
+              <span className="properties-panel__help-label">Resize:</span> Drag corners when selected
+            </div>
+          </div>
+        </div>
+
+        <div className="properties-panel__help">
+          <h4 className="properties-panel__help-title">Keyboard Shortcuts</h4>
+          <div className="properties-panel__shortcuts-list">
+            <div className="properties-panel__shortcut">
+              <kbd className="properties-panel__kbd">Ctrl+D</kbd>
+              <span>or</span>
+              <kbd className="properties-panel__kbd">⌘+D</kbd>
+              <span>Duplicate selected node</span>
+            </div>
+            <div className="properties-panel__shortcut">
+              <kbd className="properties-panel__kbd">Del</kbd>
+              <span>Delete selected node</span>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
