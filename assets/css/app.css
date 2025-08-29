@@ -2,6 +2,9 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+/* React Flow styles */
+@import "reactflow/dist/style.css";
+
 /* Component styles */
 @import "./components.css";
 

@@ -53,7 +53,7 @@ defmodule HelixWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {HelixWeb.Layouts, :app}
+        layout: {HelixWeb.Layouts, :root}
 
       unquote(html_helpers())
     end

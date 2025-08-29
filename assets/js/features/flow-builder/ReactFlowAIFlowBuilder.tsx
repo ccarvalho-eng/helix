@@ -16,7 +16,6 @@ import {
   Position,
   ReactFlowProvider,
 } from 'reactflow';
-import 'reactflow/dist/style.css';
 
 import { AIFlowNode as OriginalAIFlowNode } from './types';
 import { AIPropertiesPanel } from './components/properties';

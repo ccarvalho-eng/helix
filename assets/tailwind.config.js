@@ -8,6 +8,8 @@ const path = require("path")
 module.exports = {
   content: [
     "./js/**/*.js",
+    "./js/**/*.ts",
+    "./js/**/*.tsx",
     "../lib/helix_web.ex",
     "../lib/helix_web/**/*.*ex"
   ],

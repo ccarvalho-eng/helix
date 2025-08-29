@@ -24,6 +24,8 @@ import topbar from "../vendor/topbar"
 
 // Import the AI Flow Builder app
 import "./ai-flow-app"
+// Import the Home app
+import "./home-app"
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
