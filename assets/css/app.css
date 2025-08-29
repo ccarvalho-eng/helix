@@ -8,4 +8,7 @@
 /* Component styles */
 @import "./components.css";
 
+/* Feature styles */
+@import "./features/home/index.css";
+
 /* This file is for your main application CSS */

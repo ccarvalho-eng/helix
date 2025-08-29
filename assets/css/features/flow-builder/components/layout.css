@@ -31,6 +31,12 @@
   cursor: pointer;
 }
 
+.flow-builder__header-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .flow-builder__stats {
   font-size: 14px;
   color: var(--flow-builder-text-secondary);

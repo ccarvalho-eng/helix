@@ -8,13 +8,21 @@
   --flow-builder-properties-width: 320px;
   --flow-builder-properties-width-small: 250px;
   
-  /* Colors */
+  /* Light theme colors */
   --flow-builder-bg: #ffffff;
   --flow-builder-border: #e5e7eb;
   --flow-builder-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   --flow-builder-text-primary: #111827;
   --flow-builder-text-secondary: #6b7280;
   --flow-builder-text-muted: #9ca3af;
+  --flow-builder-canvas-bg: #f9fafb;
+  --flow-builder-panel-bg: #ffffff;
+  --flow-builder-input-bg: #ffffff;
+  --flow-builder-input-border: #d1d5db;
+  --flow-builder-button-bg: #ffffff;
+  --flow-builder-button-border: #d1d5db;
+  --flow-builder-button-text: #374151;
+  --flow-builder-button-hover-bg: #f9fafb;
   
   /* Node defaults */
   --flow-node-border-radius: 12px;
@@ -22,4 +30,22 @@
   --flow-node-font-size: 13px;
   --flow-node-font-weight: 400;
   --flow-node-transition: all 0.2s;
+}
+
+/* Dark theme colors */
+[data-theme="dark"] {
+  --flow-builder-bg: #1f2937;
+  --flow-builder-border: #374151;
+  --flow-builder-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --flow-builder-text-primary: #f9fafb;
+  --flow-builder-text-secondary: #d1d5db;
+  --flow-builder-text-muted: #9ca3af;
+  --flow-builder-canvas-bg: #111827;
+  --flow-builder-panel-bg: #1f2937;
+  --flow-builder-input-bg: #374151;
+  --flow-builder-input-border: #4b5563;
+  --flow-builder-button-bg: #374151;
+  --flow-builder-button-border: #4b5563;
+  --flow-builder-button-text: #f9fafb;
+  --flow-builder-button-hover-bg: #4b5563;
 }

@@ -1,0 +1,264 @@
+/* ==========================================================================
+   Home Page Styles
+   ========================================================================== */
+
+/* Home page specific variables */
+:root {
+  /* Light theme home colors */
+  --home-bg: #ffffff;
+  --home-text-primary: #111827;
+  --home-text-secondary: #6b7280;
+  --home-text-muted: #9ca3af;
+  --home-border: #e5e7eb;
+  --home-card-bg: #f9fafb;
+  --home-card-hover: #f3f4f6;
+  --home-button-bg: #111827;
+  --home-button-text: #ffffff;
+  --home-button-hover: #1f2937;
+  --home-border-dashed: #d1d5db;
+  --home-border-dashed-hover: #9ca3af;
+}
+
+/* Dark theme home colors */
+[data-theme="dark"] {
+  --home-bg: #1f2937;
+  --home-text-primary: #f9fafb;
+  --home-text-secondary: #d1d5db;
+  --home-text-muted: #9ca3af;
+  --home-border: #374151;
+  --home-card-bg: #111827;
+  --home-card-hover: #374151;
+  --home-button-bg: #f9fafb;
+  --home-button-text: #111827;
+  --home-button-hover: #e5e7eb;
+  --home-border-dashed: #4b5563;
+  --home-border-dashed-hover: #6b7280;
+}
+
+/* Home page layout */
+.home-page {
+  min-height: 100vh;
+  background: var(--home-bg);
+  color: var(--home-text-primary);
+}
+
+.home-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.home-header__icon {
+  width: 3rem;
+  height: 3rem;
+  color: var(--home-text-primary);
+  margin: 0 auto 1.5rem;
+}
+
+.home-header__title {
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--home-text-primary);
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+  .home-header__title {
+    font-size: 3.75rem;
+  }
+}
+
+.home-header__subtitle {
+  font-size: 1.25rem;
+  color: var(--home-text-secondary);
+  max-width: 32rem;
+  margin: 0 auto;
+}
+
+/* Main action button */
+.home-main-action {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.home-create-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 1rem 2rem;
+  border: none;
+  font-size: 1.125rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  color: var(--home-button-text);
+  background: var(--home-button-bg);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.home-create-btn:hover {
+  background: var(--home-button-hover);
+}
+
+.home-create-btn svg {
+  margin-left: 0.5rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Workflows section */
+.home-workflows {
+  border-top: 1px solid var(--home-border);
+  padding-top: 3rem;
+}
+
+.home-workflows__header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.home-workflows__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--home-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.home-workflows__subtitle {
+  color: var(--home-text-secondary);
+}
+
+/* Workflow grid */
+.home-workflows__grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .home-workflows__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-workflows__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Workflow card */
+.home-workflow-card {
+  position: relative;
+  background: var(--home-card-bg);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.home-workflow-card:hover {
+  background: var(--home-card-hover);
+}
+
+.home-workflow-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.home-workflow-card__icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--home-text-secondary);
+}
+
+.home-workflow-card__date {
+  font-size: 0.75rem;
+  color: var(--home-text-muted);
+}
+
+.home-workflow-card__title {
+  font-weight: 500;
+  color: var(--home-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.home-workflow-card__description {
+  font-size: 0.875rem;
+  color: var(--home-text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.home-workflow-card__stats {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--home-text-muted);
+}
+
+.home-workflow-card__stats span + span::before {
+  content: "•";
+  margin: 0 0.5rem;
+}
+
+/* Empty state card */
+.home-empty-card {
+  border: 2px dashed var(--home-border-dashed);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+  transition: border-color 0.2s ease;
+}
+
+.home-empty-card:hover {
+  border-color: var(--home-border-dashed-hover);
+}
+
+.home-empty-card__icon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--home-text-muted);
+  margin: 0 auto 0.75rem;
+}
+
+.home-empty-card__text {
+  font-size: 0.875rem;
+  color: var(--home-text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.home-empty-card__button {
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  color: var(--home-text-primary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.home-empty-card__button:hover {
+  color: var(--home-text-secondary);
+}
+
+/* Footer */
+.home-footer {
+  margin-top: 5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--home-border);
+}
+
+.home-footer__text {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--home-text-muted);
+}
+
+/* Theme toggle positioning */
+.home-theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 50;
+}

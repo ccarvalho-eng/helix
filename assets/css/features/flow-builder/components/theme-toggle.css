@@ -1,0 +1,35 @@
+/* ==========================================================================
+   Theme Toggle Component
+   ========================================================================== */
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--flow-builder-button-border);
+  border-radius: 8px;
+  background: var(--flow-builder-button-bg);
+  color: var(--flow-builder-button-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--flow-builder-button-hover-bg);
+  transform: translateY(-1px);
+  box-shadow: var(--flow-builder-shadow);
+}
+
+.theme-toggle:active {
+  transform: translateY(0);
+}
+
+.theme-toggle svg {
+  transition: transform 0.2s ease;
+}
+
+.theme-toggle:hover svg {
+  transform: scale(1.1);
+}

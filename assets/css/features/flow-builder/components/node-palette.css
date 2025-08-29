@@ -40,7 +40,7 @@
 
 .node-palette__node:hover {
   border-color: var(--flow-builder-text-muted);
-  background: #f9fafb;
+  background: var(--flow-builder-button-hover-bg);
 }
 
 .node-palette__node-info {
@@ -51,7 +51,7 @@
 .node-palette__node-label {
   font-size: 13px;
   font-weight: 400;
-  color: #1f2937;
+  color: var(--flow-builder-text-primary);
 }
 
 .node-palette__node-hint {
@@ -80,13 +80,13 @@
 }
 
 .node-palette__template:hover {
-  background: #f9fafb;
+  background: var(--flow-builder-button-hover-bg);
 }
 
 .node-palette__template-title {
   font-size: 13px;
   font-weight: 400;
-  color: #1f2937;
+  color: var(--flow-builder-text-primary);
 }
 
 .node-palette__template-description {
@@ -132,7 +132,7 @@
 
 .working-node-palette__node:hover {
   border-color: var(--flow-builder-text-muted);
-  background: #f9fafb;
+  background: var(--flow-builder-button-hover-bg);
 }
 
 .working-node-palette__node-info {
@@ -143,7 +143,7 @@
 .working-node-palette__node-label {
   font-size: 13px;
   font-weight: 400;
-  color: #1f2937;
+  color: var(--flow-builder-text-primary);
 }
 
 .working-node-palette__node-hint {
@@ -172,13 +172,13 @@
 }
 
 .working-node-palette__template:hover {
-  background: #f9fafb;
+  background: var(--flow-builder-button-hover-bg);
 }
 
 .working-node-palette__template-title {
   font-size: 13px;
   font-weight: 400;
-  color: #1f2937;
+  color: var(--flow-builder-text-primary);
 }
 
 .working-node-palette__template-description {
@@ -228,7 +228,7 @@
 
 .react-flow-node-palette__node:hover {
   border-color: var(--flow-builder-text-muted);
-  background: #f9fafb;
+  background: var(--flow-builder-button-hover-bg);
 }
 
 .react-flow-node-palette__node-info {
@@ -239,7 +239,7 @@
 .react-flow-node-palette__node-label {
   font-size: 13px;
   font-weight: 400;
-  color: #1f2937;
+  color: var(--flow-builder-text-primary);
 }
 
 .react-flow-node-palette__node-hint {
@@ -268,13 +268,13 @@
 }
 
 .react-flow-node-palette__template:hover {
-  background: #f9fafb;
+  background: var(--flow-builder-button-hover-bg);
 }
 
 .react-flow-node-palette__template-title {
   font-size: 13px;
   font-weight: 400;
-  color: #1f2937;
+  color: var(--flow-builder-text-primary);
 }
 
 .react-flow-node-palette__template-description {

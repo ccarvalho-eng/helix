@@ -15,11 +15,14 @@ import {
   Handle,
   Position,
   ReactFlowProvider,
+  type ColorMode,
 } from 'reactflow';
 
 import { AIFlowNode as OriginalAIFlowNode } from './types';
 import { PropertiesPanel } from './components/properties';
 import { ErrorBoundary } from '../../components/ui/ErrorBoundary';
+import { ThemeProvider, useThemeContext } from './contexts/ThemeContext';
+import { ThemeToggle } from './components/ThemeToggle';
 import { 
   Bot, 
   Eye, 
@@ -215,6 +218,7 @@ const loadFromLocalStorage = () => {
 
 // Internal component that uses React Flow hooks
 function FlowBuilderInternal() {
+  const { theme } = useThemeContext();
   const initialState = loadFromLocalStorage();
   
   const [nodes, setNodes, onNodesChange] = useNodesState<ReactFlowAINode>(initialState?.nodes || []);
@@ -505,8 +509,11 @@ function FlowBuilderInternal() {
           Helix
         </a>
         
-        <div className="flow-builder__stats">
-          Nodes: {nodes.length} | Connections: {edges.length}
+        <div className="flow-builder__header-controls">
+          <div className="flow-builder__stats">
+            Nodes: {nodes.length} | Connections: {edges.length}
+          </div>
+          <ThemeToggle />
         </div>
       </div>
 
@@ -528,6 +535,7 @@ function FlowBuilderInternal() {
             onDragOver={onDragOver}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
+            colorMode={theme as ColorMode}
             defaultViewport={initialState?.viewport || { x: 0, y: 0, zoom: 1 }}
             className="flow-canvas__reactflow"
             connectionLineStyle={{ stroke: '#9ca3af', strokeWidth: 2 }}
@@ -570,9 +578,11 @@ function FlowBuilderInternal() {
 export function FlowBuilder() {
   return (
     <ErrorBoundary>
-      <ReactFlowProvider>
-        <FlowBuilderInternal />
-      </ReactFlowProvider>
+      <ThemeProvider>
+        <ReactFlowProvider>
+          <FlowBuilderInternal />
+        </ReactFlowProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

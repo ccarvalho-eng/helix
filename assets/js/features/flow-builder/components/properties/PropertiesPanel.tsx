@@ -161,13 +161,7 @@ export function PropertiesPanel({
                 
                 return (
                   <div key={field.key}>
-                    <label style={{ 
-                      display: 'block', 
-                      fontSize: '12px', 
-                      fontWeight: '400', 
-                      color: '#1f2937', 
-                      marginBottom: '6px' 
-                    }}>
+                    <label className="properties-panel__label">
                       {field.label}
                     </label>
                     
@@ -204,21 +198,9 @@ export function PropertiesPanel({
                           onChange={(e) => handleNodeUpdate({
                             config: { ...node.config, [field.key]: parseFloat(e.target.value) }
                           })}
-                          style={{
-                            width: '100%',
-                            height: '4px',
-                            borderRadius: '2px',
-                            background: '#e5e7eb',
-                            outline: 'none',
-                            cursor: 'pointer'
-                          }}
+                          className="properties-panel__range"
                         />
-                        <span style={{ 
-                          fontSize: '11px', 
-                          color: '#6b7280', 
-                          marginTop: '2px', 
-                          display: 'block' 
-                        }}>
+                        <span className="properties-panel__range-value">
                           {value || field.min}
                         </span>
                       </div>
@@ -230,16 +212,7 @@ export function PropertiesPanel({
                         onChange={(e) => handleNodeUpdate({
                           config: { ...node.config, [field.key]: e.target.value }
                         })}
-                        className="properties-panel__input"
-                        style={{
-                          cursor: 'pointer',
-                          appearance: 'none',
-                          backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
-                          backgroundPosition: 'right 12px center',
-                          backgroundRepeat: 'no-repeat',
-                          backgroundSize: '16px',
-                          paddingRight: '40px'
-                        }}
+                        className="properties-panel__input properties-panel__select"
                       >
                         <option value="">Select...</option>
                         {field.options?.map((option) => (
@@ -255,11 +228,6 @@ export function PropertiesPanel({
                           config: { ...node.config, [field.key]: e.target.value }
                         })}
                         className="properties-panel__input properties-panel__textarea"
-                        style={{
-                          minHeight: '60px',
-                          resize: 'vertical',
-                          lineHeight: '1.4'
-                        }}
                         placeholder={`Enter ${field.label.toLowerCase()}...`}
                       />
                     )}
@@ -320,8 +288,8 @@ export function PropertiesPanel({
   );
 
   return (
-    <div style={{ padding: '16px' }}>
-      <h3 style={{ fontSize: '16px', fontWeight: '500', marginBottom: '16px', color: '#1f2937' }}>Properties</h3>
+    <div className="properties-panel__content">
+      <h3 className="properties-panel__title">Properties</h3>
 
       {selectedNode && (
         <>
@@ -362,16 +330,7 @@ export function PropertiesPanel({
       {selectedConnection && (
         <div>
           <div style={{ marginBottom: '12px' }}>
-            <span style={{
-              display: 'inline-block',
-              padding: '4px 8px',
-              background: '#dcfce7',
-              color: '#166534',
-              fontSize: '11px',
-              fontWeight: '500',
-              borderRadius: '4px',
-              letterSpacing: '0.05em'
-            }}>
+            <span className="properties-panel__node-type">
               CONNECTION
             </span>
           </div>

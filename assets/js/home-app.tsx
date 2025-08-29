@@ -1,10 +1,15 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { HomePage } from "./features/home/HomePage";
+import { ThemeProvider } from "./features/flow-builder/contexts/ThemeContext";
 
 function HomeApp() {
 	try {
-		return <HomePage />;
+		return (
+			<ThemeProvider>
+				<HomePage />
+			</ThemeProvider>
+		);
 	} catch (error) {
 		console.error("Error in HomeApp:", error);
 		return (

@@ -19,13 +19,13 @@
   font-size: 16px;
   font-weight: 500;
   margin-bottom: 16px;
-  color: #1f2937;
+  color: var(--flow-builder-text-primary);
 }
 
 .properties-panel__tabs {
   display: flex;
   margin-bottom: 12px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--flow-builder-border);
 }
 
 .properties-panel__tab {
@@ -41,15 +41,15 @@
 }
 
 .properties-panel__tab--active {
-  color: #1f2937;
-  border-bottom-color: #000000;
+  color: var(--flow-builder-text-primary);
+  border-bottom-color: var(--flow-builder-text-primary);
 }
 
 .properties-panel__node-type {
   display: inline-block;
   padding: 4px 8px;
-  background: #f3f4f6;
-  color: #1f2937;
+  background: var(--flow-builder-button-hover-bg);
+  color: var(--flow-builder-text-primary);
   font-size: 11px;
   font-weight: 500;
   border-radius: 4px;
@@ -71,17 +71,18 @@
   display: block;
   font-size: 12px;
   font-weight: 400;
-  color: #1f2937;
+  color: var(--flow-builder-text-primary);
   margin-bottom: 6px;
 }
 
 .properties-panel__input {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid var(--flow-builder-border);
+  border: 1px solid var(--flow-builder-input-border);
   border-radius: 8px;
   font-size: 13px;
-  background: var(--flow-builder-bg);
+  background: var(--flow-builder-input-bg);
+  color: var(--flow-builder-text-primary);
   outline: none;
   transition: all 0.2s;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -139,20 +140,20 @@
   font-size: 13px;
   font-weight: 500;
   margin-bottom: 12px;
-  color: #1f2937;
+  color: var(--flow-builder-text-primary);
 }
 
 .properties-panel__delete-section {
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid var(--flow-builder-border);
 }
 
 .properties-panel__delete-btn {
   width: 100%;
   padding: 8px 12px;
-  background: #000000;
-  color: #ffffff;
+  background: var(--flow-builder-text-primary);
+  color: var(--flow-builder-bg);
   font-size: 12px;
   font-weight: 400;
   border-radius: 6px;
@@ -162,7 +163,7 @@
 }
 
 .properties-panel__delete-btn:hover {
-  background: #374151;
+  background: var(--flow-builder-text-secondary);
 }
 
 .properties-panel__empty {
@@ -185,16 +186,16 @@
 .properties-panel__help {
   margin-top: 32px;
   padding: 20px;
-  background: #f9fafb;
+  background: var(--flow-builder-button-hover-bg);
   border-radius: 12px;
-  border: 1px solid #f3f4f6;
+  border: 1px solid var(--flow-builder-border);
 }
 
 .properties-panel__help-title {
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 16px;
-  color: #1f2937;
+  color: var(--flow-builder-text-primary);
 }
 
 .properties-panel__help-list {
@@ -212,7 +213,7 @@
 }
 
 .properties-panel__help-label {
-  color: #1f2937;
+  color: var(--flow-builder-text-primary);
   font-weight: 500;
 }
 
