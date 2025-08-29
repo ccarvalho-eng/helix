@@ -274,6 +274,37 @@
   border-color: var(--theme-syntax-green);
 }
 
+/* Linked skill badges */
+.properties-panel__badge {
+  background: var(--flow-builder-button-hover-bg);
+}
+
+/* Skill card hover accent */
+.properties-panel__skill-card:hover {
+  border-color: var(--flow-builder-text-muted);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Dark theme - Green accents for badges, unlink, and hover */
+[data-theme="dark"] .properties-panel__badge {
+  border-color: var(--theme-syntax-green) !important;
+  color: var(--theme-syntax-green) !important;
+}
+
+.properties-panel__unlink:hover {
+  border-color: var(--flow-builder-text-muted) !important;
+}
+
+[data-theme="dark"] .properties-panel__unlink:hover {
+  border-color: var(--theme-syntax-green) !important;
+  color: var(--theme-syntax-green) !important;
+}
+
+[data-theme="dark"] .properties-panel__skill-card:hover {
+  border-color: var(--theme-syntax-green) !important;
+  box-shadow: 0 0 0 2px rgba(152, 195, 121, 0.2);
+}
+
 .properties-panel__empty {
   padding: 16px;
 }

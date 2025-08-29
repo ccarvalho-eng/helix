@@ -234,3 +234,117 @@ body:has(.flow-builder) {
     z-index: 50;
   }
 }
+
+/* Modal backdrop */
+.flow-builder__modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* Modal container */
+.flow-builder__modal {
+  width: min(640px, 100%);
+  max-height: 85vh;
+  background: var(--flow-builder-panel-bg);
+  border: 1px solid var(--flow-builder-border);
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25), 0 6px 18px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+/* Modal header */
+.flow-builder__modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--flow-builder-border);
+  background: var(--flow-builder-bg);
+}
+
+.flow-builder__modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flow-builder__modal-title-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--flow-builder-text-primary);
+}
+
+.flow-builder__modal-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border: 1px solid var(--flow-builder-border);
+  border-radius: 9999px;
+  color: var(--flow-builder-text-secondary);
+}
+
+.flow-builder__modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--flow-builder-button-bg);
+  border: 1px solid var(--flow-builder-button-border);
+  color: var(--flow-builder-button-text);
+}
+
+/* Modal body */
+.flow-builder__modal-body {
+  padding: 16px;
+  overflow: auto;
+}
+
+.flow-builder__modal-desc {
+  font-size: 13px;
+  color: var(--flow-builder-text-secondary);
+  margin-bottom: 12px;
+}
+
+.flow-builder__modal-section {
+  margin-top: 8px;
+}
+
+.flow-builder__modal-section-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--flow-builder-text-primary);
+  margin-bottom: 6px;
+}
+
+.flow-builder__modal-code {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--flow-builder-border);
+  border-radius: 8px;
+  background: var(--flow-builder-button-hover-bg);
+  color: var(--flow-builder-text-primary);
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Dark mode accents */
+[data-theme="dark"] .flow-builder__modal-badge {
+  border-color: var(--theme-syntax-green);
+  color: var(--theme-syntax-green);
+}
+
+[data-theme="dark"] .flow-builder__modal-close:hover {
+  border-color: var(--theme-syntax-green);
+  color: var(--theme-syntax-green);
+}
+
+[data-theme="dark"] .flow-builder__modal-code {
+  border-color: var(--theme-border-primary);
+  background: var(--theme-bg-tertiary);
+}

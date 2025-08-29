@@ -282,6 +282,7 @@ function FlowBuilderInternal() {
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [isPropertiesOpen, setIsPropertiesOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [modalNodeId, setModalNodeId] = useState<string | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
@@ -703,7 +704,7 @@ function FlowBuilderInternal() {
           </ReactFlow>
         </div>
 
-        {/* Properties Panel (same as original) */}
+        {/* Properties Panel */}
         <div className={`properties-panel ${isPropertiesOpen ? 'drawer drawer--right drawer--open' : 'drawer drawer--right'}`}>
           <PropertiesPanel
             selectedNode={selectedNode}
@@ -711,6 +712,12 @@ function FlowBuilderInternal() {
             onUpdateNode={updateNode}
             onUpdateConnection={() => { }}
             onDeleteNode={deleteNode}
+            allNodes={nodes.map(n => n.data)}
+            allEdges={edges.map(e => ({ source: e.source, target: e.target }))}
+            onOpenNodeModal={(nodeId) => setModalNodeId(nodeId)}
+            onUnlinkEdge={(sourceId, targetId) => {
+              setEdges((eds) => eds.filter(e => !(e.source === sourceId && e.target === targetId)));
+            }}
           />
         </div>
       </div>
@@ -721,6 +728,39 @@ function FlowBuilderInternal() {
           className="flow-builder__backdrop"
           onClick={() => { setIsPaletteOpen(false); setIsPropertiesOpen(false); }}
         />
+      )}
+
+      {/* Node details modal */}
+      {modalNodeId && (
+        <div className="flow-builder__modal-backdrop" onClick={() => setModalNodeId(null)}>
+          <div className="flow-builder__modal" onClick={(e) => e.stopPropagation()}>
+            {(() => {
+              const node = nodes.find(n => n.id === modalNodeId);
+              if (!node) return null;
+              const d = node.data;
+              return (
+                <>
+                  <div className="flow-builder__modal-header">
+                    <div className="flow-builder__modal-title">
+                      <span className="flow-builder__modal-title-text">{d.label}</span>
+                      <span className="flow-builder__modal-badge">{d.type.toUpperCase()}</span>
+                    </div>
+                    <button className="flow-builder__modal-close" aria-label="Close" onClick={() => setModalNodeId(null)}>×</button>
+                  </div>
+                  <div className="flow-builder__modal-body">
+                    {d.description && (
+                      <div className="flow-builder__modal-desc">{d.description}</div>
+                    )}
+                    <div className="flow-builder__modal-section">
+                      <div className="flow-builder__modal-section-title">Configuration</div>
+                      <pre className="flow-builder__modal-code">{JSON.stringify(d.config || {}, null, 2)}</pre>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
       )}
     </div>
   );

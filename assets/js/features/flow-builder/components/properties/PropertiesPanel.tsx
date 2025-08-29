@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, Fragment } from "react";
 import { AIFlowNode, AIFlowConnection } from "../../types";
 
 interface PropertiesPanelProps {
@@ -7,6 +7,10 @@ interface PropertiesPanelProps {
 	onUpdateNode: (id: string, updates: Partial<AIFlowNode>) => void;
 	onUpdateConnection: (id: string, updates: Partial<AIFlowConnection>) => void;
 	onDeleteNode: (id: string) => void;
+	allNodes?: AIFlowNode[];
+	allEdges?: { source: string; target: string }[];
+	onOpenNodeModal?: (nodeId: string) => void;
+	onUnlinkEdge?: (sourceId: string, targetId: string) => void;
 }
 
 export function PropertiesPanel({
@@ -15,6 +19,10 @@ export function PropertiesPanel({
 	onUpdateNode,
 	onUpdateConnection,
 	onDeleteNode,
+	allNodes = [],
+	allEdges = [],
+	onOpenNodeModal,
+	onUnlinkEdge,
 }: PropertiesPanelProps) {
 	const [activeTab, setActiveTab] = useState<"properties" | "config">(
 		"properties",
@@ -129,6 +137,60 @@ export function PropertiesPanel({
 		if (selectedConnection) {
 			onUpdateConnection(selectedConnection.id, updates);
 		}
+	};
+
+	const renderLinkedSkillsForAgent = (node: AIFlowNode) => {
+		if (node.type !== "agent") return null;
+		// find edges from this agent to skills
+		const skillIds = new Set(
+			allEdges
+				.filter((e) => e.source === node.id)
+				.map((e) => e.target)
+		);
+		const skills = allNodes.filter((n) => skillIds.has(n.id) && n.type === "skill");
+		if (skills.length === 0) return null;
+		return (
+			<div className="properties-panel__help" style={{ marginTop: 12 }}>
+				<h4 className="properties-panel__help-title">Linked Skills</h4>
+				<div className="properties-panel__help-list" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
+					{skills.map((s) => (
+						<div key={s.id} style={{ position: 'relative' }}>
+							<button
+								onClick={() => onOpenNodeModal && onOpenNodeModal(s.id)}
+								className="properties-panel__input properties-panel__skill-card"
+								style={{ textAlign: 'left', padding: '10px 36px 10px 12px', cursor: 'pointer' }}
+							>
+								<div style={{ fontSize: 13, color: 'inherit', marginBottom: 2 }}>{s.label}</div>
+								<div style={{ fontSize: 11, color: 'var(--flow-builder-text-secondary)', marginBottom: 2 }}>{s.description || 'Skill'}</div>
+								{(s.config?.skill_type || s.config?.endpoint) && (
+									<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+										{s.config?.skill_type && (
+											<span className="properties-panel__badge" style={{ fontSize: 10, padding: '2px 6px', border: '1px solid var(--flow-builder-border)', borderRadius: 9999 }}>
+												{s.config.skill_type}
+											</span>
+										)}
+										{s.config?.endpoint && (
+											<span className="properties-panel__badge" style={{ fontSize: 10, padding: '2px 6px', border: '1px solid var(--flow-builder-border)', borderRadius: 9999 }}>
+												{s.config.endpoint}
+											</span>
+										)}
+									</div>
+								)}
+							</button>
+							{/* Unlink (X) button */}
+							<button
+								aria-label="Unlink skill"
+								onClick={(e) => { e.stopPropagation(); onUnlinkEdge && onUnlinkEdge(node.id, s.id); }}
+								className="properties-panel__unlink"
+								style={{ position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: 6, border: '1px solid var(--flow-builder-border)', background: 'var(--flow-builder-button-bg)', color: 'var(--flow-builder-button-text)', cursor: 'pointer' }}
+							>
+								×
+							</button>
+						</div>
+					))}
+				</div>
+			</div>
+		);
 	};
 
 	const renderNodeProperties = (node: AIFlowNode) => {
@@ -278,6 +340,8 @@ export function PropertiesPanel({
 						className="properties-panel__input properties-panel__color-input"
 					/>
 				</div>
+
+				{renderLinkedSkillsForAgent(node)}
 
 				{activeTab === "config" && (
 					<div className="properties-panel__config-section">
@@ -442,7 +506,7 @@ export function PropertiesPanel({
 			<h3 className="properties-panel__title">Properties</h3>
 
 			{selectedNode && (
-				<>
+				<Fragment>
 					<div className="properties-panel__tabs">
 						<button
 							onClick={() => setActiveTab("properties")}
@@ -474,7 +538,7 @@ export function PropertiesPanel({
 							Delete Node
 						</button>
 					</div>
-				</>
+				</Fragment>
 			)}
 
 			{selectedConnection && (
