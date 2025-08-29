@@ -9,13 +9,12 @@ import {
 	EdgeTypes,
 	MarkerType,
 	ReactFlowInstance,
-	Connection,
 	OnNodesChange,
 	OnEdgesChange,
 	OnConnect,
 	OnSelectionChangeParams,
 } from "reactflow";
-import { CustomAIFlowNode } from "../nodes";
+import { FlowNode } from "../nodes";
 import { AIFlowNode } from "../../types";
 
 interface FlowCanvasProps {
@@ -32,7 +31,7 @@ interface FlowCanvasProps {
 }
 
 const nodeTypes: NodeTypes = {
-	aiFlowNode: CustomAIFlowNode,
+	aiFlowNode: FlowNode,
 };
 
 const edgeTypes: EdgeTypes = {};

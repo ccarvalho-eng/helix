@@ -1,1 +1,1 @@
-export { CustomAIFlowNode } from './CustomAIFlowNode';
+export { FlowNode } from "./FlowNode";

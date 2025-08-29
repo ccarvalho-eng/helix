@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AIFlowNode, AIFlowConnection } from '../../types';
 
-interface AIPropertiesPanelProps {
+interface PropertiesPanelProps {
   selectedNode: AIFlowNode | null;
   selectedConnection: AIFlowConnection | null;
   onUpdateNode: (id: string, updates: Partial<AIFlowNode>) => void;
@@ -9,13 +9,13 @@ interface AIPropertiesPanelProps {
   onDeleteNode: (id: string) => void;
 }
 
-export function AIPropertiesPanel({
+export function PropertiesPanel({
   selectedNode,
   selectedConnection,
   onUpdateNode,
   onUpdateConnection,
   onDeleteNode,
-}: AIPropertiesPanelProps) {
+}: PropertiesPanelProps) {
   const [activeTab, setActiveTab] = useState<'properties' | 'config'>('properties');
 
   if (!selectedNode && !selectedConnection) {

@@ -1,1 +1,1 @@
-export { AIPropertiesPanel } from './AIPropertiesPanel';
+export { PropertiesPanel } from "./PropertiesPanel";

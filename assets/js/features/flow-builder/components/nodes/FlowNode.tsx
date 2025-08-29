@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { AIFlowNode } from '../../types';
 
-interface CustomAIFlowNodeProps {
+interface FlowNodeProps {
   data: AIFlowNode;
   selected: boolean;
 }
@@ -42,7 +42,7 @@ const nodeDimensions = {
   output: { width: '100px', height: '60px' },
 };
 
-export function CustomAIFlowNode({ data, selected }: CustomAIFlowNodeProps) {
+export function FlowNode({ data, selected }: FlowNodeProps) {
   const NodeIconComponent = NodeIcon[data.type];
   const iconColor = nodeColors[data.type];
   const { width, height } = nodeDimensions[data.type];

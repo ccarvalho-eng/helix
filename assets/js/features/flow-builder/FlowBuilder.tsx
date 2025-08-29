@@ -18,7 +18,7 @@ import {
 } from 'reactflow';
 
 import { AIFlowNode as OriginalAIFlowNode } from './types';
-import { AIPropertiesPanel } from './components/properties';
+import { PropertiesPanel } from './components/properties';
 import { ErrorBoundary } from '../../components/ui/ErrorBoundary';
 import { 
   Bot, 
@@ -36,7 +36,7 @@ interface ReactFlowAINode extends OriginalAIFlowNode {
 }
 
 // Custom Node Component that matches the original design  
-function CustomAIFlowNode({ data, selected }: { data: ReactFlowAINode; selected: boolean }) {
+function FlowNode({ data, selected }: { data: ReactFlowAINode; selected: boolean }) {
   const NodeIcon = {
     agent: Bot,
     sensor: Eye,
@@ -116,7 +116,7 @@ function CustomAIFlowNode({ data, selected }: { data: ReactFlowAINode; selected:
 
 // Node types for React Flow
 const nodeTypes: NodeTypes = {
-  aiFlowNode: CustomAIFlowNode,
+  aiFlowNode: FlowNode,
 };
 
 // Custom edge type that matches original design
@@ -214,7 +214,7 @@ const loadFromLocalStorage = () => {
 };
 
 // Internal component that uses React Flow hooks
-function ReactFlowAIFlowBuilderInternal() {
+function FlowBuilderInternal() {
   const initialState = loadFromLocalStorage();
   
   const [nodes, setNodes, onNodesChange] = useNodesState<ReactFlowAINode>(initialState?.nodes || []);
@@ -552,7 +552,7 @@ function ReactFlowAIFlowBuilderInternal() {
 
         {/* Properties Panel (same as original) */}
         <div className="properties-panel">
-          <AIPropertiesPanel
+          <PropertiesPanel
             selectedNode={selectedNode}
             selectedConnection={null}
             onUpdateNode={updateNode}
@@ -567,11 +567,11 @@ function ReactFlowAIFlowBuilderInternal() {
 
 
 // Main React Flow AI Flow Builder with Provider wrapper
-export function ReactFlowAIFlowBuilder() {
+export function FlowBuilder() {
   return (
     <ErrorBoundary>
       <ReactFlowProvider>
-        <ReactFlowAIFlowBuilderInternal />
+        <FlowBuilderInternal />
       </ReactFlowProvider>
     </ErrorBoundary>
   );
