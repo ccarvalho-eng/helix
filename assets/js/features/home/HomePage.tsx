@@ -18,9 +18,7 @@ export const HomePage: React.FC = () => {
 				{/* Header */}
 				<div className="home-header">
 					<Cpu className="home-header__icon" />
-					<h1 className="home-header__title">
-						Helix
-					</h1>
+					<h1 className="home-header__title">Helix</h1>
 					<p className="home-header__subtitle">
 						Design AI agent workflows with visual diagrams. Create, connect, and
 						orchestrate intelligent systems.
@@ -29,10 +27,7 @@ export const HomePage: React.FC = () => {
 
 				{/* Main Action */}
 				<div className="home-main-action">
-					<button
-						onClick={handleCreateWorkflow}
-						className="home-create-btn"
-					>
+					<button onClick={handleCreateWorkflow} className="home-create-btn">
 						Create New Workflow
 						<ArrowRight />
 					</button>
@@ -41,9 +36,7 @@ export const HomePage: React.FC = () => {
 				{/* Saved Workflows Section */}
 				<div className="home-workflows">
 					<div className="home-workflows__header">
-						<h2 className="home-workflows__title">
-							Recent Workflows
-						</h2>
+						<h2 className="home-workflows__title">Recent Workflows</h2>
 						<p className="home-workflows__subtitle">Your saved AI workflows</p>
 					</div>
 
@@ -55,9 +48,7 @@ export const HomePage: React.FC = () => {
 								<Cpu className="home-workflow-card__icon" />
 								<span className="home-workflow-card__date">2 days ago</span>
 							</div>
-							<h3 className="home-workflow-card__title">
-								Assassin's Creed Brotherhood
-							</h3>
+							<h3 className="home-workflow-card__title">Assassin's Creed</h3>
 							<p className="home-workflow-card__description">
 								Multi-agent workflow with Ezio, Altaïr, and team coordination
 							</p>
@@ -84,9 +75,7 @@ export const HomePage: React.FC = () => {
 
 				{/* Footer */}
 				<div className="home-footer">
-					<div className="home-footer__text">
-						Powered by Phoenix Framework
-					</div>
+					<div className="home-footer__text">Powered by Phoenix Framework</div>
 				</div>
 			</div>
 		</div>

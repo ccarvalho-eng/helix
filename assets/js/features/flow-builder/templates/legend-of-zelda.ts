@@ -5,6 +5,7 @@ export const legendOfZeldaTemplate: Template = {
 	name: "Legend of Zelda",
 	description: "Link, Zelda & companions on a quest to save Hyrule",
 	difficulty: "medium",
+	category: "gaming",
 	nodes: [
 		// Inputs / Sensors
 		{

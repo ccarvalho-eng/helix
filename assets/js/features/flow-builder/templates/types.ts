@@ -17,13 +17,16 @@ export interface TemplateConnection {
 
 export type Difficulty = 'simple' | 'medium' | 'advanced';
 
+export type TemplateCategory = 'gaming' | 'technology';
+
 export interface Template {
   id: string;
   name: string;
   description: string;
   difficulty: Difficulty;
+  category: TemplateCategory;
   nodes: TemplateNode[];
   connections: TemplateConnection[];
 }
 
-export type TemplateType = 'assassins-creed' | 'lotr' | 'the-witcher' | 'zelda';
+export type TemplateType = 'assassins-creed' | 'lotr' | 'the-witcher' | 'zelda' | 'skyrim' | 'cyber-security' | 'devops-pipeline' | 'software-automation';

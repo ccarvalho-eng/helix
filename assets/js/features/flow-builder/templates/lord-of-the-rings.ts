@@ -5,6 +5,7 @@ export const lordOfTheRingsTemplate: Template = {
 	name: "Lord of the Rings",
 	description: "Frodo, Gandalf & the Fellowship coordinate their quest",
 	difficulty: "medium",
+	category: "gaming",
 	nodes: [
 		// Inputs / Sensors
 		{

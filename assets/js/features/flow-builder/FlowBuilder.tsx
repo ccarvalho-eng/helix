@@ -20,7 +20,8 @@ import {
 } from 'reactflow';
 
 import { AIFlowNode as OriginalAIFlowNode } from './types';
-import { getTemplate, TemplateType, getAllTemplates, getFeaturedTemplates } from './templates';
+import { getTemplate, TemplateType, getAllTemplates, getFeaturedTemplates, getTemplatesByCategory } from './templates';
+import { Template } from './templates/types';
 import { PropertiesPanel } from './components/properties';
 import { ErrorBoundary } from '../../components/ui/ErrorBoundary';
 import { ThemeProvider, useThemeContext } from './contexts/ThemeContext';
@@ -37,7 +38,10 @@ import {
   Circle,
   Zap,
   Menu,
-  Sliders
+  Sliders,
+  Shield,
+  Settings,
+  Gamepad2
 } from 'lucide-react';
 
 // Extended node interface for React Flow
@@ -142,10 +146,11 @@ const edgeTypes: EdgeTypes = {};
 
 
 // Node Palette (same as original but adapted for React Flow)  
-function ReactFlowNodePalette({ onAddNode, onAddTemplate, onOpenTemplatesModal }: {
+function ReactFlowNodePalette({ onAddNode, onAddTemplate, onOpenTemplatesModal, onTemplateClick }: {
   onAddNode: (type: ReactFlowAINode['type'], customLabel?: string, customDescription?: string) => void;
   onAddTemplate: (templateType: TemplateType) => void;
   onOpenTemplatesModal: () => void;
+  onTemplateClick: (template: Template) => void;
 }) {
   const nodeTypes = [
     { type: 'agent' as const, icon: Bot, label: 'AI Agent', color: '#0ea5e9' },
@@ -194,45 +199,29 @@ function ReactFlowNodePalette({ onAddNode, onAddTemplate, onOpenTemplatesModal }
           Templates
         </h4>
         {(() => {
-          const difficultyRank: Record<'simple' | 'medium' | 'advanced', number> = { simple: 0, medium: 1, advanced: 2 };
-          const templates = getFeaturedTemplates().sort((a, b) => difficultyRank[a.difficulty] - difficultyRank[b.difficulty]);
+          const getTemplateIcon = (category: string) => {
+            switch (category) {
+              case 'technology': return Settings;
+              case 'gaming': return Gamepad2;
+              default: return Circle;
+            }
+          };
+          
+          const templates = getFeaturedTemplates();
           return templates.map((t) => (
             <div
               key={t.id}
               className="react-flow-node-palette__template"
-              onClick={() => onAddTemplate(t.id as TemplateType)}
+              onClick={() => onTemplateClick(t)}
             >
               <div className="react-flow-node-palette__template-title">
-                {t.name}
                 {(() => {
-                  const badgeStyles: Record<'simple' | 'medium' | 'advanced', React.CSSProperties> = {
-                    simple: {
-                      backgroundColor: '#ecfdf5', // emerald-50
-                      color: '#065f46', // emerald-800
-                      border: '1px solid #a7f3d0', // emerald-200
-                    },
-                    medium: {
-                      backgroundColor: '#fffbeb', // amber-50
-                      color: '#92400e', // amber-800
-                      border: '1px solid #fde68a', // amber-200
-                    },
-                    advanced: {
-                      backgroundColor: '#fef2f2', // rose-50
-                      color: '#7f1d1d', // rose-900
-                      border: '1px solid #fecaca', // rose-200
-                    },
-                  };
+                  const IconComponent = getTemplateIcon(t.category);
                   return (
-                    <span style={{
-                      marginLeft: 8,
-                      fontSize: 12,
-                      padding: '2px 8px',
-                      borderRadius: 9999,
-                      textTransform: 'capitalize',
-                      ...badgeStyles[t.difficulty],
-                    }}>
-                      {t.difficulty}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <IconComponent size={16} style={{ color: '#6b7280', flexShrink: 0 }} />
+                      {t.name}
+                    </div>
                   );
                 })()}
               </div>
@@ -310,6 +299,8 @@ function FlowBuilderInternal() {
   const [isMobile, setIsMobile] = useState(false);
   const [modalNodeId, setModalNodeId] = useState<string | null>(null);
   const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
+  const [activeTemplateTab, setActiveTemplateTab] = useState<'technology' | 'gaming'>('technology');
+  const [confirmationTemplate, setConfirmationTemplate] = useState<Template | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
@@ -674,7 +665,12 @@ function FlowBuilderInternal() {
               ×
             </button>
           )}
-          <ReactFlowNodePalette onAddNode={addNode} onAddTemplate={addTemplate} onOpenTemplatesModal={() => setIsTemplatesModalOpen(true)} />
+          <ReactFlowNodePalette 
+            onAddNode={addNode} 
+            onAddTemplate={addTemplate} 
+            onOpenTemplatesModal={() => setIsTemplatesModalOpen(true)} 
+            onTemplateClick={setConfirmationTemplate}
+          />
         </div>
 
         {/* React Flow Canvas */}
@@ -765,56 +761,92 @@ function FlowBuilderInternal() {
         title="All Templates"
         size="large"
       >
-        <div className="flow-builder__templates-grid">
-          {getAllTemplates().map((template) => (
-            <div
-              key={template.id}
-              className="flow-builder__template-card"
-              onClick={() => {
-                addTemplate(template.id as TemplateType);
-                setIsTemplatesModalOpen(false);
+        <div>
+          {/* Category Tabs */}
+          <div className="flow-builder__template-tabs" style={{
+            display: 'flex',
+            borderBottom: '1px solid #e5e7eb',
+            marginBottom: '20px'
+          }}>
+            <button
+              className={`flow-builder__template-tab ${activeTemplateTab === 'technology' ? 'active' : ''}`}
+              style={{
+                padding: '12px 20px',
+                border: 'none',
+                background: 'transparent',
+                borderBottom: activeTemplateTab === 'technology' ? '2px solid #0ea5e9' : '2px solid transparent',
+                color: activeTemplateTab === 'technology' ? '#0ea5e9' : '#6b7280',
+                fontWeight: activeTemplateTab === 'technology' ? '600' : '400',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
               }}
+              onClick={() => setActiveTemplateTab('technology')}
             >
-              <div className="flow-builder__template-card-header">
-                <h3 className="flow-builder__template-card-title">{template.name}</h3>
-                {(() => {
-                  const badgeStyles: Record<'simple' | 'medium' | 'advanced', React.CSSProperties> = {
-                    simple: {
-                      backgroundColor: '#ecfdf5',
-                      color: '#065f46',
-                      border: '1px solid #a7f3d0',
-                    },
-                    medium: {
-                      backgroundColor: '#fffbeb',
-                      color: '#92400e',
-                      border: '1px solid #fde68a',
-                    },
-                    advanced: {
-                      backgroundColor: '#fef2f2',
-                      color: '#7f1d1d',
-                      border: '1px solid #fecaca',
-                    },
-                  };
-                  return (
-                    <span style={{
-                      fontSize: 12,
-                      padding: '2px 8px',
-                      borderRadius: 9999,
-                      textTransform: 'capitalize',
-                      ...badgeStyles[template.difficulty],
+              <Settings size={16} />
+              Technology
+            </button>
+            <button
+              className={`flow-builder__template-tab ${activeTemplateTab === 'gaming' ? 'active' : ''}`}
+              style={{
+                padding: '12px 20px',
+                border: 'none',
+                background: 'transparent',
+                borderBottom: activeTemplateTab === 'gaming' ? '2px solid #0ea5e9' : '2px solid transparent',
+                color: activeTemplateTab === 'gaming' ? '#0ea5e9' : '#6b7280',
+                fontWeight: activeTemplateTab === 'gaming' ? '600' : '400',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+              onClick={() => setActiveTemplateTab('gaming')}
+            >
+              <Gamepad2 size={16} />
+              Gaming
+            </button>
+          </div>
+          
+          {/* Template Cards */}
+          <div className="flow-builder__templates-grid">
+            {getTemplatesByCategory(activeTemplateTab).map((template) => {
+              const getTemplateIcon = (category: string) => {
+                switch (category) {
+                  case 'technology': return Settings;
+                  case 'gaming': return Gamepad2;
+                  default: return Circle;
+                }
+              };
+              const IconComponent = getTemplateIcon(template.category);
+              
+              return (
+                <div
+                  key={template.id}
+                  className="flow-builder__template-card"
+                  onClick={() => {
+                    setConfirmationTemplate(template);
+                  }}
+                >
+                  <div className="flow-builder__template-card-header">
+                    <h3 className="flow-builder__template-card-title" style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
                     }}>
-                      {template.difficulty}
-                    </span>
-                  );
-                })()}
-              </div>
-              <p className="flow-builder__template-card-description">{template.description}</p>
-              <div className="flow-builder__template-card-stats">
-                <span>{template.nodes.length} nodes</span>
-                <span>{template.connections.length} connections</span>
-              </div>
-            </div>
-          ))}
+                      <IconComponent size={18} style={{ color: '#6b7280', flexShrink: 0 }} />
+                      {template.name}
+                    </h3>
+                  </div>
+                  <p className="flow-builder__template-card-description">{template.description}</p>
+                  <div className="flow-builder__template-card-stats">
+                    <span>{template.nodes.length} nodes</span>
+                    <span>{template.connections.length} connections</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </Modal>
 
@@ -850,6 +882,124 @@ function FlowBuilderInternal() {
           </div>
         </div>
       )}
+
+      {/* Confirmation modal */}
+      <Modal
+        isOpen={!!confirmationTemplate}
+        onClose={() => setConfirmationTemplate(null)}
+        title="Add Template"
+        size="default"
+      >
+        {confirmationTemplate && (
+          <div>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px', 
+              marginBottom: '16px' 
+            }}>
+              {(() => {
+                const getTemplateIcon = (category: string) => {
+                  switch (category) {
+                    case 'technology': return Settings;
+                    case 'gaming': return Gamepad2;
+                    default: return Circle;
+                  }
+                };
+                const IconComponent = getTemplateIcon(confirmationTemplate.category);
+                return <IconComponent size={24} style={{ color: '#6b7280' }} />;
+              })()}
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>
+                {confirmationTemplate.name}
+              </h3>
+            </div>
+            
+            <p style={{ 
+              color: '#6b7280', 
+              marginBottom: '20px',
+              lineHeight: '1.5'
+            }}>
+              {confirmationTemplate.description}
+            </p>
+            
+            <div style={{ 
+              display: 'flex', 
+              gap: '8px', 
+              marginBottom: '20px',
+              fontSize: '14px',
+              color: '#6b7280'
+            }}>
+              <span>{confirmationTemplate.nodes.length} nodes</span>
+              <span>•</span>
+              <span>{confirmationTemplate.connections.length} connections</span>
+            </div>
+            
+            <p style={{ 
+              fontSize: '13px', 
+              color: 'var(--flow-builder-text-muted)',
+              marginBottom: '24px',
+              fontStyle: 'italic',
+              opacity: 0.8
+            }}>
+              This will add the template to your current flow. Existing nodes will remain unchanged.
+            </p>
+            
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              justifyContent: 'flex-end' 
+            }}>
+              <button
+                onClick={() => setConfirmationTemplate(null)}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid var(--flow-builder-button-border)',
+                  borderRadius: '6px',
+                  background: 'var(--flow-builder-button-bg)',
+                  color: 'var(--flow-builder-button-text)',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '400',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--flow-builder-button-hover-bg)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--flow-builder-button-bg)'}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  addTemplate(confirmationTemplate.id as TemplateType);
+                  setConfirmationTemplate(null);
+                  setIsTemplatesModalOpen(false);
+                }}
+                className="flow-builder__confirmation-primary-btn"
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid var(--flow-builder-text-primary)',
+                  borderRadius: '6px',
+                  background: 'var(--flow-builder-text-primary)',
+                  color: 'var(--flow-builder-bg)',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--flow-builder-text-secondary)';
+                  e.currentTarget.style.borderColor = 'var(--flow-builder-text-secondary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--flow-builder-text-primary)';
+                  e.currentTarget.style.borderColor = 'var(--flow-builder-text-primary)';
+                }}
+              >
+                Add Template
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

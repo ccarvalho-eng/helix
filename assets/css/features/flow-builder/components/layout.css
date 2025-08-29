@@ -1,4 +1,24 @@
 /* Flow Builder Layout - Prevent page scrollbars */
+
+/* Confirmation modal button styling */
+.flow-builder__confirmation-primary-btn {
+  /* Light mode - uses default styling from inline styles */
+}
+
+/* Dark mode - green accent for primary button */
+[data-theme="dark"] .flow-builder__confirmation-primary-btn {
+  background: var(--theme-bg-tertiary) !important;
+  color: var(--theme-text-primary) !important;
+  border: 1px solid var(--theme-border-primary) !important;
+}
+
+[data-theme="dark"] .flow-builder__confirmation-primary-btn:hover {
+  background: var(--theme-syntax-green) !important;
+  color: var(--theme-bg-primary) !important;
+  border-color: var(--theme-syntax-green) !important;
+}
+
+/* Flow Builder Layout - Prevent page scrollbars */
 html:has(.flow-builder),
 body:has(.flow-builder) {
   overflow: hidden;
