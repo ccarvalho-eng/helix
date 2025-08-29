@@ -2,4 +2,7 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+/* Component styles */
+@import "./components.css";
+
 /* This file is for your main application CSS */

@@ -18,8 +18,9 @@ import {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-import { AIFlowNode as OriginalAIFlowNode, AIFlowConnection } from './types';
-import { AIPropertiesPanel } from './AIPropertiesPanel';
+import { AIFlowNode as OriginalAIFlowNode } from './types';
+import { AIPropertiesPanel } from './components/properties';
+import { ErrorBoundary } from '../../components/ui/ErrorBoundary';
 import { 
   Bot, 
   Eye, 
@@ -27,10 +28,6 @@ import {
   GitBranch, 
   ArrowLeft, 
   ArrowRight,
-  Trash2,
-  MousePointer,
-  Link,
-  Hand,
   Cpu
 } from 'lucide-react';
 
@@ -39,7 +36,7 @@ interface ReactFlowAINode extends OriginalAIFlowNode {
   // React Flow specific fields will be in the Node<ReactFlowAINode> wrapper
 }
 
-// Custom Node Component that matches the original design
+// Custom Node Component that matches the original design  
 function CustomAIFlowNode({ data, selected }: { data: ReactFlowAINode; selected: boolean }) {
   const NodeIcon = {
     agent: Bot,
@@ -79,59 +76,39 @@ function CustomAIFlowNode({ data, selected }: { data: ReactFlowAINode; selected:
 
   const { width, height } = getNodeDimensions(data.type);
 
+  const nodeStyle = {
+    '--node-bg-color': data.color,
+    '--node-border-color': selected ? '#000000' : '#e5e7eb',
+    '--node-shadow': selected 
+      ? '0 0 0 1px #000000, 0 8px 24px rgba(0, 0, 0, 0.08)' 
+      : '0 1px 3px rgba(0, 0, 0, 0.06)',
+    '--node-width': width,
+    '--node-height': height,
+  } as React.CSSProperties;
+
   return (
     <div
-      style={{
-        width,
-        height,
-        backgroundColor: data.color,
-        border: `1px solid ${selected ? '#000000' : '#e5e7eb'}`,
-        borderRadius: '12px',
-        padding: '16px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '13px',
-        fontWeight: '400',
-        color: '#1f2937',
-        boxShadow: selected ? '0 0 0 1px #000000, 0 8px 24px rgba(0, 0, 0, 0.08)' : '0 1px 3px rgba(0, 0, 0, 0.06)',
-        transition: 'all 0.2s',
-        userSelect: 'none',
-        minWidth: width,
-        minHeight: height,
-      }}
+      className={`flow-node ${selected ? 'flow-node--selected' : ''}`}
+      style={nodeStyle}
     >
       {/* React Flow Handles for connections - Left and Right only */}
       <Handle
         type="target"
         position={Position.Left}
         id="left"
-        style={{
-          left: -3,
-          width: 6,
-          height: 6,
-          backgroundColor: '#9ca3af',
-          border: '1px solid white',
-        }}
+        className="flow-node__handle flow-node__handle--left"
       />
       <Handle
         type="source"
         position={Position.Right}
         id="right"
-        style={{
-          right: -3,
-          width: 6,
-          height: 6,
-          backgroundColor: '#9ca3af',
-          border: '1px solid white',
-        }}
+        className="flow-node__handle flow-node__handle--right"
       />
 
-      <div style={{ marginBottom: '4px' }}>
+      <div className="flow-node__icon">
         <NodeIcon size={20} color={iconColor} />
       </div>
-      <div style={{ textAlign: 'center', lineHeight: '1.2' }}>
+      <div className="flow-node__label">
         {data.label}
       </div>
     </div>
@@ -146,51 +123,6 @@ const nodeTypes: NodeTypes = {
 // Custom edge type that matches original design
 const edgeTypes: EdgeTypes = {};
 
-// Button component (same as original)
-function Button({ 
-  children, 
-  onClick, 
-  disabled = false, 
-  active = false
-}: { 
-  children: React.ReactNode; 
-  onClick?: () => void; 
-  disabled?: boolean; 
-  active?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        padding: '10px 16px',
-        fontSize: '13px',
-        border: '1px solid #e5e7eb',
-        borderRadius: '8px',
-        background: active ? '#000000' : '#ffffff',
-        color: active ? '#ffffff' : '#1f2937',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.5 : 1,
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '4px',
-        transition: 'all 0.2s',
-      }}
-      onMouseOver={(e) => {
-        if (!disabled && !active) {
-          e.currentTarget.style.background = '#f9fafb';
-        }
-      }}
-      onMouseOut={(e) => {
-        if (!disabled && !active) {
-          e.currentTarget.style.background = '#ffffff';
-        }
-      }}
-    >
-      {children}
-    </button>
-  );
-}
 
 // Node Palette (same as original but adapted for React Flow)  
 function ReactFlowNodePalette({ onAddNode, onAddTemplate }: { 
@@ -212,55 +144,26 @@ function ReactFlowNodePalette({ onAddNode, onAddTemplate }: {
   };
 
   return (
-    <div style={{ 
-      width: '250px',
-      minWidth: '250px',
-      maxWidth: '250px',
-      height: '100%',
-      borderRight: '1px solid #e5e7eb', 
-      background: '#ffffff',
-      boxShadow: '2px 0 12px rgba(0, 0, 0, 0.06)',
-      padding: '20px',
-      overflowY: 'auto',
-      flexShrink: 0
-    }}>
-      <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px', color: '#111827' }}>
+    <div className="react-flow-node-palette">
+      <h3 className="react-flow-node-palette__title">
         AI Flow Nodes
       </h3>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
+      <div className="react-flow-node-palette__nodes">
         {nodeTypes.map((nodeType) => (
           <div
             key={nodeType.type}
+            className="react-flow-node-palette__node"
             draggable
             onDragStart={(e) => handleDragStart(e, nodeType.type)}
             onClick={() => onAddNode(nodeType.type)}
-            style={{
-              padding: '16px',
-              border: '1px solid #e5e7eb',
-              borderRadius: '10px',
-              cursor: 'grab',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              transition: 'all 0.2s',
-              userSelect: 'none',
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.borderColor = '#9ca3af';
-              e.currentTarget.style.background = '#f9fafb';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.borderColor = '#e5e7eb';
-              e.currentTarget.style.background = 'transparent';
-            }}
           >
             <nodeType.icon size={18} color={nodeType.color} />
-            <div>
-              <div style={{ fontSize: '13px', fontWeight: '400', color: '#1f2937' }}>
+            <div className="react-flow-node-palette__node-info">
+              <div className="react-flow-node-palette__node-label">
                 {nodeType.label}
               </div>
-              <div style={{ fontSize: '11px', color: '#9ca3af' }}>
+              <div className="react-flow-node-palette__node-hint">
                 Drag to canvas or click to add
               </div>
             </div>
@@ -268,29 +171,16 @@ function ReactFlowNodePalette({ onAddNode, onAddTemplate }: {
         ))}
       </div>
 
-      <div>
-        <h4 style={{ fontSize: '16px', fontWeight: '500', marginBottom: '16px', color: '#111827' }}>
+      <div className="react-flow-node-palette__templates">
+        <h4 className="react-flow-node-palette__templates-title">
           Templates
         </h4>
         <div 
-          style={{
-            padding: '12px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            marginBottom: '8px',
-            transition: 'all 0.2s'
-          }}
+          className="react-flow-node-palette__template"
           onClick={onAddTemplate}
-          onMouseOver={(e) => {
-            e.currentTarget.style.background = '#f9fafb';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.background = 'transparent';
-          }}
         >
-          <div style={{ fontSize: '13px', fontWeight: '400', color: '#1f2937' }}>Assassin's Creed Brotherhood</div>
-          <div style={{ fontSize: '11px', color: '#9ca3af' }}>Ezio, Altaïr, Bayek & Edward coordinate a mission</div>
+          <div className="react-flow-node-palette__template-title">Assassin's Creed Brotherhood</div>
+          <div className="react-flow-node-palette__template-description">Ezio, Altaïr, Bayek & Edward coordinate a mission</div>
         </div>
       </div>
     </div>
@@ -608,62 +498,25 @@ function ReactFlowAIFlowBuilderInternal() {
   }, [selectedNode, deleteNode]);
 
   return (
-    <div style={{ 
-      width: '100vw', 
-      height: '100vh', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      background: '#ffffff',
-      overflow: 'hidden'
-    }}>
+    <div className="flow-builder">
       {/* Top Bar with Helix Logo (same as original) */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        padding: '16px 24px', 
-        borderBottom: '1px solid #e5e7eb', 
-        background: '#ffffff',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-        flexShrink: 0
-      }}>
-        <a href="/" style={{ 
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          fontSize: '24px', 
-          fontWeight: 'bold', 
-          color: '#111827',
-          letterSpacing: '-0.025em',
-          textDecoration: 'none',
-          cursor: 'pointer'
-        }}>
+      <div className="flow-builder__header">
+        <a href="/" className="flow-builder__logo">
           <Cpu size={20} />
           Helix
         </a>
         
-        <div style={{ fontSize: '14px', color: '#6b7280' }}>
+        <div className="flow-builder__stats">
           Nodes: {nodes.length} | Connections: {edges.length}
         </div>
       </div>
 
       {/* Main Content */}
-      <div style={{ 
-        display: 'flex', 
-        flex: 1,
-        width: '100%',
-        height: 'calc(100vh - 73px)', // Subtract header height
-        overflow: 'hidden' 
-      }}>
+      <div className="flow-builder__content">
         <ReactFlowNodePalette onAddNode={addNode} onAddTemplate={addTemplate} />
 
         {/* React Flow Canvas */}
-        <div style={{ 
-          flex: 1,
-          width: '100%',
-          height: '100%',
-          position: 'relative'
-        }}>
+        <div className="flow-canvas">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -677,11 +530,7 @@ function ReactFlowAIFlowBuilderInternal() {
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             defaultViewport={initialState?.viewport || { x: 0, y: 0, zoom: 1 }}
-            style={{ 
-              width: '100%',
-              height: '100%',
-              background: '#ffffff' 
-            }}
+            className="flow-canvas__reactflow"
             connectionLineStyle={{ stroke: '#9ca3af', strokeWidth: 2 }}
             defaultEdgeOptions={{
               type: 'default',
@@ -692,37 +541,18 @@ function ReactFlowAIFlowBuilderInternal() {
             attributionPosition="bottom-left"
             proOptions={{ hideAttribution: true }}
           >
-            <Controls 
-              style={{
-                bottom: 24,
-                left: 24,
-                background: '#ffffff',
-                border: '1px solid #e5e7eb',
-                borderRadius: '12px',
-                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)',
-              }}
-            />
+            <Controls className="flow-canvas__controls" />
             <Background 
               color="#f3f4f6" 
               gap={20} 
               size={1}
-              style={{ opacity: 0.4 }}
+              className="flow-canvas__background"
             />
           </ReactFlow>
         </div>
 
         {/* Properties Panel (same as original) */}
-        <div style={{ 
-          width: '320px',
-          minWidth: '320px',
-          maxWidth: '320px',
-          height: '100%',
-          borderLeft: '1px solid #e5e7eb', 
-          background: '#ffffff',
-          boxShadow: '-2px 0 12px rgba(0, 0, 0, 0.06)',
-          overflowY: 'auto',
-          flexShrink: 0
-        }}>
+        <div className="properties-panel">
           <AIPropertiesPanel
             selectedNode={selectedNode}
             selectedConnection={null}
@@ -736,37 +566,6 @@ function ReactFlowAIFlowBuilderInternal() {
   );
 }
 
-// Error Boundary Component
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error('ReactFlow Error:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{ padding: '20px', background: '#fee', color: '#c00', border: '1px solid #fcc' }}>
-          <h2>Something went wrong with ReactFlow</h2>
-          <p>Error: {this.state.error?.toString()}</p>
-          <button onClick={() => this.setState({ hasError: false, error: null })}>
-            Try Again
-          </button>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
 
 // Main React Flow AI Flow Builder with Provider wrapper
 export function ReactFlowAIFlowBuilder() {

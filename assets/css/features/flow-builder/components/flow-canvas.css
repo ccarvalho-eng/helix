@@ -1,0 +1,26 @@
+/* Canvas */
+.flow-canvas {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.flow-canvas__reactflow {
+  width: 100%;
+  height: 100%;
+  background: var(--flow-builder-bg);
+}
+
+.flow-canvas__controls {
+  bottom: 24px;
+  left: 24px;
+  background: var(--flow-builder-bg);
+  border: 1px solid var(--flow-builder-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.flow-canvas__background {
+  opacity: 0.4;
+}

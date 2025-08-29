@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AIFlowNode, AIFlowConnection } from './types';
+import { AIFlowNode, AIFlowConnection } from '../../types';
 
 interface AIPropertiesPanelProps {
   selectedNode: AIFlowNode | null;
@@ -20,20 +20,20 @@ export function AIPropertiesPanel({
 
   if (!selectedNode && !selectedConnection) {
     return (
-      <div style={{ padding: '24px' }}>
-        <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '24px', color: '#111827' }}>Properties</h3>
-        <div style={{ fontSize: '13px', color: '#9ca3af', lineHeight: '1.5' }}>
+      <div className="properties-panel__empty">
+        <h3 className="properties-panel__empty-title">Properties</h3>
+        <div className="properties-panel__empty-text">
           Select a node or connection to edit its properties.
         </div>
         
-        <div style={{ marginTop: '32px', padding: '20px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #f3f4f6' }}>
-          <h4 style={{ fontSize: '14px', fontWeight: '500', marginBottom: '16px', color: '#1f2937' }}>Node Types</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px', color: '#6b7280', lineHeight: '1.4' }}>
-            <div><strong style={{ color: '#1f2937' }}>Agent:</strong> Core AI reasoning unit</div>
-            <div><strong style={{ color: '#1f2937' }}>Sensor:</strong> Real-time data collection</div>
-            <div><strong style={{ color: '#1f2937' }}>Skill:</strong> Specialized capabilities</div>
-            <div><strong style={{ color: '#1f2937' }}>Decision:</strong> Conditional logic routing</div>
-            <div><strong style={{ color: '#1f2937' }}>Input/Output:</strong> Flow entry/exit points</div>
+        <div className="properties-panel__help">
+          <h4 className="properties-panel__help-title">Node Types</h4>
+          <div className="properties-panel__help-list">
+            <div className="properties-panel__help-item"><span className="properties-panel__help-label">Agent:</span> Core AI reasoning unit</div>
+            <div className="properties-panel__help-item"><span className="properties-panel__help-label">Sensor:</span> Real-time data collection</div>
+            <div className="properties-panel__help-item"><span className="properties-panel__help-label">Skill:</span> Specialized capabilities</div>
+            <div className="properties-panel__help-item"><span className="properties-panel__help-label">Decision:</span> Conditional logic routing</div>
+            <div className="properties-panel__help-item"><span className="properties-panel__help-label">Input/Output:</span> Flow entry/exit points</div>
           </div>
         </div>
       </div>
@@ -109,138 +109,55 @@ export function AIPropertiesPanel({
     const config = getNodeTypeConfig(node.type);
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: '400', color: '#1f2937', marginBottom: '6px' }}>Label</label>
+      <div className="properties-panel__fields">
+        <div className="properties-panel__field">
+          <label className="properties-panel__label">Label</label>
           <input
             type="text"
             value={node.label}
             onChange={(e) => handleNodeUpdate({ label: e.target.value })}
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              fontSize: '13px',
-              background: '#ffffff',
-              outline: 'none',
-              transition: 'all 0.2s',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-              boxSizing: 'border-box'
-            }}
-            onFocus={(e) => {
-              e.target.style.borderColor = '#9ca3af';
-              e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = '#e5e7eb';
-              e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.04)';
-            }}
+            className="properties-panel__input"
           />
         </div>
 
-        <div>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: '400', color: '#1f2937', marginBottom: '6px' }}>Description</label>
+        <div className="properties-panel__field">
+          <label className="properties-panel__label">Description</label>
           <textarea
             value={node.description}
             onChange={(e) => handleNodeUpdate({ description: e.target.value })}
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              fontSize: '13px',
-              background: '#ffffff',
-              outline: 'none',
-              resize: 'vertical',
-              minHeight: '60px',
-              transition: 'all 0.2s',
-              fontFamily: 'inherit',
-              lineHeight: '1.4',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-              boxSizing: 'border-box'
-            }}
+            className="properties-panel__input properties-panel__textarea"
             placeholder="Optional description..."
-            onFocus={(e) => {
-              e.target.style.borderColor = '#9ca3af';
-              e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = '#e5e7eb';
-              e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.04)';
-            }}
           />
         </div>
 
-        <div>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: '400', color: '#1f2937', marginBottom: '6px' }}>Background Color</label>
+        <div className="properties-panel__field">
+          <label className="properties-panel__label">Background Color</label>
           <input
             type="color"
             value={node.color.replace('20', '')}
             onChange={(e) => handleNodeUpdate({ color: e.target.value + '20' })}
-            style={{
-              width: '100%',
-              height: '32px',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              background: '#ffffff',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
-            }}
+            className="properties-panel__input properties-panel__color-input"
           />
         </div>
 
-        <div>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: '400', color: '#1f2937', marginBottom: '6px' }}>Border Color</label>
+        <div className="properties-panel__field">
+          <label className="properties-panel__label">Border Color</label>
           <input
             type="color"
             value={node.borderColor}
             onChange={(e) => handleNodeUpdate({ borderColor: e.target.value })}
-            style={{
-              width: '100%',
-              height: '32px',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              background: '#ffffff',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
-            }}
+            className="properties-panel__input properties-panel__color-input"
           />
         </div>
 
         {activeTab === 'config' && (
-          <div style={{ marginTop: '16px' }}>
-            <h4 style={{ fontSize: '13px', fontWeight: '500', marginBottom: '12px', color: '#1f2937' }}>
+          <div className="properties-panel__config-section">
+            <h4 className="properties-panel__config-title">
               {config.title}
             </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="properties-panel__fields">
               {config.fields.map((field) => {
                 const value = node.config?.[field.key] || '';
-                
-                const inputBaseStyles = {
-                  width: '100%',
-                  padding: '8px 12px',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  fontSize: '13px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'all 0.2s',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-                  fontFamily: 'inherit',
-                  boxSizing: 'border-box' as const
-                };
-
-                const inputFocusHandlers = {
-                  onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-                    e.target.style.borderColor = '#9ca3af';
-                    e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
-                  },
-                  onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-                    e.target.style.borderColor = '#e5e7eb';
-                    e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.04)';
-                  }
-                };
                 
                 return (
                   <div key={field.key}>
@@ -261,8 +178,7 @@ export function AIPropertiesPanel({
                         onChange={(e) => handleNodeUpdate({
                           config: { ...node.config, [field.key]: e.target.value }
                         })}
-                        style={inputBaseStyles}
-                        {...inputFocusHandlers}
+                        className="properties-panel__input"
                       />
                     )}
                     
@@ -273,8 +189,7 @@ export function AIPropertiesPanel({
                         onChange={(e) => handleNodeUpdate({
                           config: { ...node.config, [field.key]: parseInt(e.target.value) || 0 }
                         })}
-                        style={inputBaseStyles}
-                        {...inputFocusHandlers}
+                        className="properties-panel__input"
                       />
                     )}
                     
@@ -315,8 +230,8 @@ export function AIPropertiesPanel({
                         onChange={(e) => handleNodeUpdate({
                           config: { ...node.config, [field.key]: e.target.value }
                         })}
+                        className="properties-panel__input"
                         style={{
-                          ...inputBaseStyles,
                           cursor: 'pointer',
                           appearance: 'none',
                           backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
@@ -325,7 +240,6 @@ export function AIPropertiesPanel({
                           backgroundSize: '16px',
                           paddingRight: '40px'
                         }}
-                        {...inputFocusHandlers}
                       >
                         <option value="">Select...</option>
                         {field.options?.map((option) => (
@@ -340,14 +254,13 @@ export function AIPropertiesPanel({
                         onChange={(e) => handleNodeUpdate({
                           config: { ...node.config, [field.key]: e.target.value }
                         })}
+                        className="properties-panel__input properties-panel__textarea"
                         style={{
-                          ...inputBaseStyles,
                           minHeight: '60px',
                           resize: 'vertical',
                           lineHeight: '1.4'
                         }}
                         placeholder={`Enter ${field.label.toLowerCase()}...`}
-                        {...inputFocusHandlers}
                       />
                     )}
                   </div>
@@ -361,61 +274,34 @@ export function AIPropertiesPanel({
   };
 
   const renderConnectionProperties = (connection: AIFlowConnection) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <div>
-        <label style={{ display: 'block', fontSize: '12px', fontWeight: '400', color: '#1f2937', marginBottom: '6px' }}>
+    <div className="properties-panel__fields">
+      <div className="properties-panel__field">
+        <label className="properties-panel__label">
           Label
         </label>
         <input
           type="text"
           value={connection.label || ''}
           onChange={(e) => handleConnectionUpdate({ label: e.target.value })}
-          style={{
-            width: '100%',
-            padding: '8px 12px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            fontSize: '13px',
-            background: '#ffffff',
-            outline: 'none',
-            transition: 'all 0.2s',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-            boxSizing: 'border-box'
-          }}
+          className="properties-panel__input"
           placeholder="Optional connection label"
-          onFocus={(e) => {
-            e.target.style.borderColor = '#9ca3af';
-            e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
-          }}
-          onBlur={(e) => {
-            e.target.style.borderColor = '#e5e7eb';
-            e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.04)';
-          }}
         />
       </div>
 
-      <div>
-        <label style={{ display: 'block', fontSize: '12px', fontWeight: '400', color: '#1f2937', marginBottom: '6px' }}>
+      <div className="properties-panel__field">
+        <label className="properties-panel__label">
           Color
         </label>
         <input
           type="color"
           value={connection.color}
           onChange={(e) => handleConnectionUpdate({ color: e.target.value })}
-          style={{
-            width: '100%',
-            height: '32px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            background: '#ffffff',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
-          }}
+          className="properties-panel__input properties-panel__color-input"
         />
       </div>
 
-      <div>
-        <label style={{ display: 'block', fontSize: '12px', fontWeight: '400', color: '#1f2937', marginBottom: '6px' }}>
+      <div className="properties-panel__field">
+        <label className="properties-panel__label">
           Width
         </label>
         <input
@@ -424,16 +310,9 @@ export function AIPropertiesPanel({
           max="5"
           value={connection.width}
           onChange={(e) => handleConnectionUpdate({ width: parseInt(e.target.value) })}
-          style={{
-            width: '100%',
-            height: '4px',
-            borderRadius: '2px',
-            background: '#e5e7eb',
-            outline: 'none',
-            cursor: 'pointer'
-          }}
+          className="properties-panel__range"
         />
-        <span style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px', display: 'block' }}>
+        <span className="properties-panel__range-value">
           {connection.width}px
         </span>
       </div>
@@ -446,79 +325,33 @@ export function AIPropertiesPanel({
 
       {selectedNode && (
         <>
-          <div style={{ display: 'flex', marginBottom: '12px', borderBottom: '1px solid #f3f4f6' }}>
+          <div className="properties-panel__tabs">
             <button
               onClick={() => setActiveTab('properties')}
-              style={{
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '400',
-                border: 'none',
-                background: 'transparent',
-                color: activeTab === 'properties' ? '#1f2937' : '#9ca3af',
-                borderBottom: activeTab === 'properties' ? '2px solid #000000' : '2px solid transparent',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
+              className={`properties-panel__tab ${activeTab === 'properties' ? 'properties-panel__tab--active' : ''}`}
             >
               Properties
             </button>
             <button
               onClick={() => setActiveTab('config')}
-              style={{
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '400',
-                border: 'none',
-                background: 'transparent',
-                color: activeTab === 'config' ? '#1f2937' : '#9ca3af',
-                borderBottom: activeTab === 'config' ? '2px solid #000000' : '2px solid transparent',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
+              className={`properties-panel__tab ${activeTab === 'config' ? 'properties-panel__tab--active' : ''}`}
             >
               Configuration
             </button>
           </div>
 
-          <div style={{ marginBottom: '12px' }}>
-            <span style={{
-              display: 'inline-block',
-              padding: '4px 8px',
-              background: '#f3f4f6',
-              color: '#1f2937',
-              fontSize: '11px',
-              fontWeight: '500',
-              borderRadius: '4px',
-              letterSpacing: '0.05em'
-            }}>
+          <div>
+            <span className="properties-panel__node-type">
               {selectedNode.type.toUpperCase()}
             </span>
           </div>
 
           {renderNodeProperties(selectedNode)}
           
-          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #f3f4f6' }}>
+          <div className="properties-panel__delete-section">
             <button
               onClick={() => onDeleteNode(selectedNode.id)}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                background: '#000000',
-                color: '#ffffff',
-                fontSize: '12px',
-                fontWeight: '400',
-                borderRadius: '6px',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = '#374151';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = '#000000';
-              }}
+              className="properties-panel__delete-btn"
             >
               Delete Node
             </button>

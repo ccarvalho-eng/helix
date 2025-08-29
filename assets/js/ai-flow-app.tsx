@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { ReactFlowAIFlowBuilder } from './components/flow-builder/ReactFlowAIFlowBuilder';
+import { ReactFlowAIFlowBuilder } from './features/flow-builder';
 
 function AIFlowApp() {
   try {

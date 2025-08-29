@@ -1,0 +1,25 @@
+/* ==========================================================================
+   Flow Builder CSS Variables
+   ========================================================================== */
+
+:root {
+  --flow-builder-header-height: 73px;
+  --flow-builder-sidebar-width: 250px;
+  --flow-builder-properties-width: 320px;
+  --flow-builder-properties-width-small: 250px;
+  
+  /* Colors */
+  --flow-builder-bg: #ffffff;
+  --flow-builder-border: #e5e7eb;
+  --flow-builder-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --flow-builder-text-primary: #111827;
+  --flow-builder-text-secondary: #6b7280;
+  --flow-builder-text-muted: #9ca3af;
+  
+  /* Node defaults */
+  --flow-node-border-radius: 12px;
+  --flow-node-padding: 16px;
+  --flow-node-font-size: 13px;
+  --flow-node-font-weight: 400;
+  --flow-node-transition: all 0.2s;
+}

@@ -1,0 +1,46 @@
+/* Flow Builder Layout */
+.flow-builder {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--flow-builder-bg);
+  overflow: hidden;
+}
+
+.flow-builder__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--flow-builder-border);
+  background: var(--flow-builder-bg);
+  box-shadow: var(--flow-builder-shadow);
+  flex-shrink: 0;
+}
+
+.flow-builder__logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--flow-builder-text-primary);
+  letter-spacing: -0.025em;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.flow-builder__stats {
+  font-size: 14px;
+  color: var(--flow-builder-text-secondary);
+}
+
+.flow-builder__content {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  height: calc(100vh - var(--flow-builder-header-height));
+  overflow: hidden;
+}
+
