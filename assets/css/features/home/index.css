@@ -38,8 +38,18 @@
 /* Home page layout */
 .home-page {
   min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
   background: var(--home-bg);
   color: var(--home-text-primary);
+  overflow-x: hidden;
+}
+
+/* Ensure the main container doesn't overflow */
+.home-page > div {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 .home-header {
