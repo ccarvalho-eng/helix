@@ -4,7 +4,6 @@ export const skyrimTemplate: Template = {
 	id: "skyrim",
 	name: "Skyrim",
 	description: "Dragon hunting and Thu'um mastery with the Dragonborn",
-	difficulty: "advanced",
 	category: "gaming",
 	nodes: [
 		// Input and Intelligence

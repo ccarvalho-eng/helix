@@ -23,11 +23,6 @@ html, body {
   overflow-x: hidden;
 }
 
-/* Additional fixes for dark mode white space */
-html {
-  overflow-x: hidden;
-}
-
 /* Ensure all containers respect viewport width */
 * {
   box-sizing: border-box;

@@ -4,7 +4,6 @@ export const assassinsCreedTemplate: Template = {
 	id: "assassins-creed",
 	name: "Assassin's Creed",
 	description: "Ezio, Altaïr, Bayek & Edward coordinate a mission",
-	difficulty: "simple",
 	category: "gaming",
 	nodes: [
 		{

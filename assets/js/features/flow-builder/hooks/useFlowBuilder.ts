@@ -186,78 +186,6 @@ export function useFlowBuilder() {
     }
   }, [setNodes, setEdges, selectedNode]);
 
-  const addTemplate = useCallback(() => {
-    const templateNodeConfigs = [
-      { id: 'mission-brief', type: 'input' as const, label: 'Mission Brief', description: 'Receive assassination target and intel', x: 100, y: 300 },
-      { id: 'eagle-vision', type: 'sensor' as const, label: 'Eagle Vision', description: 'Scan environment for threats and opportunities', x: 350, y: 200 },
-      { id: 'ezio', type: 'agent' as const, label: 'Ezio Auditore', description: 'Master strategist, plans the approach and coordinates team', x: 600, y: 100 },
-      { id: 'altair', type: 'agent' as const, label: 'Altaïr Ibn-LaAhad', description: 'Legendary assassin, executes high-priority eliminations', x: 600, y: 250 },
-      { id: 'bayek', type: 'agent' as const, label: 'Bayek of Siwa', description: 'Hidden One, investigates targets and gathers intelligence', x: 600, y: 400 },
-      { id: 'edward', type: 'agent' as const, label: 'Edward Kenway', description: 'Pirate assassin, handles naval operations and combat', x: 600, y: 550 },
-      { id: 'hidden-blade', type: 'skill' as const, label: 'Hidden Blade', description: 'Silent assassination technique', x: 900, y: 150 },
-      { id: 'free-running', type: 'skill' as const, label: 'Free Running', description: 'Parkour and escape routes', x: 900, y: 300 },
-      { id: 'combat-training', type: 'skill' as const, label: 'Combat Training', description: 'Sword fighting and counter-attacks', x: 900, y: 450 },
-      { id: 'mission-success', type: 'decision' as const, label: 'Mission Success?', description: 'Evaluate if target eliminated and escape completed', x: 1200, y: 325 },
-      { id: 'brotherhood-report', type: 'output' as const, label: 'Brotherhood Report', description: 'Mission status and next objectives', x: 1500, y: 325 },
-    ];
-
-    const newNodes = templateNodeConfigs.map(nodeTemplate => {
-      const defaults = nodeDefaults[nodeTemplate.type];
-      const nodeData: AIFlowNode = {
-        id: nodeTemplate.id,
-        type: nodeTemplate.type,
-        x: nodeTemplate.x,
-        y: nodeTemplate.y,
-        width: defaults.width,
-        height: defaults.height,
-        label: nodeTemplate.label,
-        description: nodeTemplate.description,
-        config: {},
-        color: defaults.color,
-        borderColor: '#e5e7eb',
-        borderWidth: 1,
-      };
-
-      return {
-        id: nodeData.id,
-        type: 'aiFlowNode' as const,
-        position: { x: nodeTemplate.x, y: nodeTemplate.y },
-        data: nodeData,
-      };
-    });
-
-    const templateConnections = [
-      { source: 'mission-brief', target: 'eagle-vision', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'eagle-vision', target: 'ezio', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'eagle-vision', target: 'altair', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'eagle-vision', target: 'bayek', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'eagle-vision', target: 'edward', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'ezio', target: 'hidden-blade', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'altair', target: 'hidden-blade', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'ezio', target: 'free-running', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'bayek', target: 'free-running', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'edward', target: 'combat-training', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'altair', target: 'combat-training', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'hidden-blade', target: 'mission-success', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'free-running', target: 'mission-success', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'combat-training', target: 'mission-success', sourceHandle: 'right', targetHandle: 'left' },
-      { source: 'mission-success', target: 'brotherhood-report', sourceHandle: 'right', targetHandle: 'left' },
-    ];
-
-    const newEdges = templateConnections.map((conn, index) => ({
-      id: `template-edge-${index}`,
-      source: conn.source,
-      target: conn.target,
-      sourceHandle: conn.sourceHandle,
-      targetHandle: conn.targetHandle,
-      type: 'default',
-      markerEnd: { type: MarkerType.ArrowClosed, color: '#9ca3af' },
-      style: { stroke: '#9ca3af', strokeWidth: 2 },
-    }));
-
-    setNodes((nds) => [...nds, ...newNodes]);
-    setEdges((eds) => [...eds, ...newEdges]);
-  }, [setNodes, setEdges]);
 
   useEffect(() => {
     if (reactFlowInstance) {
@@ -293,7 +221,6 @@ export function useFlowBuilder() {
     addNode,
     updateNode,
     deleteNode,
-    addTemplate,
     initialViewport: initialState?.viewport || { x: 0, y: 0, zoom: 1 }
   };
 }

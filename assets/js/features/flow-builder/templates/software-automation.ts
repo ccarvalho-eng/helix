@@ -4,7 +4,6 @@ export const softwareAutomationTemplate: Template = {
 	id: "software-automation",
 	name: "Software Automation",
 	description: "End-to-end software development lifecycle automation",
-	difficulty: "medium",
 	category: "technology",
 	nodes: [
 		// Requirements Input

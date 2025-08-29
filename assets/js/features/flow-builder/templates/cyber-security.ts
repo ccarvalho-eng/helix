@@ -4,7 +4,6 @@ export const cyberSecurityTemplate: Template = {
 	id: "cyber-security",
 	name: "Cyber Security",
 	description: "Threat detection and incident response automation",
-	difficulty: "advanced",
 	category: "technology",
 	nodes: [
 		// Input Sources

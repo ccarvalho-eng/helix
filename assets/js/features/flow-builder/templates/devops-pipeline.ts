@@ -4,7 +4,6 @@ export const devOpsPipelineTemplate: Template = {
 	id: "devops-pipeline",
 	name: "DevOps Pipeline",
 	description: "CI/CD automation with testing, deployment, and monitoring",
-	difficulty: "medium",
 	category: "technology",
 	nodes: [
 		// Source Control

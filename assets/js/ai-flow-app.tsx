@@ -22,11 +22,8 @@ let currentRoot: any = null;
 function mountReactApp() {
 	const container = document.getElementById("ai-flow-builder");
 
-	console.log("Attempting to mount AI Flow React app...", { container });
-
 	// Only mount if the container exists (flow page)
 	if (container && !container.hasAttribute("data-react-mounted")) {
-		console.log("Mounting AI Flow React app...");
 		container.setAttribute("data-react-mounted", "true");
 
 		// Clean up any existing root
@@ -40,11 +37,6 @@ function mountReactApp() {
 
 		currentRoot = createRoot(container);
 		currentRoot.render(<AIFlowApp />);
-		console.log("AI Flow React app mounted successfully!");
-	} else if (container) {
-		console.log("AI Flow React app already mounted");
-	} else {
-		console.log("AI Flow app container not found");
 	}
 }
 

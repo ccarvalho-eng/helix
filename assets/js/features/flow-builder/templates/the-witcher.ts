@@ -5,7 +5,6 @@ export const theWitcherTemplate: Template = {
 	name: "The Witcher",
 	description:
 		"Complex monster hunting with multiple paths and specialized witchers",
-	difficulty: "advanced",
 	category: "gaming",
 	nodes: [
 		// Input and Intelligence

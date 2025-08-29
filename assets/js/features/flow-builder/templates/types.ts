@@ -15,15 +15,12 @@ export interface TemplateConnection {
   targetHandle: 'left';
 }
 
-export type Difficulty = 'simple' | 'medium' | 'advanced';
-
 export type TemplateCategory = 'gaming' | 'technology';
 
 export interface Template {
   id: string;
   name: string;
   description: string;
-  difficulty: Difficulty;
   category: TemplateCategory;
   nodes: TemplateNode[];
   connections: TemplateConnection[];
