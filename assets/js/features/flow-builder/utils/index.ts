@@ -4,8 +4,8 @@ import { ICONS, NODE_COLORS, type IconName, type NodeColorType } from '../../../
 
 export const flowUtils = {
   calculateNodePosition: (index: number, column: number = 0): { x: number; y: number } => {
-    const baseX = 100 + (column * 200);
-    const baseY = 100 + (index * 150);
+    const baseX = 100 + column * 200;
+    const baseY = 100 + index * 150;
     return { x: baseX, y: baseY };
   },
 

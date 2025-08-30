@@ -30,15 +30,10 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   render() {
     if (this.state.hasError) {
       return (
-        <div className="error-boundary">
-          <h2 className="error-boundary__title">Something went wrong with ReactFlow</h2>
-          <p className="error-boundary__message">
-            Error: {this.state.error?.toString()}
-          </p>
-          <button 
-            onClick={this.handleRetry}
-            className="error-boundary__retry-btn"
-          >
+        <div className='error-boundary'>
+          <h2 className='error-boundary__title'>Something went wrong with ReactFlow</h2>
+          <p className='error-boundary__message'>Error: {this.state.error?.toString()}</p>
+          <button onClick={this.handleRetry} className='error-boundary__retry-btn'>
             Try Again
           </button>
         </div>

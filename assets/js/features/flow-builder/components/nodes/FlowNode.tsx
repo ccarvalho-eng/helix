@@ -1,13 +1,6 @@
 import React from 'react';
 import { Handle, Position } from 'reactflow';
-import { 
-  Bot, 
-  Eye, 
-  Wrench, 
-  GitBranch, 
-  ArrowLeft, 
-  ArrowRight
-} from 'lucide-react';
+import { Bot, Eye, Wrench, GitBranch, ArrowLeft, ArrowRight } from 'lucide-react';
 import { AIFlowNode } from '../../types';
 
 interface FlowNodeProps {
@@ -21,16 +14,16 @@ const NodeIcon = {
   skill: Wrench,
   decision: GitBranch,
   input: ArrowLeft,
-  output: ArrowRight
+  output: ArrowRight,
 };
 
 const nodeColors = {
   agent: '#0ea5e9',
-  sensor: '#22c55e', 
+  sensor: '#22c55e',
   skill: '#f59e0b',
   decision: '#ef4444',
   input: '#8b5cf6',
-  output: '#06b6d4'
+  output: '#06b6d4',
 };
 
 const nodeDimensions = {
@@ -56,29 +49,24 @@ export function FlowNode({ data, selected }: FlowNodeProps) {
   } as React.CSSProperties;
 
   return (
-    <div 
-      className={`flow-node ${selected ? 'flow-node--selected' : ''}`}
-      style={nodeStyle}
-    >
+    <div className={`flow-node ${selected ? 'flow-node--selected' : ''}`} style={nodeStyle}>
       <Handle
-        type="target"
+        type='target'
         position={Position.Left}
-        id="left"
-        className="flow-node__handle flow-node__handle--left"
+        id='left'
+        className='flow-node__handle flow-node__handle--left'
       />
       <Handle
-        type="source"
+        type='source'
         position={Position.Right}
-        id="right"
-        className="flow-node__handle flow-node__handle--right"
+        id='right'
+        className='flow-node__handle flow-node__handle--right'
       />
 
-      <div className="flow-node__icon">
+      <div className='flow-node__icon'>
         <NodeIconComponent size={20} color={iconColor} />
       </div>
-      <div className="flow-node__label">
-        {data.label}
-      </div>
+      <div className='flow-node__label'>{data.label}</div>
     </div>
   );
 }

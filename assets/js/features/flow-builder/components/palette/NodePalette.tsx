@@ -1,12 +1,5 @@
 import React from 'react';
-import { 
-  Bot, 
-  Eye, 
-  Wrench, 
-  GitBranch, 
-  ArrowLeft, 
-  ArrowRight
-} from 'lucide-react';
+import { Bot, Eye, Wrench, GitBranch, ArrowLeft, ArrowRight } from 'lucide-react';
 import { AIFlowNode } from '../../types';
 
 interface NodePaletteProps {
@@ -30,45 +23,32 @@ export function NodePalette({ onAddNode, onAddTemplate }: NodePaletteProps) {
   };
 
   return (
-    <div className="node-palette">
-      <h3 className="node-palette__title">
-        AI Flow Nodes
-      </h3>
-      
-      <div className="node-palette__nodes">
-        {nodeTypes.map((nodeType) => (
+    <div className='node-palette'>
+      <h3 className='node-palette__title'>AI Flow Nodes</h3>
+
+      <div className='node-palette__nodes'>
+        {nodeTypes.map(nodeType => (
           <div
             key={nodeType.type}
-            className="node-palette__node"
+            className='node-palette__node'
             draggable
-            onDragStart={(e) => handleDragStart(e, nodeType.type)}
+            onDragStart={e => handleDragStart(e, nodeType.type)}
             onClick={() => onAddNode(nodeType.type)}
           >
             <nodeType.icon size={18} color={nodeType.color} />
-            <div className="node-palette__node-info">
-              <div className="node-palette__node-label">
-                {nodeType.label}
-              </div>
-              <div className="node-palette__node-hint">
-                Drag to canvas or click to add
-              </div>
+            <div className='node-palette__node-info'>
+              <div className='node-palette__node-label'>{nodeType.label}</div>
+              <div className='node-palette__node-hint'>Drag to canvas or click to add</div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="node-palette__templates">
-        <h4 className="node-palette__templates-title">
-          Templates
-        </h4>
-        <div 
-          className="node-palette__template"
-          onClick={onAddTemplate}
-        >
-          <div className="node-palette__template-title">
-            Assassin's Creed Brotherhood
-          </div>
-          <div className="node-palette__template-description">
+      <div className='node-palette__templates'>
+        <h4 className='node-palette__templates-title'>Templates</h4>
+        <div className='node-palette__template' onClick={onAddTemplate}>
+          <div className='node-palette__template-title'>Assassin's Creed Brotherhood</div>
+          <div className='node-palette__template-description'>
             Ezio, Altaïr, Bayek & Edward coordinate a mission
           </div>
         </div>

@@ -21,6 +21,10 @@ html, body {
   width: 100%;
   height: 100%;
   overflow-x: hidden;
+  /* Prevent theme flash by setting default dark theme */
+  background-color: var(--theme-bg-primary);
+  color: var(--theme-text-primary);
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 /* Ensure all containers respect viewport width */

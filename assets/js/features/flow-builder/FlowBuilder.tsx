@@ -20,7 +20,12 @@ import {
 } from 'reactflow';
 
 import { AIFlowNode as OriginalAIFlowNode } from './types';
-import { getTemplate, TemplateType, getFeaturedTemplates, getTemplatesByCategory } from './templates';
+import {
+  getTemplate,
+  TemplateType,
+  getFeaturedTemplates,
+  getTemplatesByCategory,
+} from './templates';
 import { Template } from './types';
 import { PropertiesPanel } from './components/properties';
 import { ErrorBoundary } from '../../shared/components/ui/ErrorBoundary';
@@ -41,7 +46,7 @@ import {
   Sliders,
   Shield,
   Settings,
-  Gamepad2
+  Gamepad2,
 } from 'lucide-react';
 
 // Extended node interface for React Flow
@@ -49,7 +54,7 @@ interface ReactFlowAINode extends OriginalAIFlowNode {
   // React Flow specific fields will be in the Node<ReactFlowAINode> wrapper
 }
 
-// Custom Node Component that matches the original design  
+// Custom Node Component that matches the original design
 function FlowNode({ data, selected, ...nodeProps }: { data: ReactFlowAINode; selected: boolean }) {
   const { theme } = useThemeContext();
   const NodeIcon = {
@@ -58,7 +63,7 @@ function FlowNode({ data, selected, ...nodeProps }: { data: ReactFlowAINode; sel
     skill: Wrench,
     decision: GitBranch,
     input: ArrowLeft,
-    output: ArrowRight
+    output: ArrowRight,
   }[data.type];
 
   const getIconColor = (nodeType: ReactFlowAINode['type']) => {
@@ -68,7 +73,7 @@ function FlowNode({ data, selected, ...nodeProps }: { data: ReactFlowAINode; sel
       skill: '#f59e0b',
       decision: '#ef4444',
       input: '#8b5cf6',
-      output: '#06b6d4'
+      output: '#06b6d4',
     };
     return colors[nodeType];
   };
@@ -100,13 +105,10 @@ function FlowNode({ data, selected, ...nodeProps }: { data: ReactFlowAINode; sel
   } as React.CSSProperties;
 
   return (
-    <div
-      className={`flow-node ${selected ? 'flow-node--selected' : ''}`}
-      style={nodeStyle}
-    >
+    <div className={`flow-node ${selected ? 'flow-node--selected' : ''}`} style={nodeStyle}>
       {/* Node Resizer - only visible when selected */}
       <NodeResizer
-        color={theme === 'dark' ? "#98c379" : "#000000"}
+        color={theme === 'dark' ? '#98c379' : '#000000'}
         isVisible={selected}
         minWidth={parseInt(width)}
         minHeight={parseInt(height)}
@@ -114,24 +116,22 @@ function FlowNode({ data, selected, ...nodeProps }: { data: ReactFlowAINode; sel
 
       {/* React Flow Handles for connections - Left and Right only */}
       <Handle
-        type="target"
+        type='target'
         position={Position.Left}
-        id="left"
-        className="flow-node__handle flow-node__handle--left"
+        id='left'
+        className='flow-node__handle flow-node__handle--left'
       />
       <Handle
-        type="source"
+        type='source'
         position={Position.Right}
-        id="right"
-        className="flow-node__handle flow-node__handle--right"
+        id='right'
+        className='flow-node__handle flow-node__handle--right'
       />
 
-      <div className="flow-node__icon">
+      <div className='flow-node__icon'>
         <NodeIcon size={20} color={iconColor} />
       </div>
-      <div className="flow-node__label">
-        {data.label}
-      </div>
+      <div className='flow-node__label'>{data.label}</div>
     </div>
   );
 }
@@ -144,10 +144,18 @@ const nodeTypes: NodeTypes = {
 // Custom edge type that matches original design
 const edgeTypes: EdgeTypes = {};
 
-
-// Node Palette (same as original but adapted for React Flow)  
-function ReactFlowNodePalette({ onAddNode, onAddTemplate, onOpenTemplatesModal, onTemplateClick }: {
-  onAddNode: (type: ReactFlowAINode['type'], customLabel?: string, customDescription?: string) => void;
+// Node Palette (same as original but adapted for React Flow)
+function ReactFlowNodePalette({
+  onAddNode,
+  onAddTemplate,
+  onOpenTemplatesModal,
+  onTemplateClick,
+}: {
+  onAddNode: (
+    type: ReactFlowAINode['type'],
+    customLabel?: string,
+    customDescription?: string
+  ) => void;
   onAddTemplate: (templateType: TemplateType) => void;
   onOpenTemplatesModal: () => void;
   onTemplateClick: (template: Template) => void;
@@ -167,26 +175,22 @@ function ReactFlowNodePalette({ onAddNode, onAddTemplate, onOpenTemplatesModal, 
   };
 
   return (
-    <div className="react-flow-node-palette">
-      <h3 className="react-flow-node-palette__title">
-        AI Flow Nodes
-      </h3>
+    <div className='react-flow-node-palette'>
+      <h3 className='react-flow-node-palette__title'>AI Flow Nodes</h3>
 
-      <div className="react-flow-node-palette__nodes">
-        {nodeTypes.map((nodeType) => (
+      <div className='react-flow-node-palette__nodes'>
+        {nodeTypes.map(nodeType => (
           <div
             key={nodeType.type}
-            className="react-flow-node-palette__node"
+            className='react-flow-node-palette__node'
             draggable
-            onDragStart={(e) => handleDragStart(e, nodeType.type)}
+            onDragStart={e => handleDragStart(e, nodeType.type)}
             onClick={() => onAddNode(nodeType.type)}
           >
             <nodeType.icon size={18} color={nodeType.color} />
-            <div className="react-flow-node-palette__node-info">
-              <div className="react-flow-node-palette__node-label">
-                {nodeType.label}
-              </div>
-              <div className="react-flow-node-palette__node-hint">
+            <div className='react-flow-node-palette__node-info'>
+              <div className='react-flow-node-palette__node-label'>{nodeType.label}</div>
+              <div className='react-flow-node-palette__node-hint'>
                 Drag to canvas or click to add
               </div>
             </div>
@@ -194,27 +198,28 @@ function ReactFlowNodePalette({ onAddNode, onAddTemplate, onOpenTemplatesModal, 
         ))}
       </div>
 
-      <div className="react-flow-node-palette__templates">
-        <h4 className="react-flow-node-palette__templates-title">
-          Templates
-        </h4>
+      <div className='react-flow-node-palette__templates'>
+        <h4 className='react-flow-node-palette__templates-title'>Templates</h4>
         {(() => {
           const getTemplateIcon = (category: string) => {
             switch (category) {
-              case 'technology': return Settings;
-              case 'gaming': return Gamepad2;
-              default: return Circle;
+              case 'technology':
+                return Settings;
+              case 'gaming':
+                return Gamepad2;
+              default:
+                return Circle;
             }
           };
-          
+
           const templates = getFeaturedTemplates();
-          return templates.map((t) => (
+          return templates.map(t => (
             <div
               key={t.id}
-              className="react-flow-node-palette__template"
+              className='react-flow-node-palette__template'
               onClick={() => onTemplateClick(t)}
             >
-              <div className="react-flow-node-palette__template-title">
+              <div className='react-flow-node-palette__template-title'>
                 {(() => {
                   const IconComponent = getTemplateIcon(t.category);
                   return (
@@ -225,12 +230,12 @@ function ReactFlowNodePalette({ onAddNode, onAddTemplate, onOpenTemplatesModal, 
                   );
                 })()}
               </div>
-              <div className="react-flow-node-palette__template-description">{t.description}</div>
+              <div className='react-flow-node-palette__template-description'>{t.description}</div>
             </div>
           ));
         })()}
-        <div 
-          className="react-flow-node-palette__see-all-link"
+        <div
+          className='react-flow-node-palette__see-all-link'
           style={{
             marginTop: 12,
             padding: '8px 12px',
@@ -241,11 +246,11 @@ function ReactFlowNodePalette({ onAddNode, onAddTemplate, onOpenTemplatesModal, 
             borderRadius: 6,
             transition: 'all 0.2s ease',
           }}
-          onMouseEnter={(e) => {
+          onMouseEnter={e => {
             e.currentTarget.style.backgroundColor = '#f3f4f6';
             e.currentTarget.style.color = '#374151';
           }}
-          onMouseLeave={(e) => {
+          onMouseLeave={e => {
             e.currentTarget.style.backgroundColor = 'transparent';
             e.currentTarget.style.color = '#6b7280';
           }}
@@ -290,7 +295,9 @@ function FlowBuilderInternal() {
   const { theme } = useThemeContext();
   const initialState = loadFromLocalStorage();
 
-  const [nodes, setNodes, onNodesChange] = useNodesState<ReactFlowAINode>(initialState?.nodes || []);
+  const [nodes, setNodes, onNodesChange] = useNodesState<ReactFlowAINode>(
+    initialState?.nodes || []
+  );
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialState?.edges || []);
   const [selectedNode, setSelectedNode] = useState<ReactFlowAINode | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
@@ -313,48 +320,51 @@ function FlowBuilderInternal() {
   }, []);
 
   // Add node function
-  const addNode = useCallback((type: ReactFlowAINode['type'], customLabel?: string, customDescription?: string) => {
-    const nodeDefaults = {
-      agent: { width: 140, height: 80, color: '#f0f9ff', label: 'AI Agent' },
-      sensor: { width: 120, height: 60, color: '#f0fdf4', label: 'Sensor' },
-      skill: { width: 120, height: 60, color: '#fffbeb', label: 'Skill' },
-      decision: { width: 100, height: 80, color: '#fef2f2', label: 'Decision' },
-      input: { width: 100, height: 60, color: '#faf5ff', label: 'Input' },
-      output: { width: 100, height: 60, color: '#f0fdfa', label: 'Output' },
-    };
+  const addNode = useCallback(
+    (type: ReactFlowAINode['type'], customLabel?: string, customDescription?: string) => {
+      const nodeDefaults = {
+        agent: { width: 140, height: 80, color: '#f0f9ff', label: 'AI Agent' },
+        sensor: { width: 120, height: 60, color: '#f0fdf4', label: 'Sensor' },
+        skill: { width: 120, height: 60, color: '#fffbeb', label: 'Skill' },
+        decision: { width: 100, height: 80, color: '#fef2f2', label: 'Decision' },
+        input: { width: 100, height: 60, color: '#faf5ff', label: 'Input' },
+        output: { width: 100, height: 60, color: '#f0fdfa', label: 'Output' },
+      };
 
-    const defaults = nodeDefaults[type];
-    const nodeData: ReactFlowAINode = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      type,
-      x: 0, // React Flow manages position
-      y: 0, // React Flow manages position
-      width: defaults.width,
-      height: defaults.height,
-      label: customLabel || defaults.label,
-      description: customDescription || '',
-      config: {},
-      color: defaults.color,
-      borderColor: '#e5e7eb',
-      borderWidth: 1,
-    };
-
-    const newNode: Node<ReactFlowAINode> = {
-      id: nodeData.id,
-      type: 'aiFlowNode',
-      position: {
-        x: Math.random() * 400 + 100,
-        y: Math.random() * 400 + 100
-      },
-      data: nodeData,
-      style: {
+      const defaults = nodeDefaults[type];
+      const nodeData: ReactFlowAINode = {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        type,
+        x: 0, // React Flow manages position
+        y: 0, // React Flow manages position
         width: defaults.width,
         height: defaults.height,
-      },
-    };
+        label: customLabel || defaults.label,
+        description: customDescription || '',
+        config: {},
+        color: defaults.color,
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+      };
 
-    setNodes((nds) => nds.concat(newNode));
-  }, [setNodes]);
+      const newNode: Node<ReactFlowAINode> = {
+        id: nodeData.id,
+        type: 'aiFlowNode',
+        position: {
+          x: Math.random() * 400 + 100,
+          y: Math.random() * 400 + 100,
+        },
+        data: nodeData,
+        style: {
+          width: defaults.width,
+          height: defaults.height,
+        },
+      };
+
+      setNodes(nds => nds.concat(newNode));
+    },
+    [setNodes]
+  );
 
   // Handle connections
   const onConnect = useCallback(
@@ -379,7 +389,7 @@ function FlowBuilderInternal() {
           strokeWidth: 2,
         },
       };
-      setEdges((eds) => addEdge(edge, eds));
+      setEdges(eds => addEdge(edge, eds));
     },
     [setEdges]
   );
@@ -443,135 +453,150 @@ function FlowBuilderInternal() {
         },
       };
 
-      setNodes((nds) => nds.concat(newNode));
+      setNodes(nds => nds.concat(newNode));
     },
     [reactFlowInstance, setNodes]
   );
 
   // Handle node selection
-  const onSelectionChange = useCallback(({ nodes: selectedNodes }: { nodes: Node<ReactFlowAINode>[] }) => {
-    if (selectedNodes.length > 0) {
-      setSelectedNode(selectedNodes[0].data);
-      setIsPropertiesOpen(true);
-    } else {
-      setSelectedNode(null);
-    }
-  }, []);
+  const onSelectionChange = useCallback(
+    ({ nodes: selectedNodes }: { nodes: Node<ReactFlowAINode>[] }) => {
+      if (selectedNodes.length > 0) {
+        setSelectedNode(selectedNodes[0].data);
+        setIsPropertiesOpen(true);
+      } else {
+        setSelectedNode(null);
+      }
+    },
+    []
+  );
 
   // Update node function
-  const updateNode = useCallback((id: string, updates: Partial<ReactFlowAINode>) => {
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === id) {
-          const updatedData = { ...node.data, ...updates };
-          return { ...node, data: updatedData };
-        }
-        return node;
-      })
-    );
+  const updateNode = useCallback(
+    (id: string, updates: Partial<ReactFlowAINode>) => {
+      setNodes(nds =>
+        nds.map(node => {
+          if (node.id === id) {
+            const updatedData = { ...node.data, ...updates };
+            return { ...node, data: updatedData };
+          }
+          return node;
+        })
+      );
 
-    if (selectedNode?.id === id) {
-      setSelectedNode({ ...selectedNode, ...updates });
-    }
-  }, [setNodes, selectedNode]);
+      if (selectedNode?.id === id) {
+        setSelectedNode({ ...selectedNode, ...updates });
+      }
+    },
+    [setNodes, selectedNode]
+  );
 
   // Delete node function
-  const deleteNode = useCallback((id: string) => {
-    setNodes((nds) => nds.filter((node) => node.id !== id));
-    setEdges((eds) => eds.filter((edge) => edge.source !== id && edge.target !== id));
-    if (selectedNode?.id === id) {
-      setSelectedNode(null);
-    }
-  }, [setNodes, setEdges, selectedNode]);
+  const deleteNode = useCallback(
+    (id: string) => {
+      setNodes(nds => nds.filter(node => node.id !== id));
+      setEdges(eds => eds.filter(edge => edge.source !== id && edge.target !== id));
+      if (selectedNode?.id === id) {
+        setSelectedNode(null);
+      }
+    },
+    [setNodes, setEdges, selectedNode]
+  );
 
   // Duplicate node function
-  const duplicateNode = useCallback((nodeId: string) => {
-    setNodes((nds) => {
-      const nodeToDuplicate = nds.find(node => node.id === nodeId);
-      if (!nodeToDuplicate) return nds;
+  const duplicateNode = useCallback(
+    (nodeId: string) => {
+      setNodes(nds => {
+        const nodeToDuplicate = nds.find(node => node.id === nodeId);
+        if (!nodeToDuplicate) return nds;
 
-      const newNodeId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-      const duplicatedNode: Node<ReactFlowAINode> = {
-        ...nodeToDuplicate,
-        id: newNodeId,
-        position: {
-          x: nodeToDuplicate.position.x + 20,
-          y: nodeToDuplicate.position.y + 20,
-        },
-        data: {
-          ...nodeToDuplicate.data,
+        const newNodeId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+        const duplicatedNode: Node<ReactFlowAINode> = {
+          ...nodeToDuplicate,
           id: newNodeId,
-        },
-        selected: false,
-      };
+          position: {
+            x: nodeToDuplicate.position.x + 20,
+            y: nodeToDuplicate.position.y + 20,
+          },
+          data: {
+            ...nodeToDuplicate.data,
+            id: newNodeId,
+          },
+          selected: false,
+        };
 
-      return [...nds, duplicatedNode];
-    });
-  }, [setNodes]);
+        return [...nds, duplicatedNode];
+      });
+    },
+    [setNodes]
+  );
 
   // Add template function using the new template system
-  const addTemplate = useCallback((templateType: TemplateType = 'assassins-creed') => {
-    const template = getTemplate(templateType);
-    const { nodes: templateNodes, connections: templateConnections } = template;
+  const addTemplate = useCallback(
+    (templateType: TemplateType = 'assassins-creed') => {
+      const template = getTemplate(templateType);
+      const { nodes: templateNodes, connections: templateConnections } = template;
 
-    // Create nodes
-    const newNodes = templateNodes.map(nodeTemplate => {
-      const nodeDefaults = {
-        agent: { width: 140, height: 80, color: '#f0f9ff' },
-        sensor: { width: 120, height: 60, color: '#f0fdf4' },
-        skill: { width: 120, height: 60, color: '#fffbeb' },
-        decision: { width: 100, height: 80, color: '#fef2f2' },
-        input: { width: 100, height: 60, color: '#faf5ff' },
-        output: { width: 100, height: 60, color: '#f0fdfa' },
-      };
+      // Create nodes
+      const newNodes = templateNodes.map(nodeTemplate => {
+        const nodeDefaults = {
+          agent: { width: 140, height: 80, color: '#f0f9ff' },
+          sensor: { width: 120, height: 60, color: '#f0fdf4' },
+          skill: { width: 120, height: 60, color: '#fffbeb' },
+          decision: { width: 100, height: 80, color: '#fef2f2' },
+          input: { width: 100, height: 60, color: '#faf5ff' },
+          output: { width: 100, height: 60, color: '#f0fdfa' },
+        };
 
-      const defaults = nodeDefaults[nodeTemplate.type];
-      const nodeData: ReactFlowAINode = {
-        id: nodeTemplate.id,
-        type: nodeTemplate.type,
-        x: nodeTemplate.x,
-        y: nodeTemplate.y,
-        width: defaults.width,
-        height: defaults.height,
-        label: nodeTemplate.label,
-        description: nodeTemplate.description,
-        config: nodeTemplate.config || {},
-        color: defaults.color,
-        borderColor: '#e5e7eb',
-        borderWidth: 1,
-      };
-
-      const newNode: Node<ReactFlowAINode> = {
-        id: nodeData.id,
-        type: 'aiFlowNode',
-        position: { x: nodeTemplate.x, y: nodeTemplate.y },
-        data: nodeData,
-        style: {
+        const defaults = nodeDefaults[nodeTemplate.type];
+        const nodeData: ReactFlowAINode = {
+          id: nodeTemplate.id,
+          type: nodeTemplate.type,
+          x: nodeTemplate.x,
+          y: nodeTemplate.y,
           width: defaults.width,
           height: defaults.height,
-        },
-      };
+          label: nodeTemplate.label,
+          description: nodeTemplate.description,
+          config: nodeTemplate.config || {},
+          color: defaults.color,
+          borderColor: '#e5e7eb',
+          borderWidth: 1,
+        };
 
-      return newNode;
-    });
+        const newNode: Node<ReactFlowAINode> = {
+          id: nodeData.id,
+          type: 'aiFlowNode',
+          position: { x: nodeTemplate.x, y: nodeTemplate.y },
+          data: nodeData,
+          style: {
+            width: defaults.width,
+            height: defaults.height,
+          },
+        };
 
-    // Create template connections/edges
+        return newNode;
+      });
 
-    const newEdges = templateConnections.map((conn, index) => ({
-      id: `template-edge-${index}`,
-      source: conn.source,
-      target: conn.target,
-      sourceHandle: conn.sourceHandle,
-      targetHandle: conn.targetHandle,
-      type: 'default',
-      markerEnd: { type: MarkerType.ArrowClosed, color: '#9ca3af' },
-      style: { stroke: '#9ca3af', strokeWidth: 2 },
-    }));
+      // Create template connections/edges
 
-    // Add both nodes and edges
-    setNodes((nds) => [...nds, ...newNodes]);
-    setEdges((eds) => [...eds, ...newEdges]);
-  }, [setNodes, setEdges]);
+      const newEdges = templateConnections.map((conn, index) => ({
+        id: `template-edge-${index}`,
+        source: conn.source,
+        target: conn.target,
+        sourceHandle: conn.sourceHandle,
+        targetHandle: conn.targetHandle,
+        type: 'default',
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#9ca3af' },
+        style: { stroke: '#9ca3af', strokeWidth: 2 },
+      }));
+
+      // Add both nodes and edges
+      setNodes(nds => [...nds, ...newNodes]);
+      setEdges(eds => [...eds, ...newEdges]);
+    },
+    [setNodes, setEdges]
+  );
 
   // Auto-save to localStorage
   useEffect(() => {
@@ -614,38 +639,38 @@ function FlowBuilderInternal() {
   const hasAnyDrawerOpen = (isPaletteOpen || isPropertiesOpen) && isMobile;
 
   return (
-    <div className="flow-builder">
+    <div className='flow-builder'>
       {/* Top Bar with Helix Logo (same as original) */}
-      <div className="flow-builder__header">
-        <a href="/" className="flow-builder__logo">
+      <div className='flow-builder__header'>
+        <a href='/' className='flow-builder__logo'>
           <Cpu size={20} />
           Helix
         </a>
 
-        <div className="flow-builder__header-controls">
-          <div className="flow-builder__stats">
-            <span className="flow-builder__stat">
-              <Circle size={14} className="flow-builder__stat-icon" />
+        <div className='flow-builder__header-controls'>
+          <div className='flow-builder__stats'>
+            <span className='flow-builder__stat'>
+              <Circle size={14} className='flow-builder__stat-icon' />
               {nodes.length} nodes
             </span>
-            <span className="flow-builder__stat">
-              <Zap size={14} className="flow-builder__stat-icon" />
+            <span className='flow-builder__stat'>
+              <Zap size={14} className='flow-builder__stat-icon' />
               {edges.length} connections
             </span>
           </div>
           <ThemeToggle />
           {/* Mobile burgers */}
           <button
-            className="flow-builder__burger flow-builder__burger--left"
-            aria-label="Toggle node palette"
-            onClick={() => setIsPaletteOpen((v) => !v)}
+            className='flow-builder__burger flow-builder__burger--left'
+            aria-label='Toggle node palette'
+            onClick={() => setIsPaletteOpen(v => !v)}
           >
             <Menu size={18} />
           </button>
           <button
-            className="flow-builder__burger flow-builder__burger--right"
-            aria-label="Toggle properties"
-            onClick={() => setIsPropertiesOpen((v) => !v)}
+            className='flow-builder__burger flow-builder__burger--right'
+            aria-label='Toggle properties'
+            onClick={() => setIsPropertiesOpen(v => !v)}
           >
             <Sliders size={18} />
           </button>
@@ -653,28 +678,30 @@ function FlowBuilderInternal() {
       </div>
 
       {/* Main Content */}
-      <div className="flow-builder__content">
-        <div className={`${isPaletteOpen ? 'drawer drawer--left drawer--open' : 'drawer drawer--left'}`}>
+      <div className='flow-builder__content'>
+        <div
+          className={`${isPaletteOpen ? 'drawer drawer--left drawer--open' : 'drawer drawer--left'}`}
+        >
           {/* Mobile close button for palette */}
           {isPaletteOpen && (
             <button
-              className="drawer__close drawer__close--left"
-              aria-label="Close node palette"
+              className='drawer__close drawer__close--left'
+              aria-label='Close node palette'
               onClick={() => setIsPaletteOpen(false)}
             >
               ×
             </button>
           )}
-          <ReactFlowNodePalette 
-            onAddNode={addNode} 
-            onAddTemplate={addTemplate} 
-            onOpenTemplatesModal={() => setIsTemplatesModalOpen(true)} 
+          <ReactFlowNodePalette
+            onAddNode={addNode}
+            onAddTemplate={addTemplate}
+            onOpenTemplatesModal={() => setIsTemplatesModalOpen(true)}
             onTemplateClick={setConfirmationTemplate}
           />
         </div>
 
         {/* React Flow Canvas */}
-        <div className="flow-canvas">
+        <div className='flow-canvas'>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -688,7 +715,7 @@ function FlowBuilderInternal() {
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             defaultViewport={initialState?.viewport || { x: 0, y: 0, zoom: 1 }}
-            className="flow-canvas__reactflow"
+            className='flow-canvas__reactflow'
             connectionLineStyle={{ stroke: '#9ca3af', strokeWidth: 2 }}
             defaultEdgeOptions={{
               type: 'default',
@@ -696,7 +723,7 @@ function FlowBuilderInternal() {
               style: { stroke: '#9ca3af', strokeWidth: 2 },
             }}
             fitView
-            attributionPosition="bottom-left"
+            attributionPosition='bottom-left'
             proOptions={{ hideAttribution: true }}
             panOnScroll={true}
             selectionOnDrag={true}
@@ -705,7 +732,7 @@ function FlowBuilderInternal() {
             zoomOnPinch={true}
             zoomOnDoubleClick={false}
           >
-            <Controls className="flow-canvas__controls" />
+            <Controls className='flow-canvas__controls' />
             <MiniMap
               style={{
                 height: 120,
@@ -716,31 +743,28 @@ function FlowBuilderInternal() {
               }}
               zoomable
               pannable
-              position="bottom-right"
+              position='bottom-right'
               offsetScale={0.8}
             />
-            <Background
-              color="#f3f4f6"
-              gap={20}
-              size={1}
-              className="flow-canvas__background"
-            />
+            <Background color='#f3f4f6' gap={20} size={1} className='flow-canvas__background' />
           </ReactFlow>
         </div>
 
         {/* Properties Panel */}
-        <div className={`properties-panel ${isPropertiesOpen ? 'drawer drawer--right drawer--open' : 'drawer drawer--right'}`}>
+        <div
+          className={`properties-panel ${isPropertiesOpen ? 'drawer drawer--right drawer--open' : 'drawer drawer--right'}`}
+        >
           <PropertiesPanel
             selectedNode={selectedNode}
             selectedConnection={null}
             onUpdateNode={updateNode}
-            onUpdateConnection={() => { }}
+            onUpdateConnection={() => {}}
             onDeleteNode={deleteNode}
             allNodes={nodes.map(n => n.data)}
             allEdges={edges.map(e => ({ source: e.source, target: e.target }))}
-            onOpenNodeModal={(nodeId) => setModalNodeId(nodeId)}
+            onOpenNodeModal={nodeId => setModalNodeId(nodeId)}
             onUnlinkEdge={(sourceId, targetId) => {
-              setEdges((eds) => eds.filter(e => !(e.source === sourceId && e.target === targetId)));
+              setEdges(eds => eds.filter(e => !(e.source === sourceId && e.target === targetId)));
             }}
           />
         </div>
@@ -749,8 +773,11 @@ function FlowBuilderInternal() {
       {/* Mobile backdrop */}
       {hasAnyDrawerOpen && (
         <div
-          className="flow-builder__backdrop"
-          onClick={() => { setIsPaletteOpen(false); setIsPropertiesOpen(false); }}
+          className='flow-builder__backdrop'
+          onClick={() => {
+            setIsPaletteOpen(false);
+            setIsPropertiesOpen(false);
+          }}
         />
       )}
 
@@ -758,29 +785,35 @@ function FlowBuilderInternal() {
       <Modal
         isOpen={isTemplatesModalOpen}
         onClose={() => setIsTemplatesModalOpen(false)}
-        title="All Templates"
-        size="large"
+        title='All Templates'
+        size='large'
       >
         <div>
           {/* Category Tabs */}
-          <div className="flow-builder__template-tabs" style={{
-            display: 'flex',
-            borderBottom: '1px solid #e5e7eb',
-            marginBottom: '20px'
-          }}>
+          <div
+            className='flow-builder__template-tabs'
+            style={{
+              display: 'flex',
+              borderBottom: '1px solid #e5e7eb',
+              marginBottom: '20px',
+            }}
+          >
             <button
               className={`flow-builder__template-tab ${activeTemplateTab === 'technology' ? 'active' : ''}`}
               style={{
                 padding: '12px 20px',
                 border: 'none',
                 background: 'transparent',
-                borderBottom: activeTemplateTab === 'technology' ? '2px solid #0ea5e9' : '2px solid transparent',
+                borderBottom:
+                  activeTemplateTab === 'technology'
+                    ? '2px solid #0ea5e9'
+                    : '2px solid transparent',
                 color: activeTemplateTab === 'technology' ? '#0ea5e9' : '#6b7280',
                 fontWeight: activeTemplateTab === 'technology' ? '600' : '400',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '8px',
               }}
               onClick={() => setActiveTemplateTab('technology')}
             >
@@ -793,13 +826,14 @@ function FlowBuilderInternal() {
                 padding: '12px 20px',
                 border: 'none',
                 background: 'transparent',
-                borderBottom: activeTemplateTab === 'gaming' ? '2px solid #0ea5e9' : '2px solid transparent',
+                borderBottom:
+                  activeTemplateTab === 'gaming' ? '2px solid #0ea5e9' : '2px solid transparent',
                 color: activeTemplateTab === 'gaming' ? '#0ea5e9' : '#6b7280',
                 fontWeight: activeTemplateTab === 'gaming' ? '600' : '400',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '8px',
               }}
               onClick={() => setActiveTemplateTab('gaming')}
             >
@@ -807,39 +841,45 @@ function FlowBuilderInternal() {
               Gaming
             </button>
           </div>
-          
+
           {/* Template Cards */}
-          <div className="flow-builder__templates-grid">
-            {getTemplatesByCategory(activeTemplateTab).map((template) => {
+          <div className='flow-builder__templates-grid'>
+            {getTemplatesByCategory(activeTemplateTab).map(template => {
               const getTemplateIcon = (category: string) => {
                 switch (category) {
-                  case 'technology': return Settings;
-                  case 'gaming': return Gamepad2;
-                  default: return Circle;
+                  case 'technology':
+                    return Settings;
+                  case 'gaming':
+                    return Gamepad2;
+                  default:
+                    return Circle;
                 }
               };
               const IconComponent = getTemplateIcon(template.category);
-              
+
               return (
                 <div
                   key={template.id}
-                  className="flow-builder__template-card"
+                  className='flow-builder__template-card'
                   onClick={() => {
                     setConfirmationTemplate(template);
                   }}
                 >
-                  <div className="flow-builder__template-card-header">
-                    <h3 className="flow-builder__template-card-title" style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
+                  <div className='flow-builder__template-card-header'>
+                    <h3
+                      className='flow-builder__template-card-title'
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                    >
                       <IconComponent size={18} style={{ color: '#6b7280', flexShrink: 0 }} />
                       {template.name}
                     </h3>
                   </div>
-                  <p className="flow-builder__template-card-description">{template.description}</p>
-                  <div className="flow-builder__template-card-stats">
+                  <p className='flow-builder__template-card-description'>{template.description}</p>
+                  <div className='flow-builder__template-card-stats'>
                     <span>{template.nodes.length} nodes</span>
                     <span>{template.connections.length} connections</span>
                   </div>
@@ -852,28 +892,36 @@ function FlowBuilderInternal() {
 
       {/* Node details modal */}
       {modalNodeId && (
-        <div className="flow-builder__modal-backdrop" onClick={() => setModalNodeId(null)}>
-          <div className="flow-builder__modal" onClick={(e) => e.stopPropagation()}>
+        <div className='flow-builder__modal-backdrop' onClick={() => setModalNodeId(null)}>
+          <div className='flow-builder__modal' onClick={e => e.stopPropagation()}>
             {(() => {
               const node = nodes.find(n => n.id === modalNodeId);
               if (!node) return null;
               const d = node.data;
               return (
                 <>
-                  <div className="flow-builder__modal-header">
-                    <div className="flow-builder__modal-title">
-                      <span className="flow-builder__modal-title-text">{d.label}</span>
-                      <span className="flow-builder__modal-badge">{d.type.toUpperCase()}</span>
+                  <div className='flow-builder__modal-header'>
+                    <div className='flow-builder__modal-title'>
+                      <span className='flow-builder__modal-title-text'>{d.label}</span>
+                      <span className='flow-builder__modal-badge'>{d.type.toUpperCase()}</span>
                     </div>
-                    <button className="flow-builder__modal-close" aria-label="Close" onClick={() => setModalNodeId(null)}>×</button>
+                    <button
+                      className='flow-builder__modal-close'
+                      aria-label='Close'
+                      onClick={() => setModalNodeId(null)}
+                    >
+                      ×
+                    </button>
                   </div>
-                  <div className="flow-builder__modal-body">
+                  <div className='flow-builder__modal-body'>
                     {d.description && (
-                      <div className="flow-builder__modal-desc">{d.description}</div>
+                      <div className='flow-builder__modal-desc'>{d.description}</div>
                     )}
-                    <div className="flow-builder__modal-section">
-                      <div className="flow-builder__modal-section-title">Configuration</div>
-                      <pre className="flow-builder__modal-code">{JSON.stringify(d.config || {}, null, 2)}</pre>
+                    <div className='flow-builder__modal-section'>
+                      <div className='flow-builder__modal-section-title'>Configuration</div>
+                      <pre className='flow-builder__modal-code'>
+                        {JSON.stringify(d.config || {}, null, 2)}
+                      </pre>
                     </div>
                   </div>
                 </>
@@ -887,23 +935,28 @@ function FlowBuilderInternal() {
       <Modal
         isOpen={!!confirmationTemplate}
         onClose={() => setConfirmationTemplate(null)}
-        title="Add Template"
-        size="default"
+        title='Add Template'
+        size='default'
       >
         {confirmationTemplate && (
           <div>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '12px', 
-              marginBottom: '16px' 
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '16px',
+              }}
+            >
               {(() => {
                 const getTemplateIcon = (category: string) => {
                   switch (category) {
-                    case 'technology': return Settings;
-                    case 'gaming': return Gamepad2;
-                    default: return Circle;
+                    case 'technology':
+                      return Settings;
+                    case 'gaming':
+                      return Gamepad2;
+                    default:
+                      return Circle;
                   }
                 };
                 const IconComponent = getTemplateIcon(confirmationTemplate.category);
@@ -913,42 +966,50 @@ function FlowBuilderInternal() {
                 {confirmationTemplate.name}
               </h3>
             </div>
-            
-            <p style={{ 
-              color: '#6b7280', 
-              marginBottom: '20px',
-              lineHeight: '1.5'
-            }}>
+
+            <p
+              style={{
+                color: '#6b7280',
+                marginBottom: '20px',
+                lineHeight: '1.5',
+              }}
+            >
               {confirmationTemplate.description}
             </p>
-            
-            <div style={{ 
-              display: 'flex', 
-              gap: '8px', 
-              marginBottom: '20px',
-              fontSize: '14px',
-              color: '#6b7280'
-            }}>
+
+            <div
+              style={{
+                display: 'flex',
+                gap: '8px',
+                marginBottom: '20px',
+                fontSize: '14px',
+                color: '#6b7280',
+              }}
+            >
               <span>{confirmationTemplate.nodes.length} nodes</span>
               <span>•</span>
               <span>{confirmationTemplate.connections.length} connections</span>
             </div>
-            
-            <p style={{ 
-              fontSize: '13px', 
-              color: 'var(--flow-builder-text-muted)',
-              marginBottom: '24px',
-              fontStyle: 'italic',
-              opacity: 0.8
-            }}>
+
+            <p
+              style={{
+                fontSize: '13px',
+                color: 'var(--flow-builder-text-muted)',
+                marginBottom: '24px',
+                fontStyle: 'italic',
+                opacity: 0.8,
+              }}
+            >
               This will add the template to your current flow. Existing nodes will remain unchanged.
             </p>
-            
-            <div style={{ 
-              display: 'flex', 
-              gap: '12px', 
-              justifyContent: 'flex-end' 
-            }}>
+
+            <div
+              style={{
+                display: 'flex',
+                gap: '12px',
+                justifyContent: 'flex-end',
+              }}
+            >
               <button
                 onClick={() => setConfirmationTemplate(null)}
                 style={{
@@ -960,10 +1021,14 @@ function FlowBuilderInternal() {
                   cursor: 'pointer',
                   fontSize: '14px',
                   fontWeight: '400',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--flow-builder-button-hover-bg)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--flow-builder-button-bg)'}
+                onMouseEnter={e =>
+                  (e.currentTarget.style.backgroundColor = 'var(--flow-builder-button-hover-bg)')
+                }
+                onMouseLeave={e =>
+                  (e.currentTarget.style.backgroundColor = 'var(--flow-builder-button-bg)')
+                }
               >
                 Cancel
               </button>
@@ -973,7 +1038,7 @@ function FlowBuilderInternal() {
                   setConfirmationTemplate(null);
                   setIsTemplatesModalOpen(false);
                 }}
-                className="flow-builder__confirmation-primary-btn"
+                className='flow-builder__confirmation-primary-btn'
                 style={{
                   padding: '8px 16px',
                   border: '1px solid var(--flow-builder-text-primary)',
@@ -983,13 +1048,13 @@ function FlowBuilderInternal() {
                   cursor: 'pointer',
                   fontSize: '14px',
                   fontWeight: '500',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={e => {
                   e.currentTarget.style.backgroundColor = 'var(--flow-builder-text-secondary)';
                   e.currentTarget.style.borderColor = 'var(--flow-builder-text-secondary)';
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={e => {
                   e.currentTarget.style.backgroundColor = 'var(--flow-builder-text-primary)';
                   e.currentTarget.style.borderColor = 'var(--flow-builder-text-primary)';
                 }}
@@ -1003,7 +1068,6 @@ function FlowBuilderInternal() {
     </div>
   );
 }
-
 
 // Main React Flow AI Flow Builder with Provider wrapper
 export function FlowBuilder() {

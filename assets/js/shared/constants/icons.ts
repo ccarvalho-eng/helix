@@ -24,7 +24,7 @@ export const ICONS = {
   decision: GitBranch,
   input: ArrowLeft,
   output: ArrowRight,
-  
+
   // UI icons
   circle: Circle,
   zap: Zap,
@@ -38,7 +38,7 @@ export const ICONS = {
 
 export const NODE_COLORS = {
   agent: '#0ea5e9',
-  sensor: '#22c55e', 
+  sensor: '#22c55e',
   skill: '#f59e0b',
   decision: '#ef4444',
   input: '#8b5cf6',

@@ -12,11 +12,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const themeHook = useTheme();
 
-  return (
-    <ThemeContext.Provider value={themeHook}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={themeHook}>{children}</ThemeContext.Provider>;
 }
 
 export function useThemeContext() {

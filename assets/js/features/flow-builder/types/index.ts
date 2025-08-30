@@ -52,6 +52,12 @@ export interface Template {
   connections: TemplateConnection[];
 }
 
-export type TemplateType = 
-  | 'assassins-creed' | 'lotr' | 'the-witcher' | 'zelda' | 'skyrim'
-  | 'cyber-security' | 'devops-pipeline' | 'software-automation';
+export type TemplateType =
+  | 'assassins-creed'
+  | 'lotr'
+  | 'the-witcher'
+  | 'zelda'
+  | 'skyrim'
+  | 'cyber-security'
+  | 'devops-pipeline'
+  | 'software-automation';

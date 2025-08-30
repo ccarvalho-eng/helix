@@ -8,23 +8,19 @@ interface ButtonProps {
   className?: string;
 }
 
-export function Button({ 
-  children, 
-  onClick, 
-  disabled = false, 
+export function Button({
+  children,
+  onClick,
+  disabled = false,
   active = false,
-  className = ''
+  className = '',
 }: ButtonProps) {
   const baseClass = 'btn';
   const activeClass = active ? 'btn--active' : '';
   const fullClassName = `${baseClass} ${activeClass} ${className}`.trim();
 
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={fullClassName}
-    >
+    <button onClick={onClick} disabled={disabled} className={fullClassName}>
       {children}
     </button>
   );

@@ -10,10 +10,10 @@ import { softwareAutomationTemplate } from './software-automation';
 
 export const templateRegistry: Record<TemplateType, Template> = {
   'assassins-creed': assassinsCreedTemplate,
-  'lotr': lordOfTheRingsTemplate,
+  lotr: lordOfTheRingsTemplate,
   'the-witcher': theWitcherTemplate,
-  'zelda': legendOfZeldaTemplate,
-  'skyrim': skyrimTemplate,
+  zelda: legendOfZeldaTemplate,
+  skyrim: skyrimTemplate,
   'cyber-security': cyberSecurityTemplate,
   'devops-pipeline': devOpsPipelineTemplate,
   'software-automation': softwareAutomationTemplate,

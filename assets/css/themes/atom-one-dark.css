@@ -4,7 +4,36 @@
    ========================================================================== */
 
 :root {
-  /* Light theme colors (default) */
+  /* Default to dark theme to prevent flash */
+  --theme-bg-primary: #282c34;
+  --theme-bg-secondary: #21252b;
+  --theme-bg-tertiary: #32363e;
+  --theme-text-primary: #abb2bf;
+  --theme-text-secondary: #636d83;
+  --theme-text-muted: #5c6370;
+  --theme-border-primary: #3e4451;
+  --theme-border-secondary: #2c313a;
+  --theme-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  
+  /* Interactive colors */
+  --theme-button-bg: #568af2;
+  --theme-button-text: #ffffff;
+  --theme-button-hover: #4078c0;
+  --theme-input-bg: #32363e;
+  --theme-input-border: #3e4451;
+  
+  /* Syntax highlighting colors (for future use) */
+  --theme-syntax-red: #dc2626;
+  --theme-syntax-green: #16a34a;
+  --theme-syntax-blue: #2563eb;
+  --theme-syntax-yellow: #ca8a04;
+  --theme-syntax-purple: #9333ea;
+  --theme-syntax-cyan: #0891b2;
+}
+
+/* Light theme override */
+[data-theme="light"] {
+  /* Light theme colors */
   --theme-bg-primary: #ffffff;
   --theme-bg-secondary: #f9fafb;
   --theme-bg-tertiary: #f3f4f6;
@@ -22,7 +51,7 @@
   --theme-input-bg: #ffffff;
   --theme-input-border: #d1d5db;
   
-  /* Syntax highlighting colors (for future use) */
+  /* Syntax highlighting colors */
   --theme-syntax-red: #dc2626;
   --theme-syntax-green: #16a34a;
   --theme-syntax-blue: #2563eb;
@@ -31,9 +60,9 @@
   --theme-syntax-cyan: #0891b2;
 }
 
-/* Atom One Dark theme */
+/* Atom One Dark theme - this is now the same as default */
 [data-theme="dark"] {
-  /* Atom One Dark background colors */
+  /* These match the :root defaults, included for clarity */
   --theme-bg-primary: #282c34;    /* Main editor background */
   --theme-bg-secondary: #21252b;  /* Darker panels/sidebars */
   --theme-bg-tertiary: #32363e;   /* Cards/elevated surfaces */

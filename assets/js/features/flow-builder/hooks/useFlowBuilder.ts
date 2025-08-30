@@ -1,13 +1,13 @@
 import { useState, useCallback, useEffect } from 'react';
-import { 
-  Node, 
-  Edge, 
-  useNodesState, 
-  useEdgesState, 
-  addEdge, 
-  Connection, 
-  MarkerType, 
-  ReactFlowInstance 
+import {
+  Node,
+  Edge,
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  Connection,
+  MarkerType,
+  ReactFlowInstance,
 } from 'reactflow';
 import { AIFlowNode } from '../types';
 
@@ -48,41 +48,44 @@ const loadFromLocalStorage = () => {
 
 export function useFlowBuilder() {
   const initialState = loadFromLocalStorage();
-  
+
   const [nodes, setNodes, onNodesChange] = useNodesState<AIFlowNode>(initialState?.nodes || []);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialState?.edges || []);
   const [selectedNode, setSelectedNode] = useState<AIFlowNode | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
 
-  const addNode = useCallback((type: AIFlowNode['type'], customLabel?: string, customDescription?: string) => {
-    const defaults = nodeDefaults[type];
-    const nodeData: AIFlowNode = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      type,
-      x: 0,
-      y: 0,
-      width: defaults.width,
-      height: defaults.height,
-      label: customLabel || defaults.label,
-      description: customDescription || '',
-      config: {},
-      color: defaults.color,
-      borderColor: '#e5e7eb',
-      borderWidth: 1,
-    };
+  const addNode = useCallback(
+    (type: AIFlowNode['type'], customLabel?: string, customDescription?: string) => {
+      const defaults = nodeDefaults[type];
+      const nodeData: AIFlowNode = {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        type,
+        x: 0,
+        y: 0,
+        width: defaults.width,
+        height: defaults.height,
+        label: customLabel || defaults.label,
+        description: customDescription || '',
+        config: {},
+        color: defaults.color,
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+      };
 
-    const newNode: Node<AIFlowNode> = {
-      id: nodeData.id,
-      type: 'aiFlowNode',
-      position: { 
-        x: Math.random() * 400 + 100, 
-        y: Math.random() * 400 + 100 
-      },
-      data: nodeData,
-    };
+      const newNode: Node<AIFlowNode> = {
+        id: nodeData.id,
+        type: 'aiFlowNode',
+        position: {
+          x: Math.random() * 400 + 100,
+          y: Math.random() * 400 + 100,
+        },
+        data: nodeData,
+      };
 
-    setNodes((nds) => nds.concat(newNode));
-  }, [setNodes]);
+      setNodes(nds => nds.concat(newNode));
+    },
+    [setNodes]
+  );
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -101,7 +104,7 @@ export function useFlowBuilder() {
           strokeWidth: 2,
         },
       };
-      setEdges((eds) => addEdge(edge, eds));
+      setEdges(eds => addEdge(edge, eds));
     },
     [setEdges]
   );
@@ -116,7 +119,7 @@ export function useFlowBuilder() {
       event.preventDefault();
 
       const type = event.dataTransfer.getData('application/reactflow') as AIFlowNode['type'];
-      
+
       if (typeof type === 'undefined' || !type || !reactFlowInstance) {
         return;
       }
@@ -149,43 +152,51 @@ export function useFlowBuilder() {
         data: nodeData,
       };
 
-      setNodes((nds) => nds.concat(newNode));
+      setNodes(nds => nds.concat(newNode));
     },
     [reactFlowInstance, setNodes]
   );
 
-  const onSelectionChange = useCallback(({ nodes: selectedNodes }: { nodes: Node<AIFlowNode>[] }) => {
-    if (selectedNodes.length > 0) {
-      setSelectedNode(selectedNodes[0].data);
-    } else {
-      setSelectedNode(null);
-    }
-  }, []);
+  const onSelectionChange = useCallback(
+    ({ nodes: selectedNodes }: { nodes: Node<AIFlowNode>[] }) => {
+      if (selectedNodes.length > 0) {
+        setSelectedNode(selectedNodes[0].data);
+      } else {
+        setSelectedNode(null);
+      }
+    },
+    []
+  );
 
-  const updateNode = useCallback((id: string, updates: Partial<AIFlowNode>) => {
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === id) {
-          const updatedData = { ...node.data, ...updates };
-          return { ...node, data: updatedData };
-        }
-        return node;
-      })
-    );
-    
-    if (selectedNode?.id === id) {
-      setSelectedNode({ ...selectedNode, ...updates });
-    }
-  }, [setNodes, selectedNode]);
+  const updateNode = useCallback(
+    (id: string, updates: Partial<AIFlowNode>) => {
+      setNodes(nds =>
+        nds.map(node => {
+          if (node.id === id) {
+            const updatedData = { ...node.data, ...updates };
+            return { ...node, data: updatedData };
+          }
+          return node;
+        })
+      );
 
-  const deleteNode = useCallback((id: string) => {
-    setNodes((nds) => nds.filter((node) => node.id !== id));
-    setEdges((eds) => eds.filter((edge) => edge.source !== id && edge.target !== id));
-    if (selectedNode?.id === id) {
-      setSelectedNode(null);
-    }
-  }, [setNodes, setEdges, selectedNode]);
+      if (selectedNode?.id === id) {
+        setSelectedNode({ ...selectedNode, ...updates });
+      }
+    },
+    [setNodes, selectedNode]
+  );
 
+  const deleteNode = useCallback(
+    (id: string) => {
+      setNodes(nds => nds.filter(node => node.id !== id));
+      setEdges(eds => eds.filter(edge => edge.source !== id && edge.target !== id));
+      if (selectedNode?.id === id) {
+        setSelectedNode(null);
+      }
+    },
+    [setNodes, setEdges, selectedNode]
+  );
 
   useEffect(() => {
     if (reactFlowInstance) {
@@ -221,6 +232,6 @@ export function useFlowBuilder() {
     addNode,
     updateNode,
     deleteNode,
-    initialViewport: initialState?.viewport || { x: 0, y: 0, zoom: 1 }
+    initialViewport: initialState?.viewport || { x: 0, y: 0, zoom: 1 },
   };
 }

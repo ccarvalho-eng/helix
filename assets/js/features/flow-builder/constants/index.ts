@@ -9,7 +9,7 @@ export const FLOW_BUILDER_CONFIG = {
 
 export const NODE_CATEGORIES = {
   INPUT: 'input',
-  PROCESSING: 'processing', 
+  PROCESSING: 'processing',
   OUTPUT: 'output',
   CONTROL: 'control',
 } as const;
