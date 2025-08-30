@@ -15,7 +15,7 @@ export interface Dimensions {
 }
 
 export interface NodeConfig {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface BaseNode {

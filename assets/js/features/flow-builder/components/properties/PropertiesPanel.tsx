@@ -4,13 +4,13 @@ import { AIFlowNode, AIFlowConnection } from '../../types';
 interface PropertiesPanelProps {
   selectedNode: AIFlowNode | null;
   selectedConnection: AIFlowConnection | null;
-  onUpdateNode: (id: string, updates: Partial<AIFlowNode>) => void;
-  onUpdateConnection: (id: string, updates: Partial<AIFlowConnection>) => void;
-  onDeleteNode: (id: string) => void;
+  onUpdateNode: (_id: string, _updates: Partial<AIFlowNode>) => void;
+  onUpdateConnection: (_id: string, _updates: Partial<AIFlowConnection>) => void;
+  onDeleteNode: (_id: string) => void;
   allNodes?: AIFlowNode[];
   allEdges?: { source: string; target: string }[];
-  onOpenNodeModal?: (nodeId: string) => void;
-  onUnlinkEdge?: (sourceId: string, targetId: string) => void;
+  onOpenNodeModal?: (_nodeId: string) => void;
+  onUnlinkEdge?: (_sourceId: string, _targetId: string) => void;
 }
 
 export function PropertiesPanel({
@@ -199,7 +199,7 @@ export function PropertiesPanel({
                 aria-label='Unlink skill'
                 onClick={e => {
                   e.stopPropagation();
-                  onUnlinkEdge && onUnlinkEdge(node.id, s.id);
+                  if (onUnlinkEdge) onUnlinkEdge(node.id, s.id);
                 }}
                 className='properties-panel__unlink'
                 style={{
