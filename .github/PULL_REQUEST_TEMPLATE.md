@@ -1,15 +1,24 @@
-## What does this PR do?
+Thanks for submitting a PR! Please read these instructions carefully:
 
-<!-- Brief description of the changes and why they were made -->
+- Explain the motivation for making this change.
+- Provide a test plan demonstrating that the code is solid.
+- Match the code formatting of the rest of the codebase.
+- Target the `main` branch
 
-## Type of change
+## Motivation (required)
 
-<!-- Bug fix, new feature, breaking change, documentation update, etc. -->
+What existing problem does the pull request solve?
 
-## Testing
+## Test Plan (required)
 
-<!-- How was this tested? Any manual testing steps? -->
+A good test plan has the exact commands you ran and their output, provides screenshots or videos if the pull request changes UI or updates the website. See What is a Test Plan? to learn more.
 
-## Related issues
+If you have added code that should be tested, add tests.
 
-<!-- Closes #123, Fixes #456, etc. -->
+## Next Steps
+
+Small pull requests are much easier to review and more likely to get merged. Make sure the PR does only one thing, otherwise please split it.
+
+Make sure all tests pass on Circle CI. PRs that break tests are unlikely to be merged.
+
+For more info, see the Contributing guide.
