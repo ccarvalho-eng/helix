@@ -1,6 +1,5 @@
 Thanks for submitting a PR! Please read these instructions carefully:
 
-- [ ] Read our [Contributing Guide](../CONTRIBUTING.md) before submitting
 - Explain the motivation for making this change.
 - Provide a test plan demonstrating that the code is solid.
 - Match the code formatting of the rest of the codebase.
@@ -12,7 +11,7 @@ What existing problem does the pull request solve?
 
 ## Test Plan (required)
 
-A good test plan has the exact commands you ran and their output, provides screenshots or videos if the pull request changes UI or updates the website. See What is a Test Plan? to learn more.
+A good test plan has the exact commands you ran and their output, provides screenshots or videos if the pull request changes UI or updates the website.
 
 If you have added code that should be tested, add tests.
 
