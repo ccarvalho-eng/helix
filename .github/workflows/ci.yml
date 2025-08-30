@@ -18,15 +18,8 @@ env:
 
 jobs:
   test:
-    name: Test (Elixir ${{ matrix.elixir }} | OTP ${{ matrix.otp }})
+    name: Unit Tests
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - elixir: "1.17"
-            otp: "27"
 
     services:
       postgres:
@@ -47,46 +40,26 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Elixir
-        uses: erlef/setup-beam@v1
+        uses: ./.github/actions/setup-elixir
         with:
-          elixir-version: ${{ matrix.elixir }}
-          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: ./.github/actions/setup-node
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-
-      - name: Cache Elixir dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            deps
-            _build
-          key: ${{ runner.os }}-mix-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-mix-${{ matrix.otp }}-${{ matrix.elixir }}-
-
-      - name: Install Elixir dependencies
-        run: mix deps.get
-
-      - name: Install Node.js dependencies
-        run: npm ci
 
       - name: Check formatting
         run: mix format --check-formatted
 
-      - name: Check code style
-        run: npm run prettier:check
-
-      - name: Compile Elixir (with warnings as errors)
+      - name: Compile (test)
         run: mix compile --warnings-as-errors
 
       - name: Build assets
         run: mix assets.build
 
-      - name: Run Elixir tests
+      - name: Run tests
         run: mix test --cover
 
       - name: Generate coverage report
@@ -94,14 +67,16 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
+        continue-on-error: true
         with:
           file: ./cover/excoveralls.json
           flags: elixir
+          fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  lint:
-    name: Lint & Static Analysis
+  credo:
+    name: Code Quality (Credo)
     runs-on: ubuntu-latest
 
     steps:
@@ -109,32 +84,32 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Elixir
-        uses: erlef/setup-beam@v1
+        uses: ./.github/actions/setup-elixir
         with:
           elixir-version: ${{ env.ELIXIR_VERSION }}
           otp-version: ${{ env.OTP_VERSION }}
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            deps
-            _build
-            priv/plts
-          key: ${{ runner.os }}-mix-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-${{ hashFiles('**/mix.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-mix-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-
-
-      - name: Install dependencies
-        run: mix deps.get
 
       - name: Compile (dev)
         run: MIX_ENV=dev mix compile
 
       - name: Run Credo
-        run: mix credo
+        run: mix credo --strict
 
-      - name: Cache Dialyzer PLTs
+  dialyzer:
+    name: Static Analysis (Dialyzer)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: ./.github/actions/setup-elixir
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+
+      - name: Restore PLT cache
         uses: actions/cache@v4
         with:
           path: priv/plts
@@ -142,11 +117,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-dialyzer-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-
 
+      - name: Compile (dev)
+        run: MIX_ENV=dev mix compile
+
       - name: Run Dialyzer
         run: mix dialyzer
 
-  frontend-test:
-    name: Frontend Tests
+  frontend:
+    name: Frontend Quality
     runs-on: ubuntu-latest
 
     steps:
@@ -154,13 +132,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: ./.github/actions/setup-node
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Check code style
+        run: npm run prettier:check
 
       - name: Run TypeScript check
         run: npx tsc --noEmit
@@ -173,8 +150,27 @@ jobs:
 
       - name: Upload frontend coverage
         uses: codecov/codecov-action@v4
+        continue-on-error: true
         with:
           file: ./coverage/lcov.info
           flags: frontend
+          fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  unused-deps:
+    name: Check Unused Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: ./.github/actions/setup-elixir
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+
+      - name: Check for unused dependencies
+        run: mix deps.unlock --check-unused

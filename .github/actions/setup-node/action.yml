@@ -1,0 +1,21 @@
+name: 'Setup Node.js with Caching'
+description: 'Sets up Node.js with dependency caching'
+
+inputs:
+  node-version:
+    description: 'Node.js version'
+    required: true
+    default: '18'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: npm
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci

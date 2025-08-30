@@ -5,6 +5,7 @@ on:
     tags:
       - 'v*'
 
+
 permissions:
   contents: write
   packages: write
@@ -19,11 +20,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
 
       - name: Generate changelog
         id: changelog
@@ -49,7 +45,6 @@ jobs:
           body: ${{ steps.changelog.outputs.changelog }}
           draft: false
           prerelease: ${{ contains(github.ref, '-') }}
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

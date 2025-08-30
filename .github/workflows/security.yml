@@ -8,6 +8,11 @@ on:
   schedule:
     - cron: '0 2 * * 1' # Weekly on Mondays at 2 AM UTC
 
+env:
+  ELIXIR_VERSION: "1.17"
+  OTP_VERSION: "27"
+  NODE_VERSION: "18"
+
 permissions:
   contents: read
   security-events: write
@@ -25,13 +30,13 @@ jobs:
       - name: Setup Elixir
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.17"
-          otp-version: "27"
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
       - name: Install Elixir dependencies
@@ -68,7 +73,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
       - name: Install Node.js dependencies
