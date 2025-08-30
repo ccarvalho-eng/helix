@@ -40,6 +40,12 @@ jobs:
           elixir-version: "1.17"
           otp-version: "27"
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -71,8 +77,17 @@ jobs:
       - name: Generate coverage report
         run: mix coveralls.json
 
+      - name: Run frontend static checks
+        run: npm run check
+
+      - name: Debug Java environment
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          java -version
+          which java
+
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarcloud-github-action@v2.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
