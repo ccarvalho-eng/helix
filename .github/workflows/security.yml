@@ -53,7 +53,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ javascript, elixir ]
+        language: [ javascript ]
 
     steps:
       - name: Checkout code
@@ -65,26 +65,13 @@ jobs:
           languages: ${{ matrix.language }}
           queries: +security-and-quality
 
-      - name: Setup Elixir
-        if: matrix.language == 'elixir'
-        uses: erlef/setup-beam@v1
-        with:
-          elixir-version: "1.17"
-          otp-version: "27"
-
       - name: Setup Node.js
-        if: matrix.language == 'javascript'
         uses: actions/setup-node@v4
         with:
           node-version: "18"
           cache: npm
 
-      - name: Install Elixir dependencies
-        if: matrix.language == 'elixir'
-        run: mix deps.get
-
       - name: Install Node.js dependencies
-        if: matrix.language == 'javascript'
         run: npm ci
 
       - name: Autobuild
