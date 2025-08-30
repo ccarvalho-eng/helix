@@ -32,11 +32,13 @@ export default [
     },
     rules: {
       ...tseslint.configs.recommended.rules,
-      'no-unused-vars': 'warn',
-      'no-console': 'warn',
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': 'warn',
-      '@typescript-eslint/no-empty-object-type': 'warn'
+      'no-unused-vars': 'error',
+      'no-console': 'error',
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-empty-object-type': 'error',
+      'no-unreachable': 'error',
+      '@typescript-eslint/no-unused-expressions': 'error'
     }
   }
 ];

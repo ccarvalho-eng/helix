@@ -162,10 +162,10 @@ jobs:
         run: npm ci
 
       - name: Run TypeScript check
-        run: npx tsc --noEmit || echo "TypeScript check completed with warnings"
+        run: npx tsc --noEmit
 
       - name: Run ESLint
-        run: npx eslint assets/js --ext .js,.ts,.tsx --max-warnings 100 || echo "ESLint completed with warnings"
+        run: npx eslint assets/js --ext .js,.ts,.tsx --max-warnings 0
 
       - name: Run tests
         run: npm test -- --coverage
