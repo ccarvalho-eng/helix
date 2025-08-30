@@ -151,7 +151,11 @@ export function PropertiesPanel({
               <button
                 onClick={() => onOpenNodeModal && onOpenNodeModal(s.id)}
                 className='properties-panel__input properties-panel__skill-card'
-                style={{ textAlign: 'left', padding: '10px 36px 10px 12px', cursor: 'pointer' }}
+                style={{
+                  textAlign: 'left',
+                  padding: '10px 36px 10px 12px',
+                  cursor: 'pointer',
+                }}
               >
                 <div style={{ fontSize: 13, color: 'inherit', marginBottom: 2 }}>{s.label}</div>
                 <div
@@ -251,7 +255,6 @@ export function PropertiesPanel({
                 label: 'System Prompt',
                 type: 'textarea',
               },
-              { key: 'skills', label: 'Available Skills', type: 'multiselect' },
             ],
           };
         case 'sensor':
