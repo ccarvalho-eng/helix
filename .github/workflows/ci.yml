@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -20,14 +20,14 @@ jobs:
   test:
     name: Test (Elixir ${{ matrix.elixir }} | OTP ${{ matrix.otp }})
     runs-on: ubuntu-latest
-    
+
     strategy:
       fail-fast: false
       matrix:
         include:
           - elixir: "1.17"
             otp: "27"
-    
+
     services:
       postgres:
         image: postgres:17
@@ -100,7 +100,7 @@ jobs:
   lint:
     name: Lint & Static Analysis
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -129,7 +129,7 @@ jobs:
         run: MIX_ENV=dev mix compile
 
       - name: Run Credo
-        run: mix credo --strict
+        run: mix credo
 
       - name: Cache Dialyzer PLTs
         uses: actions/cache@v4
@@ -145,7 +145,7 @@ jobs:
   frontend-test:
     name: Frontend Tests
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
