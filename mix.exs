@@ -11,6 +11,10 @@ defmodule Helix.MixProject do
       aliases: aliases(),
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
+      excoveralls: [
+        "coveralls.json": [export: "cov"],
+        "coveralls.html": [export: "html"]
+      ],
       preferred_cli_env: [
         coveralls: :test,
         "coveralls.detail": :test,

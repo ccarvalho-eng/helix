@@ -1,0 +1,29 @@
+{
+  "coverage_options": {
+    "treat_no_relevant_lines_as_covered": true,
+    "output_dir": "cover/",
+    "template_path": "cover/excoveralls.html.eex"
+  },
+  "terminal_options": {
+    "file_column_width": 40
+  },
+  "skip_files": [
+    "test/",
+    "priv/",
+    "lib/helix_web/channels/user_socket.ex",
+    "lib/helix_web/endpoint.ex",
+    "lib/helix_web/gettext.ex",
+    "lib/helix_web/telemetry.ex",
+    "lib/helix/application.ex",
+    "lib/helix/mailer.ex",
+    "lib/helix/repo.ex",
+    "lib/helix_web/controllers/error_json.ex"
+  ],
+  "custom_skip_files": [
+    "_build/",
+    "deps/",
+    "assets/",
+    "priv/static/",
+    "node_modules/"
+  ]
+}
