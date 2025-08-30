@@ -81,6 +81,11 @@ ENV MIX_ENV="prod"
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/helix ./
 
+# Remove write permissions from the copied files for security
+RUN find /app -type f -exec chmod 644 {} \; && \
+    find /app -type d -exec chmod 755 {} \; && \
+    chmod 755 /app/bin/server
+
 USER nobody
 
 # If using a custom entrypoint, copy it over
