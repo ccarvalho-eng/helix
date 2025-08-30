@@ -1,4 +1,4 @@
-import { Template, TemplateType, TemplateCategory } from './types';
+import { Template, TemplateType, TemplateCategory } from '../types';
 import { assassinsCreedTemplate } from './assassins-creed';
 import { lordOfTheRingsTemplate } from './lord-of-the-rings';
 import { theWitcherTemplate } from './the-witcher';

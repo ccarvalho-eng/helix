@@ -21,9 +21,9 @@ import {
 
 import { AIFlowNode as OriginalAIFlowNode } from './types';
 import { getTemplate, TemplateType, getFeaturedTemplates, getTemplatesByCategory } from './templates';
-import { Template } from './templates/types';
+import { Template } from './types';
 import { PropertiesPanel } from './components/properties';
-import { ErrorBoundary } from '../../components/ui/ErrorBoundary';
+import { ErrorBoundary } from '../../shared/components/ui/ErrorBoundary';
 import { ThemeProvider, useThemeContext } from './contexts/ThemeContext';
 import { ThemeToggle } from './components/ThemeToggle';
 import { Modal } from './components/Modal';

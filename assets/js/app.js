@@ -23,9 +23,9 @@ import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
 // Import the AI Flow Builder app
-import "./ai-flow-app"
+import "./apps/ai-flow"
 // Import the Home app
-import "./home-app"
+import "./apps/home"
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
