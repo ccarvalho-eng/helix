@@ -3,6 +3,11 @@
   "scripts": {
     "prettier": "prettier --write \"assets/js/**/*.{js,ts,tsx}\"",
     "prettier:check": "prettier --check \"assets/js/**/*.{js,ts,tsx}\"",
+    "lint": "eslint assets/js/features assets/js/shared --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint assets/js/features assets/js/shared --ext .js,.jsx,.ts,.tsx --fix",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run prettier:check && npm run lint && npm run typecheck",
+    "fix": "npm run prettier && npm run lint:fix && npm run typecheck",
     "test": "echo \"No frontend tests configured yet\" && exit 0",
     "test:coverage": "echo \"No coverage tests configured yet\" && exit 0",
     "build:test": "echo \"No test build configured yet\" && exit 0"

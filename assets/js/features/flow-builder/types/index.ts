@@ -33,7 +33,7 @@ export interface TemplateNode {
   description: string;
   x: number;
   y: number;
-  config?: { [key: string]: unknown };
+  config?: { [key: string]: string | number | boolean | string[] | undefined };
 }
 
 export interface TemplateConnection {
