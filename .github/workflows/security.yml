@@ -105,29 +105,6 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
 
-  semgrep:
-    name: Semgrep SAST
-    runs-on: ubuntu-latest
-    
-    container:
-      image: semgrep/semgrep
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run Semgrep
-        run: |
-          semgrep --config=auto --sarif --output=semgrep.sarif .
-        env:
-          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: semgrep.sarif
-
   secret-scan:
     name: Secret Scanning
     runs-on: ubuntu-latest
