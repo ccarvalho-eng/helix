@@ -307,7 +307,6 @@ function FlowBuilderInternal() {
   const [modalNodeId, setModalNodeId] = useState<string | null>(null);
   const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
   const [activeTemplateTab, setActiveTemplateTab] = useState<'technology' | 'gaming'>('technology');
-  const [confirmationTemplate, setConfirmationTemplate] = useState<Template | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
@@ -696,7 +695,7 @@ function FlowBuilderInternal() {
             onAddNode={addNode}
             onAddTemplate={addTemplate}
             onOpenTemplatesModal={() => setIsTemplatesModalOpen(true)}
-            onTemplateClick={setConfirmationTemplate}
+            onTemplateClick={template => addTemplate(template.id as TemplateType)}
           />
         </div>
 
@@ -862,7 +861,8 @@ function FlowBuilderInternal() {
                   key={template.id}
                   className='flow-builder__template-card'
                   onClick={() => {
-                    setConfirmationTemplate(template);
+                    addTemplate(template.id as TemplateType);
+                    setIsTemplatesModalOpen(false);
                   }}
                 >
                   <div className='flow-builder__template-card-header'>
@@ -930,141 +930,6 @@ function FlowBuilderInternal() {
           </div>
         </div>
       )}
-
-      {/* Confirmation modal */}
-      <Modal
-        isOpen={!!confirmationTemplate}
-        onClose={() => setConfirmationTemplate(null)}
-        title='Add Template'
-        size='default'
-      >
-        {confirmationTemplate && (
-          <div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                marginBottom: '16px',
-              }}
-            >
-              {(() => {
-                const getTemplateIcon = (category: string) => {
-                  switch (category) {
-                    case 'technology':
-                      return Settings;
-                    case 'gaming':
-                      return Gamepad2;
-                    default:
-                      return Circle;
-                  }
-                };
-                const IconComponent = getTemplateIcon(confirmationTemplate.category);
-                return <IconComponent size={24} style={{ color: '#6b7280' }} />;
-              })()}
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>
-                {confirmationTemplate.name}
-              </h3>
-            </div>
-
-            <p
-              style={{
-                color: '#6b7280',
-                marginBottom: '20px',
-                lineHeight: '1.5',
-              }}
-            >
-              {confirmationTemplate.description}
-            </p>
-
-            <div
-              style={{
-                display: 'flex',
-                gap: '8px',
-                marginBottom: '20px',
-                fontSize: '14px',
-                color: '#6b7280',
-              }}
-            >
-              <span>{confirmationTemplate.nodes.length} nodes</span>
-              <span>•</span>
-              <span>{confirmationTemplate.connections.length} connections</span>
-            </div>
-
-            <p
-              style={{
-                fontSize: '13px',
-                color: 'var(--flow-builder-text-muted)',
-                marginBottom: '24px',
-                fontStyle: 'italic',
-                opacity: 0.8,
-              }}
-            >
-              This will add the template to your current flow. Existing nodes will remain unchanged.
-            </p>
-
-            <div
-              style={{
-                display: 'flex',
-                gap: '12px',
-                justifyContent: 'flex-end',
-              }}
-            >
-              <button
-                onClick={() => setConfirmationTemplate(null)}
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid var(--flow-builder-button-border)',
-                  borderRadius: '6px',
-                  background: 'var(--flow-builder-button-bg)',
-                  color: 'var(--flow-builder-button-text)',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '400',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={e =>
-                  (e.currentTarget.style.backgroundColor = 'var(--flow-builder-button-hover-bg)')
-                }
-                onMouseLeave={e =>
-                  (e.currentTarget.style.backgroundColor = 'var(--flow-builder-button-bg)')
-                }
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  addTemplate(confirmationTemplate.id as TemplateType);
-                  setConfirmationTemplate(null);
-                  setIsTemplatesModalOpen(false);
-                }}
-                className='flow-builder__confirmation-primary-btn'
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid var(--flow-builder-text-primary)',
-                  borderRadius: '6px',
-                  background: 'var(--flow-builder-text-primary)',
-                  color: 'var(--flow-builder-bg)',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.backgroundColor = 'var(--flow-builder-text-secondary)';
-                  e.currentTarget.style.borderColor = 'var(--flow-builder-text-secondary)';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.backgroundColor = 'var(--flow-builder-text-primary)';
-                  e.currentTarget.style.borderColor = 'var(--flow-builder-text-primary)';
-                }}
-              >
-                Add Template
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 }

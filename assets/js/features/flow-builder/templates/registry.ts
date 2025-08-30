@@ -1,12 +1,12 @@
 import { Template, TemplateType, TemplateCategory } from '../types';
-import { assassinsCreedTemplate } from './assassins-creed';
-import { lordOfTheRingsTemplate } from './lord-of-the-rings';
-import { theWitcherTemplate } from './the-witcher';
-import { legendOfZeldaTemplate } from './legend-of-zelda';
-import { skyrimTemplate } from './skyrim';
-import { cyberSecurityTemplate } from './cyber-security';
-import { devOpsPipelineTemplate } from './devops-pipeline';
-import { softwareAutomationTemplate } from './software-automation';
+import { assassinsCreedTemplate } from './definitions/assassins-creed';
+import { lordOfTheRingsTemplate } from './definitions/lord-of-the-rings';
+import { theWitcherTemplate } from './definitions/the-witcher';
+import { legendOfZeldaTemplate } from './definitions/legend-of-zelda';
+import { skyrimTemplate } from './definitions/skyrim';
+import { cyberSecurityTemplate } from './definitions/cyber-security';
+import { devOpsPipelineTemplate } from './definitions/devops-pipeline';
+import { softwareAutomationTemplate } from './definitions/software-automation';
 
 export const templateRegistry: Record<TemplateType, Template> = {
   'assassins-creed': assassinsCreedTemplate,
