@@ -7,7 +7,7 @@
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Elixir](https://img.shields.io/badge/elixir-4B275F?style=flat&logo=elixir&logoColor=white)](https://elixir-lang.org/)
 [![Phoenix](https://img.shields.io/badge/phoenix-%23FD4F00.svg?style=flat&logo=phoenix&logoColor=white)](https://phoenixframework.org/)
-[![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat&logo=docker&logoColor=white)](https://ghcr.io/ccarvalho-eng/helix)
+[![React](https://img.shields.io/badge/react-%2320232a.svg?style=flat&logo=react&logoColor=%2361DAFB)](https://reactjs.org/)
 
 To start your Phoenix server:
 
