@@ -3,7 +3,7 @@ import { useTheme, Theme } from '../hooks/useTheme';
 
 interface ThemeContextType {
   theme: Theme;
-  setTheme: (theme: Theme) => void;
+  setTheme: (_theme: Theme) => void;
   toggleTheme: () => void;
 }
 

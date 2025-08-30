@@ -17,6 +17,7 @@ import {
   Position,
   ReactFlowProvider,
   NodeResizer,
+  ReactFlowInstance,
 } from 'reactflow';
 
 import { AIFlowNode as OriginalAIFlowNode } from './types';
@@ -44,18 +45,21 @@ import {
   Zap,
   Menu,
   Sliders,
-  Shield,
   Settings,
   Gamepad2,
 } from 'lucide-react';
 
-// Extended node interface for React Flow
-interface ReactFlowAINode extends OriginalAIFlowNode {
-  // React Flow specific fields will be in the Node<ReactFlowAINode> wrapper
-}
+// Extended node type for React Flow
+type ReactFlowAINode = OriginalAIFlowNode;
 
 // Custom Node Component that matches the original design
-function FlowNode({ data, selected, ...nodeProps }: { data: ReactFlowAINode; selected: boolean }) {
+function FlowNode({
+  data,
+  selected,
+}: {
+  readonly data: ReactFlowAINode;
+  readonly selected: boolean;
+}) {
   const { theme } = useThemeContext();
   const NodeIcon = {
     agent: Bot,
@@ -147,18 +151,18 @@ const edgeTypes: EdgeTypes = {};
 // Node Palette (same as original but adapted for React Flow)
 function ReactFlowNodePalette({
   onAddNode,
-  onAddTemplate,
+  onAddTemplate: _onAddTemplate,
   onOpenTemplatesModal,
   onTemplateClick,
 }: {
   onAddNode: (
-    type: ReactFlowAINode['type'],
-    customLabel?: string,
-    customDescription?: string
+    _type: ReactFlowAINode['type'],
+    _customLabel?: string,
+    _customDescription?: string
   ) => void;
-  onAddTemplate: (templateType: TemplateType) => void;
+  onAddTemplate: (_templateType: TemplateType) => void;
   onOpenTemplatesModal: () => void;
-  onTemplateClick: (template: Template) => void;
+  onTemplateClick: (_template: Template) => void;
 }) {
   const nodeTypes = [
     { type: 'agent' as const, icon: Bot, label: 'AI Agent', color: '#0ea5e9' },
@@ -273,8 +277,8 @@ const saveToLocalStorage = (data: {
 }) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch (error) {
-    console.warn('Failed to save to localStorage:', error);
+  } catch {
+    // Failed to save to localStorage
   }
 };
 
@@ -284,8 +288,8 @@ const loadFromLocalStorage = () => {
     if (stored) {
       return JSON.parse(stored);
     }
-  } catch (error) {
-    console.warn('Failed to load from localStorage:', error);
+  } catch {
+    // Failed to load from localStorage
   }
   return null;
 };
@@ -300,7 +304,7 @@ function FlowBuilderInternal() {
   );
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialState?.edges || []);
   const [selectedNode, setSelectedNode] = useState<ReactFlowAINode | null>(null);
-  const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [isPropertiesOpen, setIsPropertiesOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -312,9 +316,10 @@ function FlowBuilderInternal() {
     const mq = window.matchMedia('(max-width: 768px)');
     const update = () => setIsMobile(mq.matches);
     update();
-    mq.addEventListener ? mq.addEventListener('change', update) : mq.addListener(update);
+    mq.addEventListener('change', update);
+
     return () => {
-      mq.removeEventListener ? mq.removeEventListener('change', update) : mq.removeListener(update);
+      mq.removeEventListener('change', update);
     };
   }, []);
 
@@ -334,13 +339,15 @@ function FlowBuilderInternal() {
       const nodeData: ReactFlowAINode = {
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         type,
-        x: 0, // React Flow manages position
-        y: 0, // React Flow manages position
-        width: defaults.width,
-        height: defaults.height,
+        position: { x: 0, y: 0 },
+        dimensions: { width: defaults.width, height: defaults.height },
         label: customLabel || defaults.label,
         description: customDescription || '',
         config: {},
+        x: 0,
+        y: 0,
+        width: defaults.width,
+        height: defaults.height,
         color: defaults.color,
         borderColor: '#e5e7eb',
         borderWidth: 1,
@@ -429,6 +436,8 @@ function FlowBuilderInternal() {
       const nodeData: ReactFlowAINode = {
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         type,
+        position: { x: position.x, y: position.y },
+        dimensions: { width: defaults.width, height: defaults.height },
         x: position.x,
         y: position.y,
         width: defaults.width,
@@ -551,6 +560,8 @@ function FlowBuilderInternal() {
         const nodeData: ReactFlowAINode = {
           id: nodeTemplate.id,
           type: nodeTemplate.type,
+          position: { x: nodeTemplate.x, y: nodeTemplate.y },
+          dimensions: { width: defaults.width, height: defaults.height },
           x: nodeTemplate.x,
           y: nodeTemplate.y,
           width: defaults.width,

@@ -4,13 +4,13 @@ import { AIFlowNode, AIFlowConnection } from '../../types';
 interface PropertiesPanelProps {
   selectedNode: AIFlowNode | null;
   selectedConnection: AIFlowConnection | null;
-  onUpdateNode: (id: string, updates: Partial<AIFlowNode>) => void;
-  onUpdateConnection: (id: string, updates: Partial<AIFlowConnection>) => void;
-  onDeleteNode: (id: string) => void;
+  onUpdateNode: (_id: string, _updates: Partial<AIFlowNode>) => void;
+  onUpdateConnection: (_id: string, _updates: Partial<AIFlowConnection>) => void;
+  onDeleteNode: (_id: string) => void;
   allNodes?: AIFlowNode[];
   allEdges?: { source: string; target: string }[];
-  onOpenNodeModal?: (nodeId: string) => void;
-  onUnlinkEdge?: (sourceId: string, targetId: string) => void;
+  onOpenNodeModal?: (_nodeId: string) => void;
+  onUnlinkEdge?: (_sourceId: string, _targetId: string) => void;
 }
 
 export function PropertiesPanel({
@@ -175,7 +175,7 @@ export function PropertiesPanel({
                           borderRadius: 9999,
                         }}
                       >
-                        {s.config.skill_type}
+                        {String(s.config.skill_type)}
                       </span>
                     )}
                     {s.config?.endpoint && (
@@ -188,7 +188,7 @@ export function PropertiesPanel({
                           borderRadius: 9999,
                         }}
                       >
-                        {s.config.endpoint}
+                        {String(s.config.endpoint)}
                       </span>
                     )}
                   </div>
@@ -199,7 +199,7 @@ export function PropertiesPanel({
                 aria-label='Unlink skill'
                 onClick={e => {
                   e.stopPropagation();
-                  onUnlinkEdge && onUnlinkEdge(node.id, s.id);
+                  if (onUnlinkEdge) onUnlinkEdge(node.id, s.id);
                 }}
                 className='properties-panel__unlink'
                 style={{
@@ -374,7 +374,8 @@ export function PropertiesPanel({
             <h4 className='properties-panel__config-title'>{config.title}</h4>
             <div className='properties-panel__fields'>
               {config.fields.map(field => {
-                const value = node.config?.[field.key] || '';
+                const rawValue = node.config?.[field.key];
+                const value = rawValue !== undefined ? String(rawValue) : '';
 
                 return (
                   <div key={field.key}>
@@ -419,7 +420,7 @@ export function PropertiesPanel({
                           min={field.min}
                           max={field.max}
                           step={field.step}
-                          value={value || field.min}
+                          value={rawValue !== undefined ? String(rawValue) : String(field.min)}
                           onChange={e =>
                             handleNodeUpdate({
                               config: {
@@ -430,7 +431,9 @@ export function PropertiesPanel({
                           }
                           className='properties-panel__range'
                         />
-                        <span className='properties-panel__range-value'>{value || field.min}</span>
+                        <span className='properties-panel__range-value'>
+                          {rawValue !== undefined ? String(rawValue) : String(field.min)}
+                        </span>
                       </div>
                     )}
 

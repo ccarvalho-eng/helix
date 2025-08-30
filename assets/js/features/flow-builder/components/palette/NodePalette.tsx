@@ -3,7 +3,11 @@ import { Bot, Eye, Wrench, GitBranch, ArrowLeft, ArrowRight } from 'lucide-react
 import { AIFlowNode } from '../../types';
 
 interface NodePaletteProps {
-  onAddNode: (type: AIFlowNode['type'], customLabel?: string, customDescription?: string) => void;
+  onAddNode: (
+    _type: AIFlowNode['type'],
+    _customLabel?: string,
+    _customDescription?: string
+  ) => void;
   onAddTemplate: () => void;
 }
 

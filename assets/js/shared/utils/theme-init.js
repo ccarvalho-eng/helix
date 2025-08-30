@@ -17,7 +17,7 @@
       }
 
       return 'light';
-    } catch (error) {
+    } catch {
       return 'dark'; // Default to dark if anything fails
     }
   }
@@ -36,10 +36,5 @@
   const theme = getInitialTheme();
   applyTheme(theme);
 
-  // Store theme for React hook to pick up
-  try {
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
-  } catch (error) {
-    // Ignore storage errors
-  }
+  localStorage.setItem(THEME_STORAGE_KEY, theme);
 })();

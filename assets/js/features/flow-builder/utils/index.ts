@@ -13,7 +13,7 @@ export const flowUtils = {
     return `${source}-to-${target}`;
   },
 
-  validateConnection: (sourceType: string, targetType: string): boolean => {
+  validateConnection: (_sourceType: string, _targetType: string): boolean => {
     // Add connection validation logic here
     return true;
   },

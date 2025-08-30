@@ -23,10 +23,10 @@ interface FlowCanvasProps {
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
-  onSelectionChange: (params: OnSelectionChangeParams) => void;
-  onInit: (instance: ReactFlowInstance) => void;
-  onDrop: (event: React.DragEvent) => void;
-  onDragOver: (event: React.DragEvent) => void;
+  onSelectionChange: (_params: OnSelectionChangeParams) => void;
+  onInit: (_instance: ReactFlowInstance) => void;
+  onDrop: (_event: React.DragEvent) => void;
+  onDragOver: (_event: React.DragEvent) => void;
   initialViewport?: { x: number; y: number; zoom: number };
 }
 

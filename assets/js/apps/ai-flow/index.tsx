@@ -51,7 +51,6 @@ function mountReactApp(): void {
   const container = document.getElementById('ai-flow-builder');
 
   if (!container) {
-    console.warn('AI Flow container not found');
     return;
   }
 

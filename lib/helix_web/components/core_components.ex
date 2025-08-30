@@ -21,14 +21,14 @@ defmodule HelixWeb.CoreComponents do
 
   @doc """
   Renders theme initialization script to prevent flash of unstyled content.
-  
+
   This component should be placed in the <head> before any CSS is loaded
   to ensure the theme is applied synchronously during HTML parsing.
-  
+
   ## Examples
-  
+
       <.theme_init />
-  
+
   """
   def theme_init(assigns) do
     ~H"""
