@@ -315,7 +315,7 @@ function FlowBuilderInternal() {
     } else {
       mq.addListener(update);
     }
-    
+
     return () => {
       if (mq.removeEventListener) {
         mq.removeEventListener('change', update);

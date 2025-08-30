@@ -92,7 +92,7 @@ export function useFlowBuilder() {
   const onConnect = useCallback(
     (connection: Connection) => {
       if (!connection.source || !connection.target) return;
-      
+
       const edge: Edge = {
         ...connection,
         source: connection.source,

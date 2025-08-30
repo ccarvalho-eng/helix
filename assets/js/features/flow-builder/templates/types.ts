@@ -18,7 +18,7 @@ export interface FlowTemplate {
 // Re-export Template from main types
 export type { Template } from '../types';
 
-export type TemplateType = 
+export type TemplateType =
   | 'assassins-creed'
   | 'lotr'
   | 'the-witcher'
