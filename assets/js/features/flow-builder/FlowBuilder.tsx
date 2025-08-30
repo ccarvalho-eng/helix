@@ -53,7 +53,7 @@ import {
 type ReactFlowAINode = OriginalAIFlowNode;
 
 // Custom Node Component that matches the original design
-function FlowNode({ data, selected }: { data: ReactFlowAINode; selected: boolean }) {
+function FlowNode({ data, selected }: { readonly data: ReactFlowAINode; readonly selected: boolean }) {
   const { theme } = useThemeContext();
   const NodeIcon = {
     agent: Bot,
@@ -310,18 +310,10 @@ function FlowBuilderInternal() {
     const mq = window.matchMedia('(max-width: 768px)');
     const update = () => setIsMobile(mq.matches);
     update();
-    if (mq.addEventListener) {
-      mq.addEventListener('change', update);
-    } else {
-      mq.addListener(update);
-    }
+    mq.addEventListener('change', update);
 
     return () => {
-      if (mq.removeEventListener) {
-        mq.removeEventListener('change', update);
-      } else {
-        mq.removeListener(update);
-      }
+      mq.removeEventListener('change', update);
     };
   }, []);
 

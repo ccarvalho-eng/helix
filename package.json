@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run prettier:check && npm run lint && npm run typecheck",
     "fix": "npm run prettier && npm run lint:fix && npm run typecheck",
+    "sonar": "sonar-scanner -Dsonar.host.url=https://sonarcloud.io",
     "test": "echo \"No frontend tests configured yet\" && exit 0",
     "test:coverage": "echo \"No coverage tests configured yet\" && exit 0",
     "build:test": "echo \"No test build configured yet\" && exit 0"

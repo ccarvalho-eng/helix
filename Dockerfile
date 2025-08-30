@@ -5,15 +5,16 @@ ARG DEBIAN_VERSION=bullseye-20230612-slim
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
-FROM ${BUILDER_IMAGE} as builder
+FROM ${BUILDER_IMAGE} AS builder
 
 # Install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential git curl \
+RUN apt-get update -y && apt-get install -y build-essential curl git \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Install Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs
+    && apt-get install -y nodejs \
+    && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Set build ENV
 ENV MIX_ENV="prod"
@@ -62,7 +63,7 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt-get update -y && \
-  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates \
+  apt-get install -y ca-certificates libncurses5 libstdc++6 locales openssl \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale
