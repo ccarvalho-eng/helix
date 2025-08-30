@@ -1,0 +1,47 @@
+/* ==========================================================================
+   Node Resizer Component Styling
+   ========================================================================== */
+
+/* React Flow Node Resizer customization */
+.react-flow__resize-control {
+  background: var(--flow-builder-bg);
+  border: 2px solid var(--flow-builder-text-muted);
+  border-radius: 3px;
+  width: 12px;
+  height: 12px;
+  transition: all 0.2s ease;
+}
+
+.react-flow__resize-control:hover {
+  transform: scale(1.1);
+  border-color: var(--flow-builder-text-secondary);
+}
+
+/* Dark theme - Green resizer controls */
+[data-theme="dark"] .react-flow__resize-control {
+  background: var(--theme-bg-tertiary);
+  border: 2px solid var(--theme-syntax-green);
+  box-shadow: 0 0 0 1px var(--theme-bg-primary);
+}
+
+[data-theme="dark"] .react-flow__resize-control:hover {
+  background: var(--theme-syntax-green);
+  border-color: var(--theme-syntax-green);
+  transform: scale(1.15);
+  box-shadow: 0 0 0 2px var(--theme-bg-primary), 0 0 8px rgba(152, 195, 121, 0.4);
+}
+
+/* Resizer line styling */
+.react-flow__resize-control-line {
+  border-color: var(--flow-builder-text-muted);
+  transition: border-color 0.2s ease;
+}
+
+[data-theme="dark"] .react-flow__resize-control-line {
+  border-color: var(--theme-syntax-green);
+  opacity: 0.6;
+}
+
+[data-theme="dark"] .react-flow__node-resizer:hover .react-flow__resize-control-line {
+  opacity: 1;
+}

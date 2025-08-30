@@ -1,0 +1,46 @@
+/* Button Component */
+.btn {
+  padding: 10px 16px;
+  font-size: 13px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2937;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.btn:hover:not(:disabled):not(.btn--active) {
+  background: #f9fafb;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn--active {
+  background: #000000;
+  color: #ffffff;
+}
+
+/* Dark theme - Button styling */
+[data-theme="dark"] .btn {
+  border: 1px solid var(--theme-border-primary);
+  background: var(--theme-bg-tertiary);
+  color: var(--theme-text-primary);
+}
+
+[data-theme="dark"] .btn:hover:not(:disabled):not(.btn--active) {
+  background: var(--theme-border-primary);
+}
+
+[data-theme="dark"] .btn--active {
+  background: var(--theme-syntax-green);
+  color: var(--theme-bg-primary);
+  border-color: var(--theme-syntax-green);
+}

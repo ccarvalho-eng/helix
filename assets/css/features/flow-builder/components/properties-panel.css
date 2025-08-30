@@ -1,0 +1,413 @@
+/* Properties Panel */
+.properties-panel {
+  width: var(--flow-builder-properties-width);
+  min-width: var(--flow-builder-properties-width);
+  max-width: var(--flow-builder-properties-width);
+  height: 100%;
+  border-left: 1px solid var(--flow-builder-border);
+  background: var(--flow-builder-bg);
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.06);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.properties-panel__content {
+  padding: 16px 20px 16px 16px;
+}
+
+.properties-panel__title {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: var(--flow-builder-text-primary);
+}
+
+.properties-panel__tabs {
+  display: flex;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--flow-builder-border);
+}
+
+.properties-panel__tab {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 400;
+  border: none;
+  background: transparent;
+  color: var(--flow-builder-text-muted);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.properties-panel__tab--active {
+  color: var(--flow-builder-text-primary);
+  border-bottom-color: var(--flow-builder-text-primary);
+}
+
+/* Dark theme - Use Atom green for active tab */
+[data-theme="dark"] .properties-panel__tab--active {
+  color: var(--theme-syntax-green);
+  border-bottom-color: var(--theme-syntax-green);
+}
+
+.properties-panel__node-type {
+  display: inline-block;
+  padding: 4px 8px;
+  background: var(--flow-builder-button-hover-bg);
+  color: var(--flow-builder-text-primary);
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+
+.properties-panel__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.properties-panel__field {
+  margin-bottom: 12px;
+}
+
+.properties-panel__label {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--flow-builder-text-primary);
+  margin-bottom: 6px;
+}
+
+.properties-panel__input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--flow-builder-input-border);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--flow-builder-input-bg);
+  color: var(--flow-builder-text-primary);
+  outline: none;
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.properties-panel__input:focus {
+  border-color: var(--flow-builder-text-muted);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark theme - Green focus for inputs */
+[data-theme="dark"] .properties-panel__input:focus {
+  border-color: var(--theme-syntax-green);
+  box-shadow: 0 0 0 2px rgba(152, 195, 121, 0.2);
+}
+
+.properties-panel__textarea {
+  min-height: 56px;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+.properties-panel__select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 36px;
+}
+
+.properties-panel__color-input {
+  height: 32px;
+  cursor: pointer;
+}
+
+.properties-panel__range {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--flow-builder-border);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+}
+
+.properties-panel__range::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: #e5e7eb;
+}
+
+.properties-panel__range::-moz-range-track {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: #e5e7eb;
+  border: none;
+}
+
+/* Light mode - Blue progress fill */
+.properties-panel__range::-webkit-slider-progress {
+  background: #3b82f6;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.properties-panel__range::-moz-range-progress {
+  background: #3b82f6;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.properties-panel__range::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--flow-builder-text-muted);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.properties-panel__range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--flow-builder-text-muted);
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+/* Dark theme - Green range slider */
+[data-theme="dark"] .properties-panel__range::-webkit-slider-thumb {
+  background: var(--theme-syntax-green);
+}
+
+[data-theme="dark"] .properties-panel__range::-moz-range-thumb {
+  background: var(--theme-syntax-green);
+}
+
+[data-theme="dark"] .properties-panel__range:focus::-webkit-slider-thumb {
+  background: var(--theme-syntax-green);
+  box-shadow: 0 0 0 3px rgba(152, 195, 121, 0.3);
+}
+
+[data-theme="dark"] .properties-panel__range:focus::-moz-range-thumb {
+  background: var(--theme-syntax-green);
+  box-shadow: 0 0 0 3px rgba(152, 195, 121, 0.3);
+}
+
+/* Dark theme - Green track styling */
+[data-theme="dark"] .properties-panel__range::-webkit-slider-runnable-track {
+  background: rgba(152, 195, 121, 0.3);
+}
+
+[data-theme="dark"] .properties-panel__range::-moz-range-track {
+  background: rgba(152, 195, 121, 0.3);
+}
+
+[data-theme="dark"] .properties-panel__range::-moz-range-progress {
+  background: var(--theme-syntax-green);
+  height: 4px;
+  border-radius: 2px;
+}
+
+.properties-panel__range-value {
+  font-size: 11px;
+  color: var(--flow-builder-text-secondary);
+  margin-top: 2px;
+  display: block;
+}
+
+.properties-panel__config-section {
+  margin-top: 12px;
+}
+
+.properties-panel__config-title {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--flow-builder-text-primary);
+}
+
+.properties-panel__delete-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--flow-builder-border);
+}
+
+.properties-panel__delete-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--flow-builder-text-primary);
+  color: var(--flow-builder-bg);
+  font-size: 12px;
+  font-weight: 400;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.properties-panel__delete-btn:hover {
+  background: var(--flow-builder-text-secondary);
+}
+
+/* Dark theme - Subtle green accent for delete button */
+[data-theme="dark"] .properties-panel__delete-btn {
+  background: var(--theme-bg-tertiary);
+  color: var(--theme-text-primary);
+  border: 1px solid var(--theme-border-primary);
+}
+
+[data-theme="dark"] .properties-panel__delete-btn:hover {
+  background: var(--theme-syntax-green);
+  color: var(--theme-bg-primary);
+  border-color: var(--theme-syntax-green);
+}
+
+/* Linked skill badges */
+.properties-panel__badge {
+  background: var(--flow-builder-button-hover-bg);
+}
+
+/* Skill card hover accent */
+.properties-panel__skill-card:hover {
+  border-color: var(--flow-builder-text-muted);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Dark theme - Green accents for badges, unlink, and hover */
+[data-theme="dark"] .properties-panel__badge {
+  border-color: var(--theme-syntax-green) !important;
+  color: var(--theme-syntax-green) !important;
+}
+
+.properties-panel__unlink:hover {
+  border-color: var(--flow-builder-text-muted) !important;
+}
+
+[data-theme="dark"] .properties-panel__unlink:hover {
+  border-color: var(--theme-syntax-green) !important;
+  color: var(--theme-syntax-green) !important;
+}
+
+[data-theme="dark"] .properties-panel__skill-card:hover {
+  border-color: var(--theme-syntax-green) !important;
+  box-shadow: 0 0 0 2px rgba(152, 195, 121, 0.2);
+}
+
+.properties-panel__empty {
+  padding: 16px;
+}
+
+.properties-panel__empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--flow-builder-text-primary);
+}
+
+.properties-panel__empty-text {
+  font-size: 13px;
+  color: var(--flow-builder-text-muted);
+  line-height: 1.4;
+}
+
+.properties-panel__help {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--flow-builder-button-hover-bg);
+  border-radius: 10px;
+  border: 1px solid var(--flow-builder-border);
+}
+
+.properties-panel__help-title {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  color: var(--flow-builder-text-primary);
+}
+
+.properties-panel__help-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--flow-builder-text-secondary);
+  line-height: 1.35;
+}
+
+.properties-panel__help-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.properties-panel__help-label {
+  color: var(--flow-builder-text-primary);
+  font-weight: 500;
+}
+
+/* Shortcuts section styling */
+.properties-panel__shortcuts {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--flow-builder-border);
+}
+
+.properties-panel__shortcuts-title {
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--flow-builder-text-primary);
+}
+
+.properties-panel__shortcuts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.properties-panel__shortcut {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--flow-builder-text-secondary);
+}
+
+.properties-panel__kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  background: var(--flow-builder-button-hover-bg);
+  border: 1px solid var(--flow-builder-border);
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--flow-builder-text-primary);
+  min-width: 24px;
+  text-align: center;
+}
+
+/* Dark theme - Green accent for kbd elements */
+[data-theme="dark"] .properties-panel__kbd {
+  background: var(--theme-bg-tertiary);
+  border-color: var(--theme-syntax-green);
+  color: var(--theme-syntax-green);
+}
+
+/* Properties Panel Small (for Working AI Flow Builder) */
+.properties-panel--small {
+  width: var(--flow-builder-properties-width-small);
+  min-width: var(--flow-builder-properties-width-small);
+  max-width: var(--flow-builder-properties-width-small);
+}

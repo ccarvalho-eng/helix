@@ -1,0 +1,67 @@
+/* ==========================================================================
+   Flow Builder CSS Variables
+   ========================================================================== */
+
+:root {
+  --flow-builder-header-height: 73px;
+  --flow-builder-sidebar-width: 250px;
+  --flow-builder-properties-width: 320px;
+  --flow-builder-properties-width-small: 250px;
+
+  /* Light theme colors */
+  --flow-builder-bg: #ffffff;
+  --flow-builder-border: #e5e7eb;
+  --flow-builder-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --flow-builder-text-primary: #111827;
+  --flow-builder-text-secondary: #6b7280;
+  --flow-builder-text-muted: #9ca3af;
+  --flow-builder-canvas-bg: #f9fafb;
+  --flow-builder-panel-bg: #ffffff;
+  --flow-builder-input-bg: #ffffff;
+  --flow-builder-input-border: #d1d5db;
+  --flow-builder-button-bg: #ffffff;
+  --flow-builder-button-border: #d1d5db;
+  --flow-builder-button-text: #374151;
+  --flow-builder-button-hover-bg: #f9fafb;
+
+  /* Node defaults */
+  --flow-node-border-radius: 12px;
+  --flow-node-padding: 16px;
+  --flow-node-font-size: 13px;
+  --flow-node-font-weight: 400;
+  --flow-node-transition: all 0.2s;
+}
+
+/* Responsive variable adjustments */
+@media (max-width: 1024px) {
+  :root {
+    --flow-builder-sidebar-width: 220px;
+    --flow-builder-properties-width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --flow-builder-sidebar-width: 180px;
+    --flow-builder-properties-width: 0px;
+    /* hide properties panel */
+  }
+}
+
+/* Dark theme colors - Using Atom One Dark global theme */
+[data-theme="dark"] {
+  --flow-builder-bg: var(--theme-bg-secondary);
+  --flow-builder-border: var(--theme-border-primary);
+  --flow-builder-shadow: var(--theme-shadow);
+  --flow-builder-text-primary: var(--theme-text-primary);
+  --flow-builder-text-secondary: var(--theme-text-secondary);
+  --flow-builder-text-muted: var(--theme-text-muted);
+  --flow-builder-canvas-bg: var(--theme-bg-primary);
+  --flow-builder-panel-bg: var(--theme-bg-secondary);
+  --flow-builder-input-bg: var(--theme-input-bg);
+  --flow-builder-input-border: var(--theme-input-border);
+  --flow-builder-button-bg: var(--theme-input-bg);
+  --flow-builder-button-border: var(--theme-input-border);
+  --flow-builder-button-text: var(--theme-text-primary);
+  --flow-builder-button-hover-bg: var(--theme-bg-tertiary);
+}

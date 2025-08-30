@@ -1,0 +1,51 @@
+/* Error Boundary */
+.error-boundary {
+  padding: 20px;
+  background: #fee;
+  color: #c00;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  margin: 20px;
+}
+
+/* Dark theme - Error styling with Atom colors */
+[data-theme="dark"] .error-boundary {
+  background: var(--theme-bg-tertiary);
+  color: var(--theme-syntax-red);
+  border: 1px solid var(--theme-syntax-red);
+}
+
+.error-boundary__title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.error-boundary__message {
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.error-boundary__retry-btn {
+  padding: 8px 16px;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.error-boundary__retry-btn:hover {
+  background: #b91c1c;
+}
+
+/* Dark theme - Error button styling */
+[data-theme="dark"] .error-boundary__retry-btn {
+  background: var(--theme-syntax-red);
+  color: var(--theme-bg-primary);
+}
+
+[data-theme="dark"] .error-boundary__retry-btn:hover {
+  background: #c56565;
+}

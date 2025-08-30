@@ -20,6 +20,64 @@ defmodule HelixWeb.CoreComponents do
   alias Phoenix.LiveView.JS
 
   @doc """
+  Renders theme initialization script to prevent flash of unstyled content.
+  
+  This component should be placed in the <head> before any CSS is loaded
+  to ensure the theme is applied synchronously during HTML parsing.
+  
+  ## Examples
+  
+      <.theme_init />
+  
+  """
+  def theme_init(assigns) do
+    ~H"""
+    <script>
+      // Synchronous theme initialization to prevent flash
+      (function() {
+        const THEME_STORAGE_KEY = 'helix-flow-builder-theme';
+        
+        function getInitialTheme() {
+          try {
+            const stored = localStorage.getItem(THEME_STORAGE_KEY);
+            if (stored && (stored === 'light' || stored === 'dark')) {
+              return stored;
+            }
+            
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+              return 'dark';
+            }
+            
+            return 'light';
+          } catch (error) {
+            return 'dark';
+          }
+        }
+        
+        function applyTheme(theme) {
+          document.documentElement.setAttribute('data-theme', theme);
+          
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        }
+        
+        const theme = getInitialTheme();
+        applyTheme(theme);
+        
+        try {
+          localStorage.setItem(THEME_STORAGE_KEY, theme);
+        } catch (error) {
+          // Ignore storage errors
+        }
+      })();
+    </script>
+    """
+  end
+
+  @doc """
   Renders a modal.
 
   ## Examples

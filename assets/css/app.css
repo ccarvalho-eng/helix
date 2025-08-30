@@ -2,4 +2,34 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+/* React Flow styles */
+@import "reactflow/dist/style.css";
+
+/* Global theme */
+@import "./themes/atom-one-dark.css";
+
+/* Component styles */
+@import "./components.css";
+
+/* Feature styles */
+@import "./features/home/index.css";
+
+/* Global CSS resets to prevent white space issues */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  /* Prevent theme flash by setting default dark theme */
+  background-color: var(--theme-bg-primary);
+  color: var(--theme-text-primary);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Ensure all containers respect viewport width */
+* {
+  box-sizing: border-box;
+}
+
 /* This file is for your main application CSS */
