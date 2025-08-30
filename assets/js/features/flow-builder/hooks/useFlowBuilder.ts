@@ -29,8 +29,8 @@ const saveToLocalStorage = (data: {
 }) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch (error) {
-    console.warn('Failed to save to localStorage:', error);
+  } catch {
+    // Failed to save to localStorage
   }
 };
 
@@ -40,8 +40,8 @@ const loadFromLocalStorage = () => {
     if (stored) {
       return JSON.parse(stored);
     }
-  } catch (error) {
-    console.warn('Failed to load from localStorage:', error);
+  } catch {
+    // Failed to load from localStorage
   }
   return null;
 };
@@ -60,6 +60,8 @@ export function useFlowBuilder() {
       const nodeData: AIFlowNode = {
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         type,
+        position: { x: 0, y: 0 },
+        dimensions: { width: defaults.width, height: defaults.height },
         x: 0,
         y: 0,
         width: defaults.width,
@@ -89,8 +91,12 @@ export function useFlowBuilder() {
 
   const onConnect = useCallback(
     (connection: Connection) => {
+      if (!connection.source || !connection.target) return;
+      
       const edge: Edge = {
         ...connection,
+        source: connection.source,
+        target: connection.target,
         id: `${connection.source}-${connection.target}`,
         type: 'default',
         markerEnd: {
@@ -133,6 +139,8 @@ export function useFlowBuilder() {
       const nodeData: AIFlowNode = {
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         type,
+        position: { x: position.x, y: position.y },
+        dimensions: { width: defaults.width, height: defaults.height },
         x: position.x,
         y: position.y,
         width: defaults.width,

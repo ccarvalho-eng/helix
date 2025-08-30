@@ -4,8 +4,8 @@ export const localStorageService = {
   save: <T>(key: string, data: T): void => {
     try {
       localStorage.setItem(key, JSON.stringify(data));
-    } catch (error) {
-      console.warn('Failed to save to localStorage:', error);
+    } catch {
+      // Failed to save to localStorage - storage might be full or disabled
     }
   },
 
@@ -13,8 +13,8 @@ export const localStorageService = {
     try {
       const item = localStorage.getItem(key);
       return item ? JSON.parse(item) : null;
-    } catch (error) {
-      console.warn('Failed to load from localStorage:', error);
+    } catch {
+      // Failed to load from localStorage
       return null;
     }
   },
@@ -22,8 +22,8 @@ export const localStorageService = {
   remove: (key: string): void => {
     try {
       localStorage.removeItem(key);
-    } catch (error) {
-      console.warn('Failed to remove from localStorage:', error);
+    } catch {
+      // Failed to remove from localStorage
     }
   },
 };

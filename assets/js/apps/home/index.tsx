@@ -4,25 +4,15 @@ import { HomePage } from '../../features/home/HomePage';
 import { ThemeProvider } from '../../features/flow-builder/contexts/ThemeContext';
 
 function HomeApp() {
-  try {
-    return (
-      <ThemeProvider>
-        <HomePage />
-      </ThemeProvider>
-    );
-  } catch (error) {
-    console.error('Error in HomeApp:', error);
-    return (
-      <div style={{ padding: '20px', background: 'red', color: 'white' }}>
-        <h1>Error occurred</h1>
-        <p>Check console for details: {error?.toString()}</p>
-      </div>
-    );
-  }
+  return (
+    <ThemeProvider>
+      <HomePage />
+    </ThemeProvider>
+  );
 }
 
 // Mount the React app when the DOM is loaded
-let currentRoot: any = null;
+let currentRoot: ReturnType<typeof createRoot> | null = null;
 
 function mountReactApp() {
   const container = document.getElementById('home-app');
@@ -35,7 +25,7 @@ function mountReactApp() {
     if (currentRoot) {
       try {
         currentRoot.unmount();
-      } catch (e) {
+      } catch {
         // Silent cleanup error
       }
     }
