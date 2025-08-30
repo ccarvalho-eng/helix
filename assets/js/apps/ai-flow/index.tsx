@@ -16,23 +16,18 @@ function AIFlowApp() {
   }
 }
 
-// Mount the React app when the DOM is loaded
+// Mount the React app
 let currentRoot: any = null;
 
 function mountReactApp() {
   const container = document.getElementById('ai-flow-builder');
 
-  // Only mount if the container exists (flow page)
   if (container && !container.hasAttribute('data-react-mounted')) {
     container.setAttribute('data-react-mounted', 'true');
 
     // Clean up any existing root
     if (currentRoot) {
-      try {
-        currentRoot.unmount();
-      } catch (e) {
-        // Silent cleanup error
-      }
+      currentRoot.unmount();
     }
 
     currentRoot = createRoot(container);
@@ -40,36 +35,16 @@ function mountReactApp() {
   }
 }
 
-// Only mount on pages that have the ai-flow-builder container
-function shouldMountReactApp() {
-  return document.getElementById('ai-flow-builder') !== null;
+function initializeApp() {
+  const container = document.getElementById('ai-flow-builder');
+  if (container) {
+    mountReactApp();
+  }
 }
 
-// Try to mount immediately if DOM is ready and we're on the flow page
+// Initialize when DOM is ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    if (shouldMountReactApp()) {
-      mountReactApp();
-    }
-  });
+  document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
-  if (shouldMountReactApp()) {
-    mountReactApp();
-  }
+  initializeApp();
 }
-
-// Also try mounting on LiveView page loads, but only if we're on the flow page
-document.addEventListener('phx:page-loading-stop', () => {
-  if (shouldMountReactApp()) {
-    mountReactApp();
-  }
-});
-
-// Fallback timeout, but only if we're on the flow page
-setTimeout(() => {
-  if (shouldMountReactApp()) {
-    mountReactApp();
-  }
-}, 100);
-
-export default AIFlowApp;
