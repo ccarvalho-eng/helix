@@ -1,5 +1,6 @@
 Thanks for submitting a PR! Please read these instructions carefully:
 
+- [ ] Read our [Contributing Guide](../CONTRIBUTING.md) before submitting
 - Explain the motivation for making this change.
 - Provide a test plan demonstrating that the code is solid.
 - Match the code formatting of the rest of the codebase.
@@ -21,4 +22,4 @@ Small pull requests are much easier to review and more likely to get merged. Mak
 
 Make sure all tests pass on Circle CI. PRs that break tests are unlikely to be merged.
 
-For more info, see the Contributing guide.
+For more info, see the [Contributing Guide](../CONTRIBUTING.md).
