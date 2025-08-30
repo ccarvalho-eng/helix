@@ -1,7 +1,10 @@
 {
   "scripts": {
     "prettier": "prettier --write \"assets/js/**/*.{js,ts,tsx}\"",
-    "prettier:check": "prettier --check \"assets/js/**/*.{js,ts,tsx}\""
+    "prettier:check": "prettier --check \"assets/js/**/*.{js,ts,tsx}\"",
+    "test": "echo \"No frontend tests configured yet\" && exit 0",
+    "test:coverage": "echo \"No coverage tests configured yet\" && exit 0",
+    "build:test": "echo \"No test build configured yet\" && exit 0"
   },
   "dependencies": {
     "@types/react": "^19.1.12",
