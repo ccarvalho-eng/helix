@@ -1,5 +1,7 @@
 # Helix
 
+<img width="1677" height="964" alt="Screenshot 2025-08-30 at 17 15 32" src="https://github.com/user-attachments/assets/3a3ae752-4df9-454f-9e26-7280668058ad" />
+
 [![GitHub release](https://img.shields.io/github/v/release/ccarvalho-eng/helix)](https://github.com/ccarvalho-eng/helix/releases)
 [![CI](https://github.com/ccarvalho-eng/helix/workflows/CI/badge.svg)](https://github.com/ccarvalho-eng/helix/actions/workflows/ci.yml)
 [![Security Scan](https://github.com/ccarvalho-eng/helix/workflows/Security%20Scan/badge.svg)](https://github.com/ccarvalho-eng/helix/actions/workflows/security.yml)
