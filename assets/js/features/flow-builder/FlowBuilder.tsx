@@ -53,7 +53,13 @@ import {
 type ReactFlowAINode = OriginalAIFlowNode;
 
 // Custom Node Component that matches the original design
-function FlowNode({ data, selected }: { readonly data: ReactFlowAINode; readonly selected: boolean }) {
+function FlowNode({
+  data,
+  selected,
+}: {
+  readonly data: ReactFlowAINode;
+  readonly selected: boolean;
+}) {
   const { theme } = useThemeContext();
   const NodeIcon = {
     agent: Bot,

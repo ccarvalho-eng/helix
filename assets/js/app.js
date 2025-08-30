@@ -16,25 +16,23 @@
 //
 
 // Initialize theme before any React components load
-import "./shared/utils/theme-init.js";
+import './shared/utils/theme-init.js';
 
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
-import "phoenix_html";
+import 'phoenix_html';
 // Establish Phoenix Socket and LiveView configuration.
-import { Socket } from "phoenix";
-import { LiveSocket } from "phoenix_live_view";
+import { Socket } from 'phoenix';
+import { LiveSocket } from 'phoenix_live_view';
 
 // Import the AI Flow Builder app
-import "./apps/ai-flow";
+import './apps/ai-flow';
 // Import the Home app
-import "./apps/home";
+import './apps/home';
 
-let csrfToken = document
-	.querySelector("meta[name='csrf-token']")
-	.getAttribute("content");
-let liveSocket = new LiveSocket("/live", Socket, {
-	longPollFallbackMs: 2500,
-	params: { _csrf_token: csrfToken },
+let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('content');
+let liveSocket = new LiveSocket('/live', Socket, {
+  longPollFallbackMs: 2500,
+  params: { _csrf_token: csrfToken },
 });
 
 // connect if there are any LiveViews on the page
