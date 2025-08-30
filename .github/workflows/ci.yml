@@ -89,6 +89,9 @@ jobs:
       - name: Run Elixir tests
         run: mix test --cover
 
+      - name: Generate coverage report
+        run: mix coveralls.json
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
