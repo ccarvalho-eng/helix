@@ -8,11 +8,11 @@ ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 FROM ${BUILDER_IMAGE} AS builder
 
 # Install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential curl git \
+RUN apt-get update -y && apt-get install -y --no-install-recommends build-essential curl git \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Install Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+RUN curl -fsSL --tlsv1.2 --cert-status https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
@@ -44,7 +44,7 @@ COPY lib lib
 # Copy assets
 COPY assets assets
 COPY package.json package-lock.json ./
-RUN npm ci --prefix assets
+RUN npm ci --prefix assets --ignore-scripts
 
 # Compile assets
 RUN mix assets.deploy
@@ -63,7 +63,7 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt-get update -y && \
-  apt-get install -y ca-certificates libncurses5 libstdc++6 locales openssl \
+  apt-get install -y --no-install-recommends ca-certificates libncurses5 libstdc++6 locales openssl \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale
