@@ -11,10 +11,6 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
-    reviewers:
-      - "@ccarvalho-eng"
-    assignees:
-      - "@ccarvalho-eng"
     open-pull-requests-limit: 5
     target-branch: "main"
 
@@ -28,10 +24,6 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
-    reviewers:
-      - "@ccarvalho-eng"
-    assignees:
-      - "@ccarvalho-eng"
     open-pull-requests-limit: 5
     target-branch: "main"
     ignore:
@@ -49,10 +41,6 @@ updates:
     commit-message:
       prefix: "chore(ci)"
       include: "scope"
-    reviewers:
-      - "@ccarvalho-eng"
-    assignees:
-      - "@ccarvalho-eng"
     open-pull-requests-limit: 5
     target-branch: "main"
 
@@ -66,9 +54,5 @@ updates:
     commit-message:
       prefix: "chore(docker)"
       include: "scope"
-    reviewers:
-      - "@ccarvalho-eng"
-    assignees:
-      - "@ccarvalho-eng"
     open-pull-requests-limit: 3
     target-branch: "main"
