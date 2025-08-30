@@ -1,7 +1,5 @@
-# Find eligible builder and runner images on Docker Hub. We use Ubuntu/Debian
-# instead of Alpine to avoid DNS resolution issues in production.
-ARG ELIXIR_VERSION=1.14.5
-ARG OTP_VERSION=25.3.2
+ARG ELIXIR_VERSION=1.17.3
+ARG OTP_VERSION=27.2
 ARG DEBIAN_VERSION=bullseye-20230612-slim
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
