@@ -1,23 +1,5 @@
 import React, { useState, Fragment } from 'react';
-import {
-  Bot,
-  Eye,
-  Wrench,
-  GitBranch,
-  ArrowLeft,
-  ArrowRight,
-  Brain,
-  RotateCcw,
-  RefreshCw,
-  Zap,
-  HelpCircle,
-  Keyboard,
-  MousePointer,
-  Move,
-  ZoomIn,
-  Square,
-  Map,
-} from 'lucide-react';
+import { HelpCircle, Keyboard } from 'lucide-react';
 import { AIFlowNode, AIFlowConnection } from '../../types';
 
 interface PropertiesPanelProps {

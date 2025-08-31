@@ -21,6 +21,7 @@ import {
 } from 'reactflow';
 
 import { AIFlowNode as OriginalAIFlowNode } from './types';
+import { NodeConfig } from '../../shared/types';
 import {
   getTemplate,
   TemplateType,
@@ -160,7 +161,6 @@ const nodeTypes: NodeTypes = {
   aiFlowNode: FlowNode,
 };
 
-// Custom edge type that matches original design
 const edgeTypes: EdgeTypes = {};
 
 // Node Palette - Simplified version with category selector
@@ -173,7 +173,8 @@ function ReactFlowNodePalette({
   onAddNode: (
     _type: ReactFlowAINode['type'],
     _customLabel?: string,
-    _customDescription?: string
+    _customDescription?: string,
+    _defaultConfig?: NodeConfig
   ) => void;
   onAddTemplate: (_templateType: TemplateType) => void;
   onOpenTemplatesModal: () => void;
@@ -246,7 +247,13 @@ function ReactFlowNodePalette({
       color: '#06b6d4',
       category: 'io' as const,
     },
-    { type: 'api' as const, icon: Zap, label: 'API', color: '#f97316', category: 'io' as const },
+    {
+      type: 'api' as const,
+      icon: Zap,
+      label: 'API',
+      color: '#f97316',
+      category: 'io' as const,
+    },
   ];
 
   const categoryLabels = {
@@ -343,7 +350,13 @@ function ReactFlowNodePalette({
                 {(() => {
                   const IconComponent = getTemplateIcon(t.category);
                   return (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                    >
                       <IconComponent size={16} style={{ color: '#6b7280', flexShrink: 0 }} />
                       {t.name}
                     </div>
@@ -441,17 +454,32 @@ function FlowBuilderInternal() {
 
   // Add node function
   const addNode = useCallback(
-    (type: ReactFlowAINode['type'], customLabel?: string, customDescription?: string) => {
+    (
+      type: ReactFlowAINode['type'],
+      customLabel?: string,
+      customDescription?: string,
+      defaultConfig?: NodeConfig
+    ) => {
       const nodeDefaults = {
         agent: { width: 140, height: 80, color: '#f0f9ff', label: 'AI Agent' },
         sensor: { width: 120, height: 60, color: '#f0fdf4', label: 'Sensor' },
         skill: { width: 120, height: 60, color: '#fffbeb', label: 'Skill' },
-        decision: { width: 100, height: 80, color: '#fef2f2', label: 'Decision' },
+        decision: {
+          width: 100,
+          height: 80,
+          color: '#fef2f2',
+          label: 'Decision',
+        },
         input: { width: 100, height: 60, color: '#faf5ff', label: 'Input' },
         output: { width: 100, height: 60, color: '#f0fdfa', label: 'Output' },
         memory: { width: 120, height: 60, color: '#fdf2f8', label: 'Memory' },
         loop: { width: 100, height: 60, color: '#faf5ff', label: 'Loop' },
-        transform: { width: 130, height: 60, color: '#f0fdfa', label: 'Transform' },
+        transform: {
+          width: 130,
+          height: 60,
+          color: '#f0fdfa',
+          label: 'Transform',
+        },
         api: { width: 100, height: 60, color: '#fff7ed', label: 'API' },
       };
 
@@ -463,7 +491,7 @@ function FlowBuilderInternal() {
         dimensions: { width: defaults.width, height: defaults.height },
         label: customLabel || defaults.label,
         description: customDescription || '',
-        config: {},
+        config: defaultConfig || {},
         x: 0,
         y: 0,
         width: defaults.width,
@@ -547,12 +575,22 @@ function FlowBuilderInternal() {
         agent: { width: 140, height: 80, color: '#f0f9ff', label: 'AI Agent' },
         sensor: { width: 120, height: 60, color: '#f0fdf4', label: 'Sensor' },
         skill: { width: 120, height: 60, color: '#fffbeb', label: 'Skill' },
-        decision: { width: 100, height: 80, color: '#fef2f2', label: 'Decision' },
+        decision: {
+          width: 100,
+          height: 80,
+          color: '#fef2f2',
+          label: 'Decision',
+        },
         input: { width: 100, height: 60, color: '#faf5ff', label: 'Input' },
         output: { width: 100, height: 60, color: '#f0fdfa', label: 'Output' },
         memory: { width: 120, height: 60, color: '#fdf2f8', label: 'Memory' },
         loop: { width: 100, height: 60, color: '#faf5ff', label: 'Loop' },
-        transform: { width: 130, height: 60, color: '#f0fdfa', label: 'Transform' },
+        transform: {
+          width: 130,
+          height: 60,
+          color: '#f0fdfa',
+          label: 'Transform',
+        },
         api: { width: 100, height: 60, color: '#fff7ed', label: 'API' },
       };
 
@@ -899,7 +937,10 @@ function FlowBuilderInternal() {
             onUpdateConnection={() => {}}
             onDeleteNode={deleteNode}
             allNodes={nodes.map(n => n.data)}
-            allEdges={edges.map(e => ({ source: e.source, target: e.target }))}
+            allEdges={edges.map(e => ({
+              source: e.source,
+              target: e.target,
+            }))}
             onOpenNodeModal={nodeId => setModalNodeId(nodeId)}
             onUnlinkEdge={(sourceId, targetId) => {
               setEdges(eds => eds.filter(e => !(e.source === sourceId && e.target === targetId)));

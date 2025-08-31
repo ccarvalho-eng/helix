@@ -25,7 +25,14 @@ export interface Dimensions {
 }
 
 export interface NodeConfig {
-  [key: string]: string | number | boolean | string[] | undefined;
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | string[]
+    | Record<string, unknown>
+    | Array<Record<string, unknown>>
+    | undefined;
 }
 
 export interface BaseNode {

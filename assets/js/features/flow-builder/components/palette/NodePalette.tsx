@@ -13,12 +13,14 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { AIFlowNode } from '../../types';
+import { NodeConfig } from '../../../../shared/types';
 
 interface NodePaletteProps {
   onAddNode: (
     _type: AIFlowNode['type'],
     _customLabel?: string,
-    _customDescription?: string
+    _customDescription?: string,
+    _defaultConfig?: NodeConfig
   ) => void;
   onAddTemplate: () => void;
 }
@@ -32,7 +34,7 @@ interface NodeDefinition {
   color: string;
   description: string;
   category: 'core' | 'logic' | 'io';
-  properties: Record<string, unknown>;
+  properties: NodeConfig;
 }
 
 const nodeDefinitions: NodeDefinition[] = [
@@ -240,7 +242,12 @@ export function NodePalette({ onAddNode, onAddTemplate }: NodePaletteProps) {
 
   const handleNodeClick = (nodeDefinition: NodeDefinition) => {
     // Pass the node type and its default properties
-    onAddNode(nodeDefinition.type, nodeDefinition.label, nodeDefinition.description);
+    onAddNode(
+      nodeDefinition.type,
+      nodeDefinition.label,
+      nodeDefinition.description,
+      nodeDefinition.properties
+    );
   };
 
   const nodesByCategory = nodeDefinitions.reduce(
