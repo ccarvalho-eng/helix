@@ -586,7 +586,8 @@ export function PropertiesPanel({
                               handleNodeUpdate({
                                 config: {
                                   ...node.config,
-                                  [field.key]: (parseInt(String(node.config?.[field.key] || '0')) || 0) + 1,
+                                  [field.key]:
+                                    (parseInt(String(node.config?.[field.key] || '0')) || 0) + 1,
                                 },
                               })
                             }
@@ -600,7 +601,10 @@ export function PropertiesPanel({
                               handleNodeUpdate({
                                 config: {
                                   ...node.config,
-                                  [field.key]: Math.max(0, (parseInt(String(node.config?.[field.key] || '0')) || 0) - 1),
+                                  [field.key]: Math.max(
+                                    0,
+                                    (parseInt(String(node.config?.[field.key] || '0')) || 0) - 1
+                                  ),
                                 },
                               })
                             }
@@ -647,7 +651,7 @@ export function PropertiesPanel({
                           })
                         }
                         options={field.options || []}
-                        placeholder="Select..."
+                        placeholder='Select...'
                       />
                     )}
 

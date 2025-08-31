@@ -9,7 +9,13 @@ interface CustomSelectProps {
   className?: string;
 }
 
-export function CustomSelect({ value, onChange, options, placeholder = 'Select...', className = '' }: CustomSelectProps) {
+export function CustomSelect({
+  value,
+  onChange,
+  options,
+  placeholder = 'Select...',
+  className = '',
+}: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -75,34 +81,34 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Select..
     <div className={`custom-select ${className}`} ref={dropdownRef}>
       <button
         ref={triggerRef}
-        type="button"
+        type='button'
         className={`custom-select__trigger ${isOpen ? 'custom-select__trigger--open' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
-        aria-haspopup="listbox"
+        aria-haspopup='listbox'
       >
-        <span className={`custom-select__value ${!value ? 'custom-select__value--placeholder' : ''}`}>
+        <span
+          className={`custom-select__value ${!value ? 'custom-select__value--placeholder' : ''}`}
+        >
           {displayValue}
         </span>
-        <ChevronDown 
-          size={18} 
+        <ChevronDown
+          size={18}
           className={`custom-select__chevron ${isOpen ? 'custom-select__chevron--open' : ''}`}
         />
       </button>
 
       {isOpen && (
-        <div className="custom-select__dropdown">
-          <ul className="custom-select__options" role="listbox">
+        <div className='custom-select__dropdown'>
+          <ul className='custom-select__options' role='listbox'>
             {options.map((option, index) => (
               <li
                 key={option}
-                role="option"
+                role='option'
                 aria-selected={option === value}
                 className={`custom-select__option ${
                   option === value ? 'custom-select__option--selected' : ''
-                } ${
-                  index === highlightedIndex ? 'custom-select__option--highlighted' : ''
-                }`}
+                } ${index === highlightedIndex ? 'custom-select__option--highlighted' : ''}`}
                 onClick={() => handleOptionClick(option)}
                 onMouseEnter={() => setHighlightedIndex(index)}
               >
