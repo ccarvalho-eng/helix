@@ -6,6 +6,9 @@ import {
   GitBranch,
   ArrowLeft,
   ArrowRight,
+  Brain,
+  RotateCcw,
+  RefreshCw,
   Circle,
   Zap,
   Cpu,
@@ -24,6 +27,10 @@ export const ICONS = {
   decision: GitBranch,
   input: ArrowLeft,
   output: ArrowRight,
+  memory: Brain,
+  loop: RotateCcw,
+  transform: RefreshCw,
+  api: Zap,
 
   // UI icons
   circle: Circle,
@@ -41,8 +48,12 @@ export const NODE_COLORS = {
   sensor: '#22c55e',
   skill: '#f59e0b',
   decision: '#ef4444',
-  input: '#8b5cf6',
+  input: '#6366f1',
   output: '#06b6d4',
+  memory: '#ec4899',
+  loop: '#8b5cf6',
+  transform: '#14b8a6',
+  api: '#f97316',
 } as const;
 
 export type IconName = keyof typeof ICONS;

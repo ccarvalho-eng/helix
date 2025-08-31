@@ -33,18 +33,38 @@
 }
 
 /* Responsive variable adjustments */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   :root {
     --flow-builder-sidebar-width: 220px;
     --flow-builder-properties-width: 280px;
   }
 }
 
+@media (max-width: 1024px) {
+  :root {
+    --flow-builder-sidebar-width: 200px;
+    --flow-builder-properties-width: 260px;
+  }
+}
+
 @media (max-width: 768px) {
   :root {
     --flow-builder-sidebar-width: 180px;
-    --flow-builder-properties-width: 0px;
-    /* hide properties panel */
+    --flow-builder-properties-width: 240px;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --flow-builder-sidebar-width: 160px;
+    --flow-builder-properties-width: 220px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --flow-builder-sidebar-width: 140px;
+    --flow-builder-properties-width: 200px;
   }
 }
 

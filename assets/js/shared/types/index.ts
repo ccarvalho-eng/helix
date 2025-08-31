@@ -2,7 +2,17 @@
 
 export type Theme = 'light' | 'dark';
 
-export type NodeType = 'agent' | 'sensor' | 'skill' | 'decision' | 'input' | 'output';
+export type NodeType =
+  | 'agent'
+  | 'sensor'
+  | 'skill'
+  | 'decision'
+  | 'input'
+  | 'output'
+  | 'memory'
+  | 'loop'
+  | 'transform'
+  | 'api';
 
 export interface Position {
   x: number;
@@ -15,7 +25,14 @@ export interface Dimensions {
 }
 
 export interface NodeConfig {
-  [key: string]: string | number | boolean | string[] | undefined;
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | string[]
+    | Record<string, unknown>
+    | Array<Record<string, unknown>>
+    | undefined;
 }
 
 export interface BaseNode {

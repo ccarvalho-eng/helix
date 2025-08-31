@@ -21,6 +21,7 @@ import {
 } from 'reactflow';
 
 import { AIFlowNode as OriginalAIFlowNode } from './types';
+import { NodeConfig } from '../../shared/types';
 import {
   getTemplate,
   TemplateType,
@@ -40,6 +41,9 @@ import {
   GitBranch,
   ArrowLeft,
   ArrowRight,
+  Brain,
+  RotateCcw,
+  RefreshCw,
   Cpu,
   Circle,
   Zap,
@@ -68,6 +72,10 @@ function FlowNode({
     decision: GitBranch,
     input: ArrowLeft,
     output: ArrowRight,
+    memory: Brain,
+    loop: RotateCcw,
+    transform: RefreshCw,
+    api: Zap,
   }[data.type];
 
   const getIconColor = (nodeType: ReactFlowAINode['type']) => {
@@ -76,8 +84,12 @@ function FlowNode({
       sensor: '#22c55e',
       skill: '#f59e0b',
       decision: '#ef4444',
-      input: '#8b5cf6',
+      input: '#6366f1',
       output: '#06b6d4',
+      memory: '#ec4899',
+      loop: '#8b5cf6',
+      transform: '#14b8a6',
+      api: '#f97316',
     };
     return colors[nodeType];
   };
@@ -93,6 +105,10 @@ function FlowNode({
       decision: { width: '100px', height: '80px' },
       input: { width: '100px', height: '60px' },
       output: { width: '100px', height: '60px' },
+      memory: { width: '120px', height: '60px' },
+      loop: { width: '100px', height: '60px' },
+      transform: { width: '130px', height: '60px' },
+      api: { width: '100px', height: '60px' },
     };
     return dimensions[nodeType];
   };
@@ -145,10 +161,9 @@ const nodeTypes: NodeTypes = {
   aiFlowNode: FlowNode,
 };
 
-// Custom edge type that matches original design
 const edgeTypes: EdgeTypes = {};
 
-// Node Palette (same as original but adapted for React Flow)
+// Node Palette - Simplified version with category selector
 function ReactFlowNodePalette({
   onAddNode,
   onAddTemplate: _onAddTemplate,
@@ -158,20 +173,111 @@ function ReactFlowNodePalette({
   onAddNode: (
     _type: ReactFlowAINode['type'],
     _customLabel?: string,
-    _customDescription?: string
+    _customDescription?: string,
+    _defaultConfig?: NodeConfig
   ) => void;
   onAddTemplate: (_templateType: TemplateType) => void;
   onOpenTemplatesModal: () => void;
   onTemplateClick: (_template: Template) => void;
 }) {
-  const nodeTypes = [
-    { type: 'agent' as const, icon: Bot, label: 'AI Agent', color: '#0ea5e9' },
-    { type: 'sensor' as const, icon: Eye, label: 'Sensor', color: '#22c55e' },
-    { type: 'skill' as const, icon: Wrench, label: 'Skill', color: '#f59e0b' },
-    { type: 'decision' as const, icon: GitBranch, label: 'Decision', color: '#ef4444' },
-    { type: 'input' as const, icon: ArrowLeft, label: 'Input', color: '#8b5cf6' },
-    { type: 'output' as const, icon: ArrowRight, label: 'Output', color: '#06b6d4' },
+  const nodeDefinitions = [
+    // Core nodes
+    {
+      type: 'agent' as const,
+      icon: Bot,
+      label: 'Agent',
+      color: '#0ea5e9',
+      category: 'core' as const,
+    },
+    {
+      type: 'sensor' as const,
+      icon: Eye,
+      label: 'Sensor',
+      color: '#22c55e',
+      category: 'core' as const,
+    },
+    {
+      type: 'skill' as const,
+      icon: Wrench,
+      label: 'Skill',
+      color: '#f59e0b',
+      category: 'core' as const,
+    },
+    {
+      type: 'memory' as const,
+      icon: Brain,
+      label: 'Memory',
+      color: '#ec4899',
+      category: 'core' as const,
+    },
+    // Logic nodes
+    {
+      type: 'decision' as const,
+      icon: GitBranch,
+      label: 'Decision',
+      color: '#ef4444',
+      category: 'logic' as const,
+    },
+    {
+      type: 'loop' as const,
+      icon: RotateCcw,
+      label: 'Loop',
+      color: '#8b5cf6',
+      category: 'logic' as const,
+    },
+    {
+      type: 'transform' as const,
+      icon: RefreshCw,
+      label: 'Transform',
+      color: '#14b8a6',
+      category: 'logic' as const,
+    },
+    // I/O nodes
+    {
+      type: 'input' as const,
+      icon: ArrowLeft,
+      label: 'Input',
+      color: '#6366f1',
+      category: 'io' as const,
+    },
+    {
+      type: 'output' as const,
+      icon: ArrowRight,
+      label: 'Output',
+      color: '#06b6d4',
+      category: 'io' as const,
+    },
+    {
+      type: 'api' as const,
+      icon: Zap,
+      label: 'API',
+      color: '#f97316',
+      category: 'io' as const,
+    },
   ];
+
+  const categoryLabels = {
+    core: 'Core Agents',
+    logic: 'Logic Control',
+    io: 'Input/Output',
+  };
+
+  const categoryIcons = {
+    core: Bot,
+    logic: GitBranch,
+    io: ArrowLeft,
+  };
+
+  const nodesByCategory = nodeDefinitions.reduce(
+    (acc, node) => {
+      if (!acc[node.category]) {
+        acc[node.category] = [];
+      }
+      acc[node.category].push(node);
+      return acc;
+    },
+    {} as Record<'core' | 'logic' | 'io', typeof nodeDefinitions>
+  );
 
   const handleDragStart = (e: React.DragEvent, nodeType: ReactFlowAINode['type']) => {
     e.dataTransfer.setData('application/reactflow', nodeType);
@@ -179,27 +285,44 @@ function ReactFlowNodePalette({
   };
 
   return (
-    <div className='react-flow-node-palette'>
-      <h3 className='react-flow-node-palette__title'>AI Flow Nodes</h3>
+    <div className='node-palette'>
+      <div className='node-palette__header'>
+        <h3 className='node-palette__title'>Node Palette</h3>
+      </div>
 
-      <div className='react-flow-node-palette__nodes'>
-        {nodeTypes.map(nodeType => (
-          <div
-            key={nodeType.type}
-            className='react-flow-node-palette__node'
-            draggable
-            onDragStart={e => handleDragStart(e, nodeType.type)}
-            onClick={() => onAddNode(nodeType.type)}
-          >
-            <nodeType.icon size={18} color={nodeType.color} />
-            <div className='react-flow-node-palette__node-info'>
-              <div className='react-flow-node-palette__node-label'>{nodeType.label}</div>
-              <div className='react-flow-node-palette__node-hint'>
-                Drag to canvas or click to add
+      <div className='node-palette__content'>
+        {Object.entries(categoryLabels).map(([category, label]) => {
+          const nodes = nodesByCategory[category as 'core' | 'logic' | 'io'] || [];
+          const CategoryIcon = categoryIcons[category as 'core' | 'logic' | 'io'];
+
+          return (
+            <div key={category} className='node-palette__section'>
+              <div className='node-palette__section-header'>
+                <CategoryIcon size={14} color='var(--flow-builder-text-muted)' />
+                <h4 className='node-palette__section-title'>{label}</h4>
+              </div>
+
+              <div className='node-palette__nodes-grid'>
+                {nodes.map(nodeDefinition => (
+                  <div
+                    key={nodeDefinition.type}
+                    className='node-palette__node'
+                    draggable
+                    onDragStart={e => handleDragStart(e, nodeDefinition.type)}
+                    onClick={() => onAddNode(nodeDefinition.type)}
+                  >
+                    <div className='node-palette__node-icon'>
+                      <nodeDefinition.icon size={16} color={nodeDefinition.color} />
+                    </div>
+                    <div className='node-palette__node-info'>
+                      <div className='node-palette__node-label'>{nodeDefinition.label}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className='react-flow-node-palette__templates'>
@@ -227,7 +350,13 @@ function ReactFlowNodePalette({
                 {(() => {
                   const IconComponent = getTemplateIcon(t.category);
                   return (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                    >
                       <IconComponent size={16} style={{ color: '#6b7280', flexShrink: 0 }} />
                       {t.name}
                     </div>
@@ -323,16 +452,52 @@ function FlowBuilderInternal() {
     };
   }, []);
 
+  // Helper function to get node description by type
+  const getNodeDescriptionByType = (type: ReactFlowAINode['type']): string => {
+    const descriptions = {
+      agent: 'Autonomous AI agent with reasoning capabilities',
+      sensor: 'Monitor and collect data from sources',
+      skill: 'Execute specific functions or tools',
+      memory: 'Store and retrieve context or state',
+      decision: 'Route flow based on conditions',
+      loop: 'Iterate over data or repeat actions',
+      transform: 'Process and format data',
+      input: 'Entry point for data or prompts',
+      output: 'Final result or endpoint',
+      api: 'Connect to external APIs and services',
+    };
+    return descriptions[type] || `${type} node`;
+  };
+
   // Add node function
   const addNode = useCallback(
-    (type: ReactFlowAINode['type'], customLabel?: string, customDescription?: string) => {
+    (
+      type: ReactFlowAINode['type'],
+      customLabel?: string,
+      customDescription?: string,
+      defaultConfig?: NodeConfig
+    ) => {
       const nodeDefaults = {
         agent: { width: 140, height: 80, color: '#f0f9ff', label: 'AI Agent' },
         sensor: { width: 120, height: 60, color: '#f0fdf4', label: 'Sensor' },
         skill: { width: 120, height: 60, color: '#fffbeb', label: 'Skill' },
-        decision: { width: 100, height: 80, color: '#fef2f2', label: 'Decision' },
+        decision: {
+          width: 100,
+          height: 80,
+          color: '#fef2f2',
+          label: 'Decision',
+        },
         input: { width: 100, height: 60, color: '#faf5ff', label: 'Input' },
         output: { width: 100, height: 60, color: '#f0fdfa', label: 'Output' },
+        memory: { width: 120, height: 60, color: '#fdf2f8', label: 'Memory' },
+        loop: { width: 100, height: 60, color: '#faf5ff', label: 'Loop' },
+        transform: {
+          width: 130,
+          height: 60,
+          color: '#f0fdfa',
+          label: 'Transform',
+        },
+        api: { width: 100, height: 60, color: '#fff7ed', label: 'API' },
       };
 
       const defaults = nodeDefaults[type];
@@ -342,8 +507,8 @@ function FlowBuilderInternal() {
         position: { x: 0, y: 0 },
         dimensions: { width: defaults.width, height: defaults.height },
         label: customLabel || defaults.label,
-        description: customDescription || '',
-        config: {},
+        description: customDescription || getNodeDescriptionByType(type),
+        config: defaultConfig || {},
         x: 0,
         y: 0,
         width: defaults.width,
@@ -427,9 +592,23 @@ function FlowBuilderInternal() {
         agent: { width: 140, height: 80, color: '#f0f9ff', label: 'AI Agent' },
         sensor: { width: 120, height: 60, color: '#f0fdf4', label: 'Sensor' },
         skill: { width: 120, height: 60, color: '#fffbeb', label: 'Skill' },
-        decision: { width: 100, height: 80, color: '#fef2f2', label: 'Decision' },
+        decision: {
+          width: 100,
+          height: 80,
+          color: '#fef2f2',
+          label: 'Decision',
+        },
         input: { width: 100, height: 60, color: '#faf5ff', label: 'Input' },
         output: { width: 100, height: 60, color: '#f0fdfa', label: 'Output' },
+        memory: { width: 120, height: 60, color: '#fdf2f8', label: 'Memory' },
+        loop: { width: 100, height: 60, color: '#faf5ff', label: 'Loop' },
+        transform: {
+          width: 130,
+          height: 60,
+          color: '#f0fdfa',
+          label: 'Transform',
+        },
+        api: { width: 100, height: 60, color: '#fff7ed', label: 'API' },
       };
 
       const defaults = nodeDefaults[type];
@@ -443,7 +622,7 @@ function FlowBuilderInternal() {
         width: defaults.width,
         height: defaults.height,
         label: defaults.label,
-        description: '',
+        description: getNodeDescriptionByType(type),
         config: {},
         color: defaults.color,
         borderColor: '#e5e7eb',
@@ -554,6 +733,10 @@ function FlowBuilderInternal() {
           decision: { width: 100, height: 80, color: '#fef2f2' },
           input: { width: 100, height: 60, color: '#faf5ff' },
           output: { width: 100, height: 60, color: '#f0fdfa' },
+          memory: { width: 120, height: 60, color: '#fdf2f8' },
+          loop: { width: 100, height: 60, color: '#faf5ff' },
+          transform: { width: 130, height: 60, color: '#f0fdfa' },
+          api: { width: 100, height: 60, color: '#fff7ed' },
         };
 
         const defaults = nodeDefaults[nodeTemplate.type];
@@ -771,7 +954,10 @@ function FlowBuilderInternal() {
             onUpdateConnection={() => {}}
             onDeleteNode={deleteNode}
             allNodes={nodes.map(n => n.data)}
-            allEdges={edges.map(e => ({ source: e.source, target: e.target }))}
+            allEdges={edges.map(e => ({
+              source: e.source,
+              target: e.target,
+            }))}
             onOpenNodeModal={nodeId => setModalNodeId(nodeId)}
             onUnlinkEdge={(sourceId, targetId) => {
               setEdges(eds => eds.filter(e => !(e.source === sourceId && e.target === targetId)));
