@@ -78,7 +78,7 @@
 }
 
 .node-palette__node:hover {
-  border-color: #000000;
+  border-color: var(--flow-builder-text-primary);
   background: var(--flow-builder-button-hover-bg);
 }
 
@@ -160,7 +160,7 @@
 }
 
 .node-palette__template:hover {
-  border-color: #000000;
+  border-color: var(--flow-builder-text-primary);
   background: var(--flow-builder-button-hover-bg);
 }
 
@@ -316,7 +316,7 @@
 }
 
 .react-flow-node-palette__node:hover {
-  border-color: #000000;
+  border-color: var(--flow-builder-text-primary);
   background: var(--flow-builder-button-hover-bg);
 }
 

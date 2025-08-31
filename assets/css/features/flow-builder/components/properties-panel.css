@@ -134,11 +134,11 @@
 }
 
 .properties-panel__input:hover {
-  border-color: #000000;
+  border-color: var(--flow-builder-text-primary);
 }
 
 .properties-panel__input:focus {
-  border-color: #000000;
+  border-color: var(--flow-builder-text-primary);
   outline: none;
   box-shadow: none;
 }
@@ -214,13 +214,13 @@
 }
 
 .properties-panel__range::-webkit-slider-progress {
-  background: #000000;
+  background: var(--flow-builder-text-primary);
   height: 4px;
   border-radius: 2px;
 }
 
 .properties-panel__range::-moz-range-progress {
-  background: #000000;
+  background: var(--flow-builder-text-primary);
   height: 4px;
   border-radius: 2px;
 }
@@ -230,7 +230,7 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #000000;
+  background: var(--flow-builder-text-primary);
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -239,7 +239,7 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #000000;
+  background: var(--flow-builder-text-primary);
   cursor: pointer;
   border: none;
   transition: background-color 0.2s ease;
@@ -323,8 +323,8 @@ input[type="number"].properties-panel__input::-webkit-inner-spin-button {
 }
 
 .properties-panel__number-btn:hover {
-  background: #000000;
-  color: #ffffff;
+  background: var(--flow-builder-text-primary);
+  color: var(--flow-builder-bg);
 }
 
 .properties-panel__number-btn:active {
@@ -955,12 +955,12 @@ input[type="number"].properties-panel__input::-webkit-inner-spin-button {
 }
 
 .custom-select__trigger:hover {
-  border-color: #000000;
+  border-color: var(--flow-builder-text-primary);
 }
 
 .custom-select__trigger:focus,
 .custom-select__trigger--open {
-  border-color: #000000;
+  border-color: var(--flow-builder-text-primary);
   outline: none;
   box-shadow: none;
 }
@@ -1044,14 +1044,14 @@ input[type="number"].properties-panel__input::-webkit-inner-spin-button {
 }
 
 .custom-select__option--selected {
-  background: #000000;
-  color: white;
+  background: var(--flow-builder-text-primary);
+  color: var(--flow-builder-bg);
   font-weight: 500;
 }
 
 .custom-select__option--selected:hover,
 .custom-select__option--selected.custom-select__option--highlighted {
-  background: #333333;
+  background: var(--flow-builder-text-muted);
 }
 
 [data-theme="dark"] .custom-select__option:hover,

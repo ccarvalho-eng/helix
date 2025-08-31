@@ -825,8 +825,8 @@ function FlowBuilderInternal() {
         setIsTemplatesModalOpen(false);
       }
 
-      // Toggle canvas lock with Ctrl+L or Cmd+L
-      if (e.key === 'l' && (e.ctrlKey || e.metaKey)) {
+      // Toggle canvas lock with Ctrl+Shift+L or Cmd+Shift+L
+      if (e.key === 'L' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
         e.preventDefault();
         setIsCanvasLocked(!isCanvasLocked);
       }

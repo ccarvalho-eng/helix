@@ -101,9 +101,9 @@ export function PropertiesPanel({
               <span>Pan canvas</span>
             </div>
             <div className='properties-panel__shortcut'>
-              <kbd className='properties-panel__kbd'>Ctrl+L</kbd>
+              <kbd className='properties-panel__kbd'>Ctrl+Shift+L</kbd>
               <span>or</span>
-              <kbd className='properties-panel__kbd'>⌘+L</kbd>
+              <kbd className='properties-panel__kbd'>⌘+Shift+L</kbd>
               <span>Lock/unlock canvas</span>
             </div>
           </div>
@@ -568,46 +568,60 @@ export function PropertiesPanel({
                         <input
                           type='number'
                           value={value}
-                          onChange={e =>
+                          min={field.min ?? 0}
+                          max={field.max}
+                          step={field.step ?? 1}
+                          onChange={e => {
+                            const numValue = e.target.value === '' ? 0 : parseInt(e.target.value);
+                            const clampedValue = Math.max(
+                              field.min ?? 0,
+                              Math.min(field.max ?? Number.MAX_SAFE_INTEGER, numValue || 0)
+                            );
                             handleNodeUpdate({
                               config: {
                                 ...node.config,
-                                [field.key]: parseInt(e.target.value) || 0,
+                                [field.key]: clampedValue,
                               },
-                            })
-                          }
+                            });
+                          }}
                           className='properties-panel__input'
                         />
                         <div className='properties-panel__number-controls'>
                           <button
                             type='button'
                             className='properties-panel__number-btn'
-                            onClick={() =>
+                            onClick={() => {
+                              const currentValue = parseInt(String(node.config?.[field.key] || '0')) || 0;
+                              const newValue = Math.min(
+                                field.max ?? Number.MAX_SAFE_INTEGER,
+                                currentValue + (field.step ?? 1)
+                              );
                               handleNodeUpdate({
                                 config: {
                                   ...node.config,
-                                  [field.key]:
-                                    (parseInt(String(node.config?.[field.key] || '0')) || 0) + 1,
+                                  [field.key]: newValue,
                                 },
-                              })
-                            }
+                              });
+                            }}
                           >
                             +
                           </button>
                           <button
                             type='button'
                             className='properties-panel__number-btn'
-                            onClick={() =>
+                            onClick={() => {
+                              const currentValue = parseInt(String(node.config?.[field.key] || '0')) || 0;
+                              const newValue = Math.max(
+                                field.min ?? 0,
+                                currentValue - (field.step ?? 1)
+                              );
                               handleNodeUpdate({
                                 config: {
                                   ...node.config,
-                                  [field.key]: Math.max(
-                                    0,
-                                    (parseInt(String(node.config?.[field.key] || '0')) || 0) - 1
-                                  ),
+                                  [field.key]: newValue,
                                 },
-                              })
-                            }
+                              });
+                            }}
                           >
                             −
                           </button>

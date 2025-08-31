@@ -37,15 +37,27 @@
 }
 
 .flow-canvas__controls button:hover {
-  background: #000000 !important;
-  color: #ffffff !important;
+  background: var(--flow-builder-text-primary) !important;
+  color: var(--flow-builder-bg) !important;
   transform: scale(1.05) !important;
+}
+
+.flow-canvas__controls button:hover svg {
+  color: var(--flow-builder-bg) !important;
+  fill: var(--flow-builder-bg) !important;
+  stroke: var(--flow-builder-bg) !important;
 }
 
 [data-theme="dark"] .flow-canvas__controls button:hover {
   background: var(--theme-syntax-green) !important;
   color: var(--theme-bg-primary) !important;
   border-color: var(--theme-syntax-green) !important;
+}
+
+[data-theme="dark"] .flow-canvas__controls button:hover svg {
+  color: var(--theme-bg-primary) !important;
+  fill: var(--theme-bg-primary) !important;
+  stroke: var(--theme-bg-primary) !important;
 }
 
 .flow-canvas__controls button:active {
