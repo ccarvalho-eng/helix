@@ -440,6 +440,7 @@ function FlowBuilderInternal() {
   const [modalNodeId, setModalNodeId] = useState<string | null>(null);
   const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
   const [activeTemplateTab, setActiveTemplateTab] = useState<'technology' | 'gaming'>('technology');
+  const [isCanvasLocked, setIsCanvasLocked] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
@@ -823,11 +824,17 @@ function FlowBuilderInternal() {
         setIsPropertiesOpen(false);
         setIsTemplatesModalOpen(false);
       }
+
+      // Toggle canvas lock with Ctrl+L or Cmd+L
+      if (e.key === 'l' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        setIsCanvasLocked(!isCanvasLocked);
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedNode, deleteNode, duplicateNode]);
+  }, [selectedNode, deleteNode, duplicateNode, isCanvasLocked]);
 
   const hasAnyDrawerOpen = (isPaletteOpen || isPropertiesOpen) && isMobile;
 
@@ -911,7 +918,7 @@ function FlowBuilderInternal() {
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             defaultViewport={initialState?.viewport || { x: 0, y: 0, zoom: 1 }}
-            className='flow-canvas__reactflow'
+            className={`flow-canvas__reactflow ${isCanvasLocked ? 'flow-canvas__reactflow--locked' : ''}`}
             connectionLineStyle={{ stroke: '#9ca3af', strokeWidth: 2 }}
             defaultEdgeOptions={{
               type: 'default',
@@ -921,12 +928,15 @@ function FlowBuilderInternal() {
             fitView
             attributionPosition='bottom-left'
             proOptions={{ hideAttribution: true }}
-            panOnScroll={true}
-            selectionOnDrag={true}
-            panOnDrag={[1, 2]}
-            zoomOnScroll={true}
-            zoomOnPinch={true}
+            panOnScroll={!isCanvasLocked}
+            selectionOnDrag={!isCanvasLocked}
+            panOnDrag={isCanvasLocked ? false : [1, 2]}
+            zoomOnScroll={!isCanvasLocked}
+            zoomOnPinch={!isCanvasLocked}
             zoomOnDoubleClick={false}
+            nodesConnectable={!isCanvasLocked}
+            nodesDraggable={!isCanvasLocked}
+            elementsSelectable={!isCanvasLocked}
           >
             <Controls className='flow-canvas__controls' />
             <MiniMap

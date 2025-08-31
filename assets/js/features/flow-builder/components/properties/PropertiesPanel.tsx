@@ -2,6 +2,7 @@ import React, { useState, Fragment } from 'react';
 import { HelpCircle, Keyboard } from 'lucide-react';
 import { AIFlowNode, AIFlowConnection } from '../../types';
 import { ColorPicker } from './ColorPicker';
+import { CustomSelect } from './CustomSelect';
 
 interface PropertiesPanelProps {
   selectedNode: AIFlowNode | null;
@@ -98,6 +99,12 @@ export function PropertiesPanel({
             <div className='properties-panel__shortcut'>
               <kbd className='properties-panel__kbd'>Scroll</kbd>
               <span>Pan canvas</span>
+            </div>
+            <div className='properties-panel__shortcut'>
+              <kbd className='properties-panel__kbd'>Ctrl+L</kbd>
+              <span>or</span>
+              <kbd className='properties-panel__kbd'>⌘+L</kbd>
+              <span>Lock/unlock canvas</span>
             </div>
           </div>
         </div>
@@ -557,19 +564,51 @@ export function PropertiesPanel({
                     )}
 
                     {field.type === 'number' && (
-                      <input
-                        type='number'
-                        value={value}
-                        onChange={e =>
-                          handleNodeUpdate({
-                            config: {
-                              ...node.config,
-                              [field.key]: parseInt(e.target.value) || 0,
-                            },
-                          })
-                        }
-                        className='properties-panel__input'
-                      />
+                      <div className='properties-panel__number-input'>
+                        <input
+                          type='number'
+                          value={value}
+                          onChange={e =>
+                            handleNodeUpdate({
+                              config: {
+                                ...node.config,
+                                [field.key]: parseInt(e.target.value) || 0,
+                              },
+                            })
+                          }
+                          className='properties-panel__input'
+                        />
+                        <div className='properties-panel__number-controls'>
+                          <button
+                            type='button'
+                            className='properties-panel__number-btn'
+                            onClick={() =>
+                              handleNodeUpdate({
+                                config: {
+                                  ...node.config,
+                                  [field.key]: (parseInt(String(node.config?.[field.key] || '0')) || 0) + 1,
+                                },
+                              })
+                            }
+                          >
+                            +
+                          </button>
+                          <button
+                            type='button'
+                            className='properties-panel__number-btn'
+                            onClick={() =>
+                              handleNodeUpdate({
+                                config: {
+                                  ...node.config,
+                                  [field.key]: Math.max(0, (parseInt(String(node.config?.[field.key] || '0')) || 0) - 1),
+                                },
+                              })
+                            }
+                          >
+                            −
+                          </button>
+                        </div>
+                      </div>
                     )}
 
                     {field.type === 'range' && (
@@ -597,25 +636,19 @@ export function PropertiesPanel({
                     )}
 
                     {field.type === 'select' && (
-                      <select
+                      <CustomSelect
                         value={value}
-                        onChange={e =>
+                        onChange={newValue =>
                           handleNodeUpdate({
                             config: {
                               ...node.config,
-                              [field.key]: e.target.value,
+                              [field.key]: newValue,
                             },
                           })
                         }
-                        className='properties-panel__input properties-panel__select'
-                      >
-                        <option value=''>Select...</option>
-                        {field.options?.map(option => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
+                        options={field.options || []}
+                        placeholder="Select..."
+                      />
                     )}
 
                     {field.type === 'textarea' && (

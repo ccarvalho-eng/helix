@@ -1,22 +1,39 @@
 /* Custom Flow Node */
 .flow-node {
   background: var(--node-bg-color);
-  border: 1px solid var(--node-border-color, var(--flow-builder-border));
-  border-radius: 12px;
-  padding: 12px;
+  border: 1.5px solid var(--node-border-color, var(--flow-builder-border));
+  border-radius: 14px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: 13px;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--flow-builder-text-primary);
-  box-shadow: var(--node-shadow, 0 1px 3px rgba(0, 0, 0, 0.06));
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
   min-width: 80px;
   min-height: 50px;
   box-sizing: border-box;
+  backdrop-filter: blur(8px);
+}
+
+/* Dark theme - Remove background colors and enhance borders */
+[data-theme="dark"] .flow-node {
+  background: transparent;
+  border: 2px solid var(--theme-border-primary);
+  backdrop-filter: blur(12px);
+}
+
+[data-theme="dark"] .flow-node:hover {
+  border-color: var(--theme-syntax-green);
+  background: rgba(152, 195, 121, 0.05);
+}
+
+/* Light theme keeps original backgrounds */
+[data-theme="light"] .flow-node {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .flow-node__icon {
@@ -35,16 +52,26 @@
 
 /* React Flow Handles */
 .flow-node__handle {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   background-color: var(--flow-builder-text-muted);
-  border: 1px solid white;
+  border: 2px solid var(--flow-builder-bg);
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .flow-node__handle {
+  background-color: var(--theme-syntax-green);
+  border: 2px solid var(--theme-bg-primary);
+}
+
+.flow-node__handle:hover {
+  transform: scale(1.2);
 }
 
 .flow-node__handle--left {
-  left: -3px;
+  left: -4px;
 }
 
 .flow-node__handle--right {
-  right: -3px;
+  right: -4px;
 }
