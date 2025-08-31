@@ -180,7 +180,7 @@ function ReactFlowNodePalette({
   onOpenTemplatesModal: () => void;
   onTemplateClick: (_template: Template) => void;
 }) {
-  const { theme } = useThemeContext();
+  const { theme = 'light' } = useThemeContext() ?? { theme: 'light' };
   const nodeDefinitions = [
     // Core nodes
     {
@@ -429,7 +429,7 @@ const loadFromLocalStorage = () => {
 
 // Internal component that uses React Flow hooks
 function FlowBuilderInternal() {
-  const { theme } = useThemeContext();
+  const { theme = 'light' } = useThemeContext() ?? { theme: 'light' };
   const initialState = loadFromLocalStorage();
 
   const [nodes, setNodes, onNodesChange] = useNodesState<ReactFlowAINode>(
@@ -947,14 +947,19 @@ function FlowBuilderInternal() {
               style={{
                 height: 120,
                 width: 200,
-                backgroundColor: theme === 'dark' ? 'var(--theme-bg-secondary)' : '#ffffff',
-                border: `1px solid ${theme === 'dark' ? 'var(--theme-border-primary)' : '#e5e7eb'}`,
+                backgroundColor:
+                  theme === 'dark' ? 'var(--theme-bg-secondary, #21252b)' : '#ffffff',
+                border: `1px solid ${theme === 'dark' ? 'var(--theme-border-primary, #3e4451)' : '#e5e7eb'}`,
                 borderRadius: '8px',
                 boxShadow:
-                  theme === 'dark' ? 'var(--theme-shadow)' : '0 2px 8px rgba(0, 0, 0, 0.1)',
+                  theme === 'dark'
+                    ? 'var(--theme-shadow, 0 4px 12px rgba(0, 0, 0, 0.3))'
+                    : '0 2px 8px rgba(0, 0, 0, 0.1)',
               }}
-              nodeColor={theme === 'dark' ? 'var(--theme-bg-tertiary)' : '#f8f9fa'}
-              nodeStrokeColor={theme === 'dark' ? 'var(--theme-border-primary)' : '#dee2e6'}
+              nodeColor={theme === 'dark' ? 'var(--theme-bg-tertiary, #32363e)' : '#f8f9fa'}
+              nodeStrokeColor={
+                theme === 'dark' ? 'var(--theme-border-primary, #3e4451)' : '#dee2e6'
+              }
               nodeBorderRadius={4}
               maskColor={theme === 'dark' ? 'rgba(40, 44, 52, 0.8)' : 'rgba(255, 255, 255, 0.8)'}
               zoomable
