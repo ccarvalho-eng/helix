@@ -17,15 +17,12 @@ export default [
         clearTimeout: 'readonly',
         NodeJS: 'readonly',
         React: 'readonly',
-        KeyboardEvent: 'readonly',
-        HTMLDivElement: 'readonly',
-        HTMLInputElement: 'readonly',
-        MouseEvent: 'readonly',
-        Node: 'readonly'
+        KeyboardEvent: 'readonly'
       },
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
+        project: './tsconfig.json',
         ecmaFeatures: {
           jsx: true
         }

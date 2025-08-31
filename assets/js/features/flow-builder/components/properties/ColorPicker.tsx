@@ -50,7 +50,11 @@ export function ColorPicker({ value, onChange, label, showAlpha = false }: Color
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        event.target &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -63,9 +67,7 @@ export function ColorPicker({ value, onChange, label, showAlpha = false }: Color
 
   const handleColorSelect = (_color: string) => {
     const finalColor =
-      showAlpha && !_color.includes('#ffffff') && !_color.includes('#000000')
-        ? _color + '20'
-        : _color;
+      showAlpha && _color !== '#ffffff' && _color !== '#000000' ? _color + '20' : _color;
     onChange(finalColor);
     setCustomColor(_color);
     setIsOpen(false);
@@ -86,7 +88,14 @@ export function ColorPicker({ value, onChange, label, showAlpha = false }: Color
     <div className='color-picker' ref={containerRef}>
       <label className='properties-panel__label'>{label}</label>
       <div className='color-picker__wrapper'>
-        <button className='color-picker__trigger' onClick={() => setIsOpen(!isOpen)} type='button'>
+        <button
+          className='color-picker__trigger'
+          onClick={() => setIsOpen(!isOpen)}
+          type='button'
+          aria-expanded={isOpen}
+          aria-haspopup='listbox'
+          aria-label={`Select color. Current color: ${cleanValue.toUpperCase()}`}
+        >
           <div className='color-picker__preview' style={{ backgroundColor: cleanValue }} />
           <span className='color-picker__value'>{cleanValue.toUpperCase()}</span>
           <svg className='color-picker__chevron' width='12' height='12' viewBox='0 0 12 12'>
