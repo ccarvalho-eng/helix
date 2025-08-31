@@ -943,10 +943,16 @@ function FlowBuilderInternal() {
               style={{
                 height: 120,
                 width: 200,
-                backgroundColor: theme === 'dark' ? '#1e1e1e' : '#ffffff',
-                border: `1px solid ${theme === 'dark' ? '#404040' : '#e5e7eb'}`,
+                backgroundColor: theme === 'dark' ? 'var(--theme-bg-secondary)' : '#ffffff',
+                border: `1px solid ${theme === 'dark' ? 'var(--theme-border-primary)' : '#e5e7eb'}`,
                 borderRadius: '8px',
+                boxShadow:
+                  theme === 'dark' ? 'var(--theme-shadow)' : '0 2px 8px rgba(0, 0, 0, 0.1)',
               }}
+              nodeColor={theme === 'dark' ? 'var(--theme-bg-tertiary)' : '#f8f9fa'}
+              nodeStrokeColor={theme === 'dark' ? 'var(--theme-border-primary)' : '#dee2e6'}
+              nodeBorderRadius={4}
+              maskColor={theme === 'dark' ? 'rgba(40, 44, 52, 0.8)' : 'rgba(255, 255, 255, 0.8)'}
               zoomable
               pannable
               position='bottom-right'
