@@ -17,7 +17,11 @@ export default [
         clearTimeout: 'readonly',
         NodeJS: 'readonly',
         React: 'readonly',
-        KeyboardEvent: 'readonly'
+        KeyboardEvent: 'readonly',
+        HTMLDivElement: 'readonly',
+        HTMLInputElement: 'readonly',
+        MouseEvent: 'readonly',
+        Node: 'readonly'
       },
       parserOptions: {
         ecmaVersion: 2020,
