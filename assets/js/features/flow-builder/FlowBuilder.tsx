@@ -180,6 +180,7 @@ function ReactFlowNodePalette({
   onOpenTemplatesModal: () => void;
   onTemplateClick: (_template: Template) => void;
 }) {
+  const { theme } = useThemeContext();
   const nodeDefinitions = [
     // Core nodes
     {
@@ -373,19 +374,22 @@ function ReactFlowNodePalette({
             marginTop: 12,
             padding: '8px 12px',
             fontSize: 14,
-            color: '#6b7280',
+            color: theme === 'dark' ? 'var(--theme-text-secondary)' : '#6b7280',
             textAlign: 'center',
             cursor: 'pointer',
             borderRadius: 6,
             transition: 'all 0.2s ease',
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.backgroundColor = '#f3f4f6';
-            e.currentTarget.style.color = '#374151';
+            e.currentTarget.style.backgroundColor =
+              theme === 'dark' ? 'var(--theme-bg-tertiary)' : '#f3f4f6';
+            e.currentTarget.style.color =
+              theme === 'dark' ? 'var(--theme-syntax-green)' : '#374151';
           }}
           onMouseLeave={e => {
             e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#6b7280';
+            e.currentTarget.style.color =
+              theme === 'dark' ? 'var(--theme-text-secondary)' : '#6b7280';
           }}
           onClick={onOpenTemplatesModal}
         >
