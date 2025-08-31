@@ -1,4 +1,9 @@
 import React, { useState, Fragment } from 'react';
+import {
+  Bot, Eye, Wrench, GitBranch, ArrowLeft, ArrowRight,
+  Brain, RotateCcw, RefreshCw, Zap, HelpCircle, Keyboard,
+  MousePointer, Move, ZoomIn, Square, Map
+} from 'lucide-react';
 import { AIFlowNode, AIFlowConnection } from '../../types';
 
 interface PropertiesPanelProps {
@@ -35,82 +40,47 @@ export function PropertiesPanel({
         </div>
 
         <div className='properties-panel__help'>
-          <h4 className='properties-panel__help-title'>Core Node Types</h4>
+          <h4 className='properties-panel__help-title'>
+            <HelpCircle size={14} />
+            Quick Guide
+          </h4>
           <div className='properties-panel__help-list'>
             <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Agent:</span> AI reasoning with LLMs
+              <span className='properties-panel__help-label'>Add Nodes:</span>
+              <span>Click or drag from palette</span>
             </div>
             <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Sensor:</span> Data monitoring &
-              collection
+              <span className='properties-panel__help-label'>Connect:</span>
+              <span>Drag from node handle to another</span>
             </div>
             <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Skill:</span> Custom functions & tools
+              <span className='properties-panel__help-label'>Select:</span>
+              <span>Click node to view properties</span>
             </div>
             <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Memory:</span> Context & state storage
+              <span className='properties-panel__help-label'>Resize:</span>
+              <span>Drag corners when selected</span>
+            </div>
+            <div className='properties-panel__help-item'>
+              <span className='properties-panel__help-label'>Navigate:</span>
+              <span>Scroll to pan, Cmd+Scroll to zoom</span>
+            </div>
+            <div className='properties-panel__help-item'>
+              <span className='properties-panel__help-label'>Box Select:</span>
+              <span>Drag on empty space to select multiple</span>
+            </div>
+            <div className='properties-panel__help-item'>
+              <span className='properties-panel__help-label'>Minimap:</span>
+              <span>Use overview map (bottom-right) to navigate</span>
             </div>
           </div>
         </div>
 
         <div className='properties-panel__help'>
-          <h4 className='properties-panel__help-title'>Logic & I/O</h4>
-          <div className='properties-panel__help-list'>
-            <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Decision:</span> Conditional routing
-            </div>
-            <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Loop:</span> Iteration control
-            </div>
-            <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Transform:</span> Data processing
-            </div>
-            <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>API:</span> External service calls
-            </div>
-            <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Input/Output:</span> Flow entry/exit
-              points
-            </div>
-          </div>
-        </div>
-
-        <div className='properties-panel__help'>
-          <h4 className='properties-panel__help-title'>Quick Guide</h4>
-          <div className='properties-panel__help-list'>
-            <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Add Nodes:</span> Click or drag from
-              palette
-            </div>
-            <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Connect:</span> Drag from node handle
-              to another
-            </div>
-            <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Select:</span> Click node to view
-              properties
-            </div>
-            <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Resize:</span> Drag corners when
-              selected
-            </div>
-            <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Navigate:</span> Scroll to pan,
-              Cmd+Scroll to zoom
-            </div>
-            <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Box Select:</span> Drag on empty space
-              to select multiple
-            </div>
-            <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Minimap:</span> Use overview map
-              (bottom-right) to navigate
-            </div>
-          </div>
-        </div>
-
-        <div className='properties-panel__help'>
-          <h4 className='properties-panel__help-title'>Keyboard Shortcuts</h4>
+          <h4 className='properties-panel__help-title'>
+            <Keyboard size={14} />
+            Keyboard Shortcuts
+          </h4>
           <div className='properties-panel__shortcuts-list'>
             <div className='properties-panel__shortcut'>
               <kbd className='properties-panel__kbd'>Ctrl+D</kbd>
