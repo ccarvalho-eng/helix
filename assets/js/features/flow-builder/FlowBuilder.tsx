@@ -117,7 +117,7 @@ function FlowNode({
 
   const nodeStyle = {
     '--node-bg-color': data.color,
-    '--node-border-color': '#e5e7eb',
+    '--node-border-color': data.borderColor,
     '--node-shadow': '0 1px 3px rgba(0, 0, 0, 0.06)',
     // Remove fixed dimensions to allow resizing
     width: '100%',

@@ -1,6 +1,7 @@
 import React, { useState, Fragment } from 'react';
 import { HelpCircle, Keyboard } from 'lucide-react';
 import { AIFlowNode, AIFlowConnection } from '../../types';
+import { ColorPicker } from './ColorPicker';
 
 interface PropertiesPanelProps {
   selectedNode: AIFlowNode | null;
@@ -508,25 +509,18 @@ export function PropertiesPanel({
             <div className='properties-panel__section'>
               <div className='properties-panel__section-title'>Appearance</div>
               <div className='properties-panel__section-fields'>
-                <div className='properties-panel__field'>
-                  <label className='properties-panel__label'>Background Color</label>
-                  <input
-                    type='color'
-                    value={node.color.replace('20', '')}
-                    onChange={e => handleNodeUpdate({ color: e.target.value + '20' })}
-                    className='properties-panel__input properties-panel__color-input'
-                  />
-                </div>
+                <ColorPicker
+                  label='Background Color'
+                  value={node.color.length === 9 ? node.color.slice(0, 7) : node.color}
+                  onChange={color => handleNodeUpdate({ color: color })}
+                  showAlpha={true}
+                />
 
-                <div className='properties-panel__field'>
-                  <label className='properties-panel__label'>Border Color</label>
-                  <input
-                    type='color'
-                    value={node.borderColor}
-                    onChange={e => handleNodeUpdate({ borderColor: e.target.value })}
-                    className='properties-panel__input properties-panel__color-input'
-                  />
-                </div>
+                <ColorPicker
+                  label='Border Color'
+                  value={node.borderColor}
+                  onChange={color => handleNodeUpdate({ borderColor: color })}
+                />
               </div>
             </div>
 
@@ -662,15 +656,11 @@ export function PropertiesPanel({
         />
       </div>
 
-      <div className='properties-panel__field'>
-        <label className='properties-panel__label'>Color</label>
-        <input
-          type='color'
-          value={connection.color}
-          onChange={e => handleConnectionUpdate({ color: e.target.value })}
-          className='properties-panel__input properties-panel__color-input'
-        />
-      </div>
+      <ColorPicker
+        label='Color'
+        value={connection.color}
+        onChange={color => handleConnectionUpdate({ color: color })}
+      />
 
       <div className='properties-panel__field'>
         <label className='properties-panel__label'>Width</label>
