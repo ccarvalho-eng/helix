@@ -49,16 +49,42 @@ body:has(.flow-builder) {
   flex-shrink: 0;
 }
 
-.flow-builder__logo {
+.flow-builder__brand {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 24px;
-  font-weight: bold;
-  color: var(--flow-builder-text-primary);
-  letter-spacing: -0.025em;
+  gap: 0.75rem;
+}
+
+.flow-builder__brand a {
   text-decoration: none;
-  cursor: pointer;
+  color: inherit;
+  display: contents;
+}
+
+.flow-builder__logo {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--flow-builder-text-primary);
+}
+
+[data-theme="dark"] .flow-builder__logo {
+  color: var(--theme-syntax-green);
+}
+
+.flow-builder__title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--flow-builder-text-primary);
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.flow-builder__subtitle {
+  font-size: 0.75rem;
+  color: var(--flow-builder-text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .flow-builder__header-controls {

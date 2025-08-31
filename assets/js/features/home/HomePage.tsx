@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, Plus, ArrowRight } from 'lucide-react';
+import { Cpu, Plus, FolderOpen, Clock, Settings, Search, Filter } from 'lucide-react';
 import { ThemeToggle } from '../flow-builder/components/ThemeToggle';
 
 export const HomePage: React.FC = () => {
@@ -9,70 +9,135 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className='home-page'>
-      {/* Theme Toggle */}
-      <div className='home-theme-toggle'>
-        <ThemeToggle />
+      {/* Header with Logo and Navigation */}
+      <div className='home-header'>
+        <div className='home-header__content'>
+          <div className='home-header__brand'>
+            <Cpu className='home-header__logo' />
+            <h1 className='home-header__title'>Helix</h1>
+            <span className='home-header__subtitle'>AI Flow Builder</span>
+          </div>
+          
+          <div className='home-header__actions'>
+            <button onClick={handleCreateWorkflow} className='home-header__create-btn'>
+              <Plus className='home-header__create-icon' />
+              New Flow
+            </button>
+            <ThemeToggle />
+          </div>
+        </div>
       </div>
 
-      <div className='mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8'>
-        {/* Header */}
-        <div className='home-header'>
-          <Cpu className='home-header__icon' />
-          <h1 className='home-header__title'>Helix</h1>
-          <p className='home-header__subtitle'>
-            Design AI agent workflows with visual diagrams. Create, connect, and orchestrate
-            intelligent systems.
-          </p>
-        </div>
-
-        {/* Main Action */}
-        <div className='home-main-action'>
-          <button onClick={handleCreateWorkflow} className='home-create-btn'>
-            Create New Workflow
-            <ArrowRight />
-          </button>
-        </div>
-
-        {/* Saved Workflows Section */}
-        <div className='home-workflows'>
-          <div className='home-workflows__header'>
-            <h2 className='home-workflows__title'>Recent Workflows</h2>
-            <p className='home-workflows__subtitle'>Your saved AI workflows</p>
+      {/* Main Content */}
+      <div className='home-main'>
+        <div className='home-main__content'>
+          {/* Quick Actions */}
+          <div className='home-quick-actions'>
+            <button onClick={handleCreateWorkflow} className='home-quick-action'>
+              <Plus className='home-quick-action__icon' />
+              <div className='home-quick-action__content'>
+                <h3 className='home-quick-action__title'>Create New Flow</h3>
+                <p className='home-quick-action__desc'>Start building a new workflow diagram</p>
+              </div>
+            </button>
+            
+            <div className='home-quick-action'>
+              <FolderOpen className='home-quick-action__icon' />
+              <div className='home-quick-action__content'>
+                <h3 className='home-quick-action__title'>Browse Templates</h3>
+                <p className='home-quick-action__desc'>Choose from pre-built workflow templates</p>
+              </div>
+            </div>
           </div>
 
-          {/* Workflows Grid */}
-          <div className='home-workflows__grid'>
-            {/* Example workflow card */}
-            <div className='home-workflow-card'>
-              <div className='home-workflow-card__header'>
-                <Cpu className='home-workflow-card__icon' />
-                <span className='home-workflow-card__date'>2 days ago</span>
+          {/* Workflow Management Section */}
+          <div className='home-workflows'>
+            <div className='home-workflows__header'>
+              <div className='home-workflows__title-section'>
+                <h2 className='home-workflows__title'>My Workflows</h2>
+                <span className='home-workflows__count'>3 flows</span>
               </div>
-              <h3 className='home-workflow-card__title'>Assassin's Creed</h3>
-              <p className='home-workflow-card__description'>
-                Multi-agent workflow with Ezio, Altaïr, and team coordination
-              </p>
-              <div className='home-workflow-card__stats'>
-                <span>11 nodes</span>
-                <span>4 agents</span>
-                <span>3 skills</span>
+              
+              <div className='home-workflows__controls'>
+                <div className='home-workflows__search'>
+                  <Search className='home-workflows__search-icon' />
+                  <input 
+                    type="text" 
+                    placeholder="Search workflows..." 
+                    className='home-workflows__search-input'
+                  />
+                </div>
+                <button className='home-workflows__filter-btn'>
+                  <Filter className='home-workflows__filter-icon' />
+                  Filter
+                </button>
               </div>
             </div>
 
-            {/* Empty state for new users */}
-            <div className='home-empty-card'>
-              <Plus className='home-empty-card__icon' />
-              <p className='home-empty-card__text'>No workflows yet</p>
-              <button onClick={handleCreateWorkflow} className='home-empty-card__button'>
-                Create your first workflow
-              </button>
+            <div className='home-workflows__grid'>
+              <div className='home-workflow-card' onClick={() => window.location.href = '/flow'}>
+                <div className='home-workflow-card__header'>
+                  <div className='home-workflow-card__info'>
+                    <h3 className='home-workflow-card__title'>Customer Support Pipeline</h3>
+                    <div className='home-workflow-card__meta'>
+                      <Clock className='home-workflow-card__meta-icon' />
+                      <span>Last edited 2 days ago</span>
+                    </div>
+                  </div>
+                  <button className='home-workflow-card__menu'>
+                    <Settings className='home-workflow-card__menu-icon' />
+                  </button>
+                </div>
+                
+                <p className='home-workflow-card__description'>
+                  Automated customer support flow with ticket routing, AI responses, and escalation handling
+                </p>
+                
+                <div className='home-workflow-card__footer'>
+                  <div className='home-workflow-card__stats'>
+                    <span className='home-workflow-card__stat'>12 nodes</span>
+                    <span className='home-workflow-card__stat'>3 integrations</span>
+                    <span className='home-workflow-card__stat'>Active</span>
+                  </div>
+                  <div className='home-workflow-card__status home-workflow-card__status--active'></div>
+                </div>
+              </div>
+
+              <div className='home-workflow-card' onClick={() => window.location.href = '/flow'}>
+                <div className='home-workflow-card__header'>
+                  <div className='home-workflow-card__info'>
+                    <h3 className='home-workflow-card__title'>Data Processing Flow</h3>
+                    <div className='home-workflow-card__meta'>
+                      <Clock className='home-workflow-card__meta-icon' />
+                      <span>Last edited 1 week ago</span>
+                    </div>
+                  </div>
+                  <button className='home-workflow-card__menu'>
+                    <Settings className='home-workflow-card__menu-icon' />
+                  </button>
+                </div>
+                
+                <p className='home-workflow-card__description'>
+                  ETL pipeline for processing customer data with validation, transformation, and storage
+                </p>
+                
+                <div className='home-workflow-card__footer'>
+                  <div className='home-workflow-card__stats'>
+                    <span className='home-workflow-card__stat'>8 nodes</span>
+                    <span className='home-workflow-card__stat'>2 integrations</span>
+                    <span className='home-workflow-card__stat'>Draft</span>
+                  </div>
+                  <div className='home-workflow-card__status home-workflow-card__status--draft'></div>
+                </div>
+              </div>
+
+              <div className='home-empty-card' onClick={handleCreateWorkflow}>
+                <Plus className='home-empty-card__icon' />
+                <h3 className='home-empty-card__title'>Create New Workflow</h3>
+                <p className='home-empty-card__text'>Design a new flow diagram to automate your processes</p>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className='home-footer'>
-          <div className='home-footer__text'>Powered by Phoenix Framework</div>
         </div>
       </div>
     </div>

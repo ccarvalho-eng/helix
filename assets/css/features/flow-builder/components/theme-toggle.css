@@ -43,6 +43,6 @@
 
 [data-theme="dark"] .theme-toggle:hover {
   background: var(--theme-border-primary);
-  border-color: var(--theme-syntax-blue);
-  color: var(--theme-syntax-blue);
+  border-color: var(--theme-syntax-green);
+  color: var(--theme-syntax-green);
 }
