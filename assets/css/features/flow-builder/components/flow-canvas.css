@@ -30,7 +30,7 @@
   background: var(--flow-builder-button-hover-bg) !important;
   border: 1px solid var(--flow-builder-border) !important;
   color: var(--flow-builder-text-primary) !important;
-  margin: 1px !important;
+  margin: 3px !important;
   transition: all 0.2s ease !important;
   font-size: 14px !important;
   font-weight: 600 !important;
