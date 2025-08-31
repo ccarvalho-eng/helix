@@ -452,6 +452,23 @@ function FlowBuilderInternal() {
     };
   }, []);
 
+  // Helper function to get node description by type
+  const getNodeDescriptionByType = (type: ReactFlowAINode['type']): string => {
+    const descriptions = {
+      agent: 'Autonomous AI agent with reasoning capabilities',
+      sensor: 'Monitor and collect data from sources',
+      skill: 'Execute specific functions or tools',
+      memory: 'Store and retrieve context or state',
+      decision: 'Route flow based on conditions',
+      loop: 'Iterate over data or repeat actions',
+      transform: 'Process and format data',
+      input: 'Entry point for data or prompts',
+      output: 'Final result or endpoint',
+      api: 'Connect to external APIs and services',
+    };
+    return descriptions[type] || `${type} node`;
+  };
+
   // Add node function
   const addNode = useCallback(
     (
@@ -490,7 +507,7 @@ function FlowBuilderInternal() {
         position: { x: 0, y: 0 },
         dimensions: { width: defaults.width, height: defaults.height },
         label: customLabel || defaults.label,
-        description: customDescription || '',
+        description: customDescription || getNodeDescriptionByType(type),
         config: defaultConfig || {},
         x: 0,
         y: 0,
@@ -605,7 +622,7 @@ function FlowBuilderInternal() {
         width: defaults.width,
         height: defaults.height,
         label: defaults.label,
-        description: '',
+        description: getNodeDescriptionByType(type),
         config: {},
         color: defaults.color,
         borderColor: '#e5e7eb',
