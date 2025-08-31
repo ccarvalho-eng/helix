@@ -1007,9 +1007,12 @@ function FlowBuilderInternal() {
                   activeTemplateTab === 'technology'
                     ? `2px solid ${theme === 'dark' ? '#98c379' : '#0f172a'}`
                     : '2px solid transparent',
-                color: activeTemplateTab === 'technology' 
-                  ? (theme === 'dark' ? '#98c379' : '#0f172a') 
-                  : '#6b7280',
+                color:
+                  activeTemplateTab === 'technology'
+                    ? theme === 'dark'
+                      ? '#98c379'
+                      : '#0f172a'
+                    : '#6b7280',
                 fontWeight: activeTemplateTab === 'technology' ? '600' : '400',
                 cursor: 'pointer',
                 display: 'flex',
@@ -1028,12 +1031,15 @@ function FlowBuilderInternal() {
                 border: 'none',
                 background: 'transparent',
                 borderBottom:
-                  activeTemplateTab === 'gaming' 
-                    ? `2px solid ${theme === 'dark' ? '#98c379' : '#0f172a'}` 
+                  activeTemplateTab === 'gaming'
+                    ? `2px solid ${theme === 'dark' ? '#98c379' : '#0f172a'}`
                     : '2px solid transparent',
-                color: activeTemplateTab === 'gaming' 
-                  ? (theme === 'dark' ? '#98c379' : '#0f172a') 
-                  : '#6b7280',
+                color:
+                  activeTemplateTab === 'gaming'
+                    ? theme === 'dark'
+                      ? '#98c379'
+                      : '#0f172a'
+                    : '#6b7280',
                 fontWeight: activeTemplateTab === 'gaming' ? '600' : '400',
                 cursor: 'pointer',
                 display: 'flex',

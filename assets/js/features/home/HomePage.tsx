@@ -17,7 +17,7 @@ export const HomePage: React.FC = () => {
             <h1 className='home-header__title'>Helix</h1>
             <span className='home-header__subtitle'>AI Flow Builder</span>
           </div>
-          
+
           <div className='home-header__actions'>
             <button onClick={handleCreateWorkflow} className='home-header__create-btn'>
               <Plus className='home-header__create-icon' />
@@ -40,7 +40,7 @@ export const HomePage: React.FC = () => {
                 <p className='home-quick-action__desc'>Start building a new workflow diagram</p>
               </div>
             </button>
-            
+
             <div className='home-quick-action'>
               <FolderOpen className='home-quick-action__icon' />
               <div className='home-quick-action__content'>
@@ -57,13 +57,13 @@ export const HomePage: React.FC = () => {
                 <h2 className='home-workflows__title'>My Workflows</h2>
                 <span className='home-workflows__count'>3 flows</span>
               </div>
-              
+
               <div className='home-workflows__controls'>
                 <div className='home-workflows__search'>
                   <Search className='home-workflows__search-icon' />
-                  <input 
-                    type="text" 
-                    placeholder="Search workflows..." 
+                  <input
+                    type='text'
+                    placeholder='Search workflows...'
                     className='home-workflows__search-input'
                   />
                 </div>
@@ -75,7 +75,7 @@ export const HomePage: React.FC = () => {
             </div>
 
             <div className='home-workflows__grid'>
-              <div className='home-workflow-card' onClick={() => window.location.href = '/flow'}>
+              <div className='home-workflow-card' onClick={() => (window.location.href = '/flow')}>
                 <div className='home-workflow-card__header'>
                   <div className='home-workflow-card__info'>
                     <h3 className='home-workflow-card__title'>Customer Support Pipeline</h3>
@@ -88,11 +88,12 @@ export const HomePage: React.FC = () => {
                     <Settings className='home-workflow-card__menu-icon' />
                   </button>
                 </div>
-                
+
                 <p className='home-workflow-card__description'>
-                  Automated customer support flow with ticket routing, AI responses, and escalation handling
+                  Automated customer support flow with ticket routing, AI responses, and escalation
+                  handling
                 </p>
-                
+
                 <div className='home-workflow-card__footer'>
                   <div className='home-workflow-card__stats'>
                     <span className='home-workflow-card__stat'>12 nodes</span>
@@ -103,7 +104,7 @@ export const HomePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className='home-workflow-card' onClick={() => window.location.href = '/flow'}>
+              <div className='home-workflow-card' onClick={() => (window.location.href = '/flow')}>
                 <div className='home-workflow-card__header'>
                   <div className='home-workflow-card__info'>
                     <h3 className='home-workflow-card__title'>Data Processing Flow</h3>
@@ -116,11 +117,12 @@ export const HomePage: React.FC = () => {
                     <Settings className='home-workflow-card__menu-icon' />
                   </button>
                 </div>
-                
+
                 <p className='home-workflow-card__description'>
-                  ETL pipeline for processing customer data with validation, transformation, and storage
+                  ETL pipeline for processing customer data with validation, transformation, and
+                  storage
                 </p>
-                
+
                 <div className='home-workflow-card__footer'>
                   <div className='home-workflow-card__stats'>
                     <span className='home-workflow-card__stat'>8 nodes</span>
@@ -134,7 +136,9 @@ export const HomePage: React.FC = () => {
               <div className='home-empty-card' onClick={handleCreateWorkflow}>
                 <Plus className='home-empty-card__icon' />
                 <h3 className='home-empty-card__title'>Create New Workflow</h3>
-                <p className='home-empty-card__text'>Design a new flow diagram to automate your processes</p>
+                <p className='home-empty-card__text'>
+                  Design a new flow diagram to automate your processes
+                </p>
               </div>
             </div>
           </div>
