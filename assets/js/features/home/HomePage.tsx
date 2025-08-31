@@ -84,7 +84,11 @@ export const HomePage: React.FC = () => {
                       <span>Last edited 2 days ago</span>
                     </div>
                   </div>
-                  <button className='home-workflow-card__menu' type='button' aria-label='Open workflow menu'>
+                  <button
+                    className='home-workflow-card__menu'
+                    type='button'
+                    aria-label='Open workflow menu'
+                  >
                     <Settings className='home-workflow-card__menu-icon' />
                   </button>
                 </div>
