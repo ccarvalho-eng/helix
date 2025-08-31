@@ -181,39 +181,96 @@ function ReactFlowNodePalette({
 }) {
   const nodeDefinitions = [
     // Core nodes
-    { type: 'agent' as const, icon: Bot, label: 'Agent', color: '#0ea5e9', category: 'core' as const },
-    { type: 'sensor' as const, icon: Eye, label: 'Sensor', color: '#22c55e', category: 'core' as const },
-    { type: 'skill' as const, icon: Wrench, label: 'Skill', color: '#f59e0b', category: 'core' as const },
-    { type: 'memory' as const, icon: Brain, label: 'Memory', color: '#ec4899', category: 'core' as const },
+    {
+      type: 'agent' as const,
+      icon: Bot,
+      label: 'Agent',
+      color: '#0ea5e9',
+      category: 'core' as const,
+    },
+    {
+      type: 'sensor' as const,
+      icon: Eye,
+      label: 'Sensor',
+      color: '#22c55e',
+      category: 'core' as const,
+    },
+    {
+      type: 'skill' as const,
+      icon: Wrench,
+      label: 'Skill',
+      color: '#f59e0b',
+      category: 'core' as const,
+    },
+    {
+      type: 'memory' as const,
+      icon: Brain,
+      label: 'Memory',
+      color: '#ec4899',
+      category: 'core' as const,
+    },
     // Logic nodes
-    { type: 'decision' as const, icon: GitBranch, label: 'Decision', color: '#ef4444', category: 'logic' as const },
-    { type: 'loop' as const, icon: RotateCcw, label: 'Loop', color: '#8b5cf6', category: 'logic' as const },
-    { type: 'transform' as const, icon: RefreshCw, label: 'Transform', color: '#14b8a6', category: 'logic' as const },
+    {
+      type: 'decision' as const,
+      icon: GitBranch,
+      label: 'Decision',
+      color: '#ef4444',
+      category: 'logic' as const,
+    },
+    {
+      type: 'loop' as const,
+      icon: RotateCcw,
+      label: 'Loop',
+      color: '#8b5cf6',
+      category: 'logic' as const,
+    },
+    {
+      type: 'transform' as const,
+      icon: RefreshCw,
+      label: 'Transform',
+      color: '#14b8a6',
+      category: 'logic' as const,
+    },
     // I/O nodes
-    { type: 'input' as const, icon: ArrowLeft, label: 'Input', color: '#6366f1', category: 'io' as const },
-    { type: 'output' as const, icon: ArrowRight, label: 'Output', color: '#06b6d4', category: 'io' as const },
+    {
+      type: 'input' as const,
+      icon: ArrowLeft,
+      label: 'Input',
+      color: '#6366f1',
+      category: 'io' as const,
+    },
+    {
+      type: 'output' as const,
+      icon: ArrowRight,
+      label: 'Output',
+      color: '#06b6d4',
+      category: 'io' as const,
+    },
     { type: 'api' as const, icon: Zap, label: 'API', color: '#f97316', category: 'io' as const },
   ];
 
   const categoryLabels = {
     core: 'Core Agents',
     logic: 'Logic Control',
-    io: 'Input/Output'
+    io: 'Input/Output',
   };
 
   const categoryIcons = {
     core: Bot,
     logic: GitBranch,
-    io: ArrowLeft
+    io: ArrowLeft,
   };
 
-  const nodesByCategory = nodeDefinitions.reduce((acc, node) => {
-    if (!acc[node.category]) {
-      acc[node.category] = [];
-    }
-    acc[node.category].push(node);
-    return acc;
-  }, {} as Record<'core' | 'logic' | 'io', typeof nodeDefinitions>);
+  const nodesByCategory = nodeDefinitions.reduce(
+    (acc, node) => {
+      if (!acc[node.category]) {
+        acc[node.category] = [];
+      }
+      acc[node.category].push(node);
+      return acc;
+    },
+    {} as Record<'core' | 'logic' | 'io', typeof nodeDefinitions>
+  );
 
   const handleDragStart = (e: React.DragEvent, nodeType: ReactFlowAINode['type']) => {
     e.dataTransfer.setData('application/reactflow', nodeType);
@@ -839,7 +896,7 @@ function FlowBuilderInternal() {
             selectedNode={selectedNode}
             selectedConnection={null}
             onUpdateNode={updateNode}
-            onUpdateConnection={() => { }}
+            onUpdateConnection={() => {}}
             onDeleteNode={deleteNode}
             allNodes={nodes.map(n => n.data)}
             allEdges={edges.map(e => ({ source: e.source, target: e.target }))}

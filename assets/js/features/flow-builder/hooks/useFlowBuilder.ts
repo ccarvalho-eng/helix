@@ -20,6 +20,10 @@ const nodeDefaults = {
   decision: { width: 100, height: 80, color: '#fef2f2', label: 'Decision' },
   input: { width: 100, height: 60, color: '#faf5ff', label: 'Input' },
   output: { width: 100, height: 60, color: '#f0fdfa', label: 'Output' },
+  memory: { width: 120, height: 60, color: '#fdf2f8', label: 'Memory' },
+  loop: { width: 100, height: 60, color: '#faf5ff', label: 'Loop' },
+  transform: { width: 130, height: 60, color: '#f0fdfa', label: 'Transform' },
+  api: { width: 100, height: 60, color: '#fff7ed', label: 'API' },
 };
 
 const saveToLocalStorage = (data: {

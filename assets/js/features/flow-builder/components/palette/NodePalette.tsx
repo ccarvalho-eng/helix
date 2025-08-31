@@ -1,7 +1,16 @@
 import React from 'react';
 import {
-  Bot, Eye, Wrench, GitBranch, ArrowLeft, ArrowRight,
-  Brain, RotateCcw, RefreshCw, Zap, Sparkles
+  Bot,
+  Eye,
+  Wrench,
+  GitBranch,
+  ArrowLeft,
+  ArrowRight,
+  Brain,
+  RotateCcw,
+  RefreshCw,
+  Zap,
+  Sparkles,
 } from 'lucide-react';
 import { AIFlowNode } from '../../types';
 
@@ -44,8 +53,8 @@ const nodeDefinitions: NodeDefinition[] = [
       skills: [],
       memory_enabled: true,
       reasoning_mode: 'chain_of_thought',
-      max_retries: 3
-    }
+      max_retries: 3,
+    },
   },
   {
     type: 'sensor' as const,
@@ -61,8 +70,8 @@ const nodeDefinitions: NodeDefinition[] = [
       filters: [],
       output_format: 'json',
       trigger_conditions: [],
-      max_queue_size: 1000
-    }
+      max_queue_size: 1000,
+    },
   },
   {
     type: 'skill' as const,
@@ -78,8 +87,8 @@ const nodeDefinitions: NodeDefinition[] = [
       output_schema: {},
       timeout: 30000,
       retry_count: 3,
-      error_handling: 'throw'
-    }
+      error_handling: 'throw',
+    },
   },
   {
     type: 'memory' as const,
@@ -96,8 +105,8 @@ const nodeDefinitions: NodeDefinition[] = [
       similarity_threshold: 0.8,
       persistence: true,
       search_enabled: true,
-      index_fields: ['content', 'metadata']
-    }
+      index_fields: ['content', 'metadata'],
+    },
   },
   // Logic Control Nodes
   {
@@ -113,10 +122,10 @@ const nodeDefinitions: NodeDefinition[] = [
       branches: [
         { name: 'success', condition: 'result === true' },
         { name: 'failure', condition: 'result === false' },
-        { name: 'default', condition: 'else' }
+        { name: 'default', condition: 'else' },
       ],
-      default_branch: 'default'
-    }
+      default_branch: 'default',
+    },
   },
   {
     type: 'loop' as const,
@@ -132,8 +141,8 @@ const nodeDefinitions: NodeDefinition[] = [
       break_condition: '',
       parallel_execution: false,
       batch_size: 10,
-      error_handling: 'continue'
-    }
+      error_handling: 'continue',
+    },
   },
   {
     type: 'transform' as const,
@@ -148,8 +157,8 @@ const nodeDefinitions: NodeDefinition[] = [
       input_format: 'json',
       output_format: 'json',
       validation_schema: {},
-      error_on_invalid: false
-    }
+      error_on_invalid: false,
+    },
   },
   // I/O Nodes
   {
@@ -162,12 +171,12 @@ const nodeDefinitions: NodeDefinition[] = [
     properties: {
       input_type: 'form',
       fields: [
-        { name: 'message', type: 'text', required: true, placeholder: 'Enter your message...' }
+        { name: 'message', type: 'text', required: true, placeholder: 'Enter your message...' },
       ],
       validation_rules: {},
       default_values: {},
-      ui_config: { layout: 'vertical', submit_button: 'Process' }
-    }
+      ui_config: { layout: 'vertical', submit_button: 'Process' },
+    },
   },
   {
     type: 'output' as const,
@@ -183,8 +192,8 @@ const nodeDefinitions: NodeDefinition[] = [
       file_path: './output.json',
       webhook_url: '',
       compression: false,
-      encryption: false
-    }
+      encryption: false,
+    },
   },
   {
     type: 'api' as const,
@@ -203,21 +212,24 @@ const nodeDefinitions: NodeDefinition[] = [
       timeout: 10000,
       auth_type: 'none',
       api_key: '',
-      retry_attempts: 3
-    }
-  }
+      retry_attempts: 3,
+    },
+  },
 ];
 
 const categoryLabels: Record<NodeCategory, string> = {
   core: 'Core Agents',
   logic: 'Logic Control',
-  io: 'Input/Output'
+  io: 'Input/Output',
 };
 
-const categoryIcons: Record<NodeCategory, React.ComponentType<{ size?: number; color?: string }>> = {
+const categoryIcons: Record<
+  NodeCategory,
+  React.ComponentType<{ size?: number; color?: string }>
+> = {
   core: Bot,
   logic: GitBranch,
-  io: ArrowLeft
+  io: ArrowLeft,
 };
 
 export function NodePalette({ onAddNode, onAddTemplate }: NodePaletteProps) {
@@ -231,13 +243,16 @@ export function NodePalette({ onAddNode, onAddTemplate }: NodePaletteProps) {
     onAddNode(nodeDefinition.type, nodeDefinition.label, nodeDefinition.description);
   };
 
-  const nodesByCategory = nodeDefinitions.reduce((acc, node) => {
-    if (!acc[node.category]) {
-      acc[node.category] = [];
-    }
-    acc[node.category].push(node);
-    return acc;
-  }, {} as Record<NodeCategory, NodeDefinition[]>);
+  const nodesByCategory = nodeDefinitions.reduce(
+    (acc, node) => {
+      if (!acc[node.category]) {
+        acc[node.category] = [];
+      }
+      acc[node.category].push(node);
+      return acc;
+    },
+    {} as Record<NodeCategory, NodeDefinition[]>
+  );
 
   return (
     <div className='node-palette'>

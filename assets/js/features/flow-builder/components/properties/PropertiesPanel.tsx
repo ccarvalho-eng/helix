@@ -35,21 +35,38 @@ export function PropertiesPanel({
         </div>
 
         <div className='properties-panel__help'>
-          <h4 className='properties-panel__help-title'>Node Types</h4>
+          <h4 className='properties-panel__help-title'>Core Node Types</h4>
           <div className='properties-panel__help-list'>
             <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Agent:</span> Core AI reasoning unit
+              <span className='properties-panel__help-label'>Agent:</span> AI reasoning with LLMs
             </div>
             <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Sensor:</span> Real-time data
+              <span className='properties-panel__help-label'>Sensor:</span> Data monitoring &
               collection
             </div>
             <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Skill:</span> Specialized capabilities
+              <span className='properties-panel__help-label'>Skill:</span> Custom functions & tools
             </div>
             <div className='properties-panel__help-item'>
-              <span className='properties-panel__help-label'>Decision:</span> Conditional logic
-              routing
+              <span className='properties-panel__help-label'>Memory:</span> Context & state storage
+            </div>
+          </div>
+        </div>
+
+        <div className='properties-panel__help'>
+          <h4 className='properties-panel__help-title'>Logic & I/O</h4>
+          <div className='properties-panel__help-list'>
+            <div className='properties-panel__help-item'>
+              <span className='properties-panel__help-label'>Decision:</span> Conditional routing
+            </div>
+            <div className='properties-panel__help-item'>
+              <span className='properties-panel__help-label'>Loop:</span> Iteration control
+            </div>
+            <div className='properties-panel__help-item'>
+              <span className='properties-panel__help-label'>Transform:</span> Data processing
+            </div>
+            <div className='properties-panel__help-item'>
+              <span className='properties-panel__help-label'>API:</span> External service calls
             </div>
             <div className='properties-panel__help-item'>
               <span className='properties-panel__help-label'>Input/Output:</span> Flow entry/exit
@@ -239,7 +256,13 @@ export function PropertiesPanel({
                 key: 'model',
                 label: 'AI Model',
                 type: 'select',
-                options: ['gpt-4', 'claude-3', 'llama-2'],
+                options: ['gpt-4o', 'gpt-4', 'claude-3.5-sonnet', 'claude-3-opus', 'llama-3.1'],
+              },
+              {
+                key: 'provider',
+                label: 'Provider',
+                type: 'select',
+                options: ['openai', 'anthropic', 'ollama', 'custom'],
               },
               {
                 key: 'temperature',
@@ -255,6 +278,13 @@ export function PropertiesPanel({
                 label: 'System Prompt',
                 type: 'textarea',
               },
+              {
+                key: 'reasoning_mode',
+                label: 'Reasoning Mode',
+                type: 'select',
+                options: ['chain_of_thought', 'tree_of_thoughts', 'react', 'simple'],
+              },
+              { key: 'max_retries', label: 'Max Retries', type: 'number' },
             ],
           };
         case 'sensor':
@@ -265,35 +295,82 @@ export function PropertiesPanel({
                 key: 'source_type',
                 label: 'Source Type',
                 type: 'select',
-                options: ['webhook', 'polling', 'pubsub', 'file'],
+                options: ['webhook', 'polling', 'pubsub', 'file', 'database'],
               },
               { key: 'endpoint', label: 'Endpoint/Path', type: 'text' },
               {
-                key: 'interval',
-                label: 'Polling Interval (seconds)',
+                key: 'polling_interval',
+                label: 'Polling Interval (ms)',
                 type: 'number',
               },
+              {
+                key: 'output_format',
+                label: 'Output Format',
+                type: 'select',
+                options: ['json', 'xml', 'text', 'csv'],
+              },
               { key: 'filters', label: 'Data Filters', type: 'textarea' },
+              { key: 'max_queue_size', label: 'Max Queue Size', type: 'number' },
             ],
           };
         case 'skill':
           return {
             title: 'Skill Configuration',
             fields: [
+              { key: 'skill_name', label: 'Skill Name', type: 'text' },
               {
-                key: 'skill_type',
-                label: 'Skill Type',
-                type: 'select',
-                options: ['api_call', 'data_transform', 'file_operation', 'custom'],
+                key: 'function_code',
+                label: 'Function Code',
+                type: 'textarea',
               },
-              { key: 'endpoint', label: 'API Endpoint', type: 'text' },
+              { key: 'input_schema', label: 'Input Schema (JSON)', type: 'textarea' },
+              { key: 'output_schema', label: 'Output Schema (JSON)', type: 'textarea' },
+              { key: 'timeout', label: 'Timeout (ms)', type: 'number' },
+              { key: 'retry_count', label: 'Retry Count', type: 'number' },
               {
-                key: 'method',
-                label: 'HTTP Method',
+                key: 'error_handling',
+                label: 'Error Handling',
                 type: 'select',
-                options: ['GET', 'POST', 'PUT', 'DELETE'],
+                options: ['throw', 'return_null', 'continue', 'retry'],
               },
-              { key: 'parameters', label: 'Parameters', type: 'textarea' },
+            ],
+          };
+        case 'memory':
+          return {
+            title: 'Memory Configuration',
+            fields: [
+              {
+                key: 'memory_type',
+                label: 'Memory Type',
+                type: 'select',
+                options: ['vector_store', 'key_value', 'conversation', 'session'],
+              },
+              {
+                key: 'storage_backend',
+                label: 'Storage Backend',
+                type: 'select',
+                options: ['local', 'redis', 'postgres', 'pinecone', 'chroma'],
+              },
+              { key: 'max_entries', label: 'Max Entries', type: 'number' },
+              {
+                key: 'embedding_model',
+                label: 'Embedding Model',
+                type: 'select',
+                options: [
+                  'text-embedding-3-small',
+                  'text-embedding-3-large',
+                  'sentence-transformers',
+                ],
+              },
+              {
+                key: 'similarity_threshold',
+                label: 'Similarity Threshold',
+                type: 'range',
+                min: 0,
+                max: 1,
+                step: 0.1,
+              },
+              { key: 'index_fields', label: 'Index Fields (JSON)', type: 'textarea' },
             ],
           };
         case 'decision':
@@ -306,9 +383,114 @@ export function PropertiesPanel({
                 type: 'select',
                 options: ['javascript', 'jq', 'simple'],
               },
-              { key: 'condition', label: 'Condition', type: 'textarea' },
-              { key: 'true_path', label: 'True Path', type: 'text' },
-              { key: 'false_path', label: 'False Path', type: 'text' },
+              { key: 'condition_expression', label: 'Condition Expression', type: 'textarea' },
+              { key: 'branches', label: 'Branches (JSON)', type: 'textarea' },
+              { key: 'default_branch', label: 'Default Branch', type: 'text' },
+            ],
+          };
+        case 'loop':
+          return {
+            title: 'Loop Configuration',
+            fields: [
+              {
+                key: 'loop_type',
+                label: 'Loop Type',
+                type: 'select',
+                options: ['for_each', 'while', 'until', 'times'],
+              },
+              { key: 'iterate_over', label: 'Iterate Over', type: 'text' },
+              { key: 'max_iterations', label: 'Max Iterations', type: 'number' },
+              { key: 'break_condition', label: 'Break Condition', type: 'text' },
+              { key: 'batch_size', label: 'Batch Size', type: 'number' },
+              {
+                key: 'error_handling',
+                label: 'Error Handling',
+                type: 'select',
+                options: ['continue', 'break', 'throw'],
+              },
+            ],
+          };
+        case 'transform':
+          return {
+            title: 'Transform Configuration',
+            fields: [
+              {
+                key: 'transform_type',
+                label: 'Transform Type',
+                type: 'select',
+                options: ['jq', 'javascript', 'jsonpath', 'template'],
+              },
+              { key: 'transformation', label: 'Transformation', type: 'textarea' },
+              {
+                key: 'input_format',
+                label: 'Input Format',
+                type: 'select',
+                options: ['json', 'xml', 'csv', 'text'],
+              },
+              {
+                key: 'output_format',
+                label: 'Output Format',
+                type: 'select',
+                options: ['json', 'xml', 'csv', 'text'],
+              },
+              { key: 'validation_schema', label: 'Validation Schema (JSON)', type: 'textarea' },
+            ],
+          };
+        case 'input':
+          return {
+            title: 'Input Configuration',
+            fields: [
+              {
+                key: 'input_type',
+                label: 'Input Type',
+                type: 'select',
+                options: ['form', 'text', 'file', 'json'],
+              },
+              { key: 'fields', label: 'Form Fields (JSON)', type: 'textarea' },
+              { key: 'validation_rules', label: 'Validation Rules (JSON)', type: 'textarea' },
+              { key: 'default_values', label: 'Default Values (JSON)', type: 'textarea' },
+            ],
+          };
+        case 'output':
+          return {
+            title: 'Output Configuration',
+            fields: [
+              {
+                key: 'output_type',
+                label: 'Output Type',
+                type: 'select',
+                options: ['structured', 'text', 'file', 'stream'],
+              },
+              { key: 'format_template', label: 'Format Template', type: 'textarea' },
+              { key: 'destinations', label: 'Destinations (JSON)', type: 'textarea' },
+              { key: 'file_path', label: 'File Path', type: 'text' },
+              { key: 'webhook_url', label: 'Webhook URL', type: 'text' },
+            ],
+          };
+        case 'api':
+          return {
+            title: 'API Configuration',
+            fields: [
+              {
+                key: 'method',
+                label: 'HTTP Method',
+                type: 'select',
+                options: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+              },
+              { key: 'base_url', label: 'Base URL', type: 'text' },
+              { key: 'path', label: 'Path', type: 'text' },
+              { key: 'params', label: 'Query Parameters (JSON)', type: 'textarea' },
+              { key: 'headers', label: 'Headers (JSON)', type: 'textarea' },
+              { key: 'body', label: 'Request Body', type: 'textarea' },
+              {
+                key: 'auth_type',
+                label: 'Auth Type',
+                type: 'select',
+                options: ['none', 'bearer', 'api_key', 'basic'],
+              },
+              { key: 'api_key', label: 'API Key', type: 'text' },
+              { key: 'timeout', label: 'Timeout (ms)', type: 'number' },
+              { key: 'retry_attempts', label: 'Retry Attempts', type: 'number' },
             ],
           };
         default:
@@ -330,58 +512,72 @@ export function PropertiesPanel({
 
     return (
       <div className='properties-panel__fields'>
-        <div className='properties-panel__field'>
-          <label className='properties-panel__label'>Label</label>
-          <input
-            type='text'
-            value={node.label}
-            onChange={e => handleNodeUpdate({ label: e.target.value })}
-            className='properties-panel__input'
-          />
-        </div>
+        {activeTab === 'properties' && (
+          <>
+            <div className='properties-panel__section'>
+              <div className='properties-panel__section-title'>Basic Properties</div>
+              <div className='properties-panel__section-fields'>
+                <div className='properties-panel__field'>
+                  <label className='properties-panel__label'>Label</label>
+                  <input
+                    type='text'
+                    value={node.label}
+                    onChange={e => handleNodeUpdate({ label: e.target.value })}
+                    className='properties-panel__input'
+                  />
+                </div>
 
-        <div className='properties-panel__field'>
-          <label className='properties-panel__label'>Description</label>
-          <textarea
-            value={node.description}
-            onChange={e => handleNodeUpdate({ description: e.target.value })}
-            className='properties-panel__input properties-panel__textarea'
-            placeholder='Optional description...'
-          />
-        </div>
+                <div className='properties-panel__field'>
+                  <label className='properties-panel__label'>Description</label>
+                  <textarea
+                    value={node.description}
+                    onChange={e => handleNodeUpdate({ description: e.target.value })}
+                    className='properties-panel__input properties-panel__textarea'
+                    placeholder='Optional description...'
+                  />
+                </div>
+              </div>
+            </div>
 
-        <div className='properties-panel__field'>
-          <label className='properties-panel__label'>Background Color</label>
-          <input
-            type='color'
-            value={node.color.replace('20', '')}
-            onChange={e => handleNodeUpdate({ color: e.target.value + '20' })}
-            className='properties-panel__input properties-panel__color-input'
-          />
-        </div>
+            <div className='properties-panel__section'>
+              <div className='properties-panel__section-title'>Appearance</div>
+              <div className='properties-panel__section-fields'>
+                <div className='properties-panel__field'>
+                  <label className='properties-panel__label'>Background Color</label>
+                  <input
+                    type='color'
+                    value={node.color.replace('20', '')}
+                    onChange={e => handleNodeUpdate({ color: e.target.value + '20' })}
+                    className='properties-panel__input properties-panel__color-input'
+                  />
+                </div>
 
-        <div className='properties-panel__field'>
-          <label className='properties-panel__label'>Border Color</label>
-          <input
-            type='color'
-            value={node.borderColor}
-            onChange={e => handleNodeUpdate({ borderColor: e.target.value })}
-            className='properties-panel__input properties-panel__color-input'
-          />
-        </div>
+                <div className='properties-panel__field'>
+                  <label className='properties-panel__label'>Border Color</label>
+                  <input
+                    type='color'
+                    value={node.borderColor}
+                    onChange={e => handleNodeUpdate({ borderColor: e.target.value })}
+                    className='properties-panel__input properties-panel__color-input'
+                  />
+                </div>
+              </div>
+            </div>
 
-        {renderLinkedSkillsForAgent(node)}
+            {renderLinkedSkillsForAgent(node)}
+          </>
+        )}
 
         {activeTab === 'config' && (
           <div className='properties-panel__config-section'>
-            <h4 className='properties-panel__config-title'>{config.title}</h4>
-            <div className='properties-panel__fields'>
+            <div className='properties-panel__config-title'>{config.title}</div>
+            <div className='properties-panel__section-fields'>
               {config.fields.map(field => {
                 const rawValue = node.config?.[field.key];
                 const value = rawValue !== undefined ? String(rawValue) : '';
 
                 return (
-                  <div key={field.key}>
+                  <div key={field.key} className='properties-panel__field'>
                     <label className='properties-panel__label'>{field.label}</label>
 
                     {field.type === 'text' && (

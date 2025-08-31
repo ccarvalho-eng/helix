@@ -1,6 +1,17 @@
 import React from 'react';
 import { Handle, Position } from 'reactflow';
-import { Bot, Eye, Wrench, GitBranch, ArrowLeft, ArrowRight } from 'lucide-react';
+import {
+  Bot,
+  Eye,
+  Wrench,
+  GitBranch,
+  ArrowLeft,
+  ArrowRight,
+  Brain,
+  RotateCcw,
+  RefreshCw,
+  Zap,
+} from 'lucide-react';
 import { AIFlowNode } from '../../types';
 
 interface FlowNodeProps {
@@ -15,6 +26,10 @@ const NodeIcon = {
   decision: GitBranch,
   input: ArrowLeft,
   output: ArrowRight,
+  memory: Brain,
+  loop: RotateCcw,
+  transform: RefreshCw,
+  api: Zap,
 };
 
 const nodeColors = {
@@ -22,8 +37,12 @@ const nodeColors = {
   sensor: '#22c55e',
   skill: '#f59e0b',
   decision: '#ef4444',
-  input: '#8b5cf6',
+  input: '#6366f1',
   output: '#06b6d4',
+  memory: '#ec4899',
+  loop: '#8b5cf6',
+  transform: '#14b8a6',
+  api: '#f97316',
 };
 
 const nodeDimensions = {
@@ -33,6 +52,10 @@ const nodeDimensions = {
   decision: { width: '100px', height: '80px' },
   input: { width: '100px', height: '60px' },
   output: { width: '100px', height: '60px' },
+  memory: { width: '120px', height: '60px' },
+  loop: { width: '100px', height: '60px' },
+  transform: { width: '130px', height: '60px' },
+  api: { width: '100px', height: '60px' },
 };
 
 export function FlowNode({ data, selected }: FlowNodeProps) {

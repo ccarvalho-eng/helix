@@ -2,7 +2,17 @@
 
 export type Theme = 'light' | 'dark';
 
-export type NodeType = 'agent' | 'sensor' | 'skill' | 'decision' | 'input' | 'output';
+export type NodeType =
+  | 'agent'
+  | 'sensor'
+  | 'skill'
+  | 'decision'
+  | 'input'
+  | 'output'
+  | 'memory'
+  | 'loop'
+  | 'transform'
+  | 'api';
 
 export interface Position {
   x: number;
