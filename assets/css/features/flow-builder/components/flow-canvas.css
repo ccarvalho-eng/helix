@@ -17,22 +17,22 @@
   left: 24px;
   background: var(--flow-builder-bg);
   border: 1.5px solid var(--flow-builder-border);
-  border-radius: 12px;
-  padding: 6px;
+  border-radius: 10px;
+  padding: 4px;
   backdrop-filter: blur(8px);
 }
 
 /* Style individual control buttons */
 .flow-canvas__controls button {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 8px !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 6px !important;
   background: var(--flow-builder-button-hover-bg) !important;
   border: 1px solid var(--flow-builder-border) !important;
   color: var(--flow-builder-text-primary) !important;
-  margin: 3px !important;
+  margin: 2px !important;
   transition: all 0.2s ease !important;
-  font-size: 14px !important;
+  font-size: 12px !important;
   font-weight: 600 !important;
 }
 
