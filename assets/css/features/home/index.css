@@ -4,284 +4,636 @@
 
 /* Home page specific variables */
 :root {
-  /* Light theme home colors */
-  --home-bg: #ffffff;
-  --home-text-primary: #111827;
-  --home-text-secondary: #6b7280;
-  --home-text-muted: #9ca3af;
-  --home-border: #e5e7eb;
-  --home-card-bg: #f9fafb;
-  --home-card-hover: #f3f4f6;
-  --home-button-bg: #111827;
-  --home-button-text: #ffffff;
-  --home-button-hover: #1f2937;
-  --home-border-dashed: #d1d5db;
-  --home-border-dashed-hover: #9ca3af;
+	/* Light theme home colors - Neutral elegant palette */
+	--home-bg: #fdfdfd;
+	--home-bg-subtle: #f8fafc;
+	--home-bg-muted: #f1f5f9;
+	--home-text-primary: #0f172a;
+	--home-text-secondary: #475569;
+	--home-text-muted: #64748b;
+	--home-text-light: #94a3b8;
+	--home-border: #e2e8f0;
+	--home-border-light: #f1f5f9;
+	--home-card-bg: #ffffff;
+	--home-card-hover: #f8fafc;
+	--home-button-bg: #0f172a;
+	--home-button-text: #ffffff;
+	--home-button-hover: #1e293b;
+	--home-button-secondary: #f8fafc;
+	--home-button-secondary-hover: #f1f5f9;
+	--home-border-dashed: #cbd5e1;
+	--home-border-dashed-hover: #94a3b8;
+	--home-accent: #64748b;
+	--home-accent-hover: #475569;
+	--home-accent-light: #f1f5f9;
+	--home-success: #10b981;
+	--home-warning: #f59e0b;
+	--home-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+	--home-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px
+		rgba(0, 0, 0, 0.06);
+	--home-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px
+		rgba(0, 0, 0, 0.05);
+	--home-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px
+		rgba(0, 0, 0, 0.04);
 }
 
 /* Dark theme home colors - Using Atom One Dark global theme */
 [data-theme="dark"] {
-  --home-bg: var(--theme-bg-primary);
-  --home-text-primary: var(--theme-text-primary);
-  --home-text-secondary: var(--theme-text-secondary);
-  --home-text-muted: var(--theme-text-muted);
-  --home-border: var(--theme-border-primary);
-  --home-card-bg: var(--theme-bg-tertiary);
-  --home-card-hover: var(--theme-border-primary);
-  --home-button-bg: var(--theme-button-bg);
-  --home-button-text: var(--theme-button-text);
-  --home-button-hover: var(--theme-button-hover);
-  --home-border-dashed: var(--theme-border-secondary);
-  --home-border-dashed-hover: var(--theme-border-primary);
+	--home-bg: var(--theme-bg-primary);
+	--home-bg-subtle: var(--theme-bg-secondary);
+	--home-bg-muted: var(--theme-bg-tertiary);
+	--home-text-primary: var(--theme-text-primary);
+	--home-text-secondary: var(--theme-text-secondary);
+	--home-text-muted: var(--theme-text-muted);
+	--home-text-light: #6b7280;
+	--home-border: var(--theme-border-primary);
+	--home-border-light: var(--theme-border-secondary);
+	--home-card-bg: var(--theme-bg-tertiary);
+	--home-card-hover: var(--theme-border-primary);
+	--home-button-bg: var(--theme-button-bg);
+	--home-button-text: var(--theme-button-text);
+	--home-button-hover: var(--theme-button-hover);
+	--home-button-secondary: var(--theme-bg-secondary);
+	--home-button-secondary-hover: var(--theme-bg-tertiary);
+	--home-border-dashed: var(--theme-border-secondary);
+	--home-border-dashed-hover: var(--theme-border-primary);
+	--home-accent: var(--theme-syntax-green);
+	--home-accent-hover: #7fb069;
+	--home-accent-light: rgba(152, 195, 121, 0.1);
+	--home-success: var(--theme-syntax-green);
+	--home-warning: var(--theme-syntax-orange);
+	--home-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+	--home-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px
+		rgba(0, 0, 0, 0.2);
+	--home-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px
+		rgba(0, 0, 0, 0.2);
+	--home-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px
+		rgba(0, 0, 0, 0.3);
 }
 
 /* Home page layout */
 .home-page {
-  min-height: 100vh;
-  width: 100%;
-  background: var(--home-bg);
-  color: var(--home-text-primary);
-  overflow-x: hidden;
+	min-height: 100vh;
+	width: 100%;
+	background: var(--home-bg);
+	color: var(--home-text-primary);
+	overflow-x: hidden;
 }
 
 .home-header {
-  text-align: center;
-  margin-bottom: 4rem;
+	/* Use a single background to avoid override issues */
+	--home-header-bg: rgba(255, 255, 255, 0.95);
+	background: var(--home-header-bg);
+	border-bottom: 1px solid var(--home-border);
+	padding: 1rem 0;
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	backdrop-filter: blur(8px);
+}
+[data-theme="dark"] .home-header {
+	--home-header-bg: rgba(40, 44, 52, 0.95);
 }
 
-.home-header__icon {
-  width: 3rem;
-  height: 3rem;
-  color: var(--home-text-primary);
-  margin: 0 auto 1.5rem;
+.home-header__content {
+	max-width: 80rem;
+	margin: 0 auto;
+	padding: 0 1.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.home-header__brand {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.home-header__logo {
+	width: 1.75rem;
+	height: 1.75rem;
+	color: var(--home-text-primary);
+}
+
+[data-theme="dark"] .home-header__logo {
+	color: var(--home-accent);
 }
 
 .home-header__title {
-  font-size: 3rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  color: var(--home-text-primary);
-  margin-bottom: 1rem;
-}
-
-@media (min-width: 640px) {
-  .home-header__title {
-    font-size: 3.75rem;
-  }
+	font-size: 1.375rem;
+	font-weight: 700;
+	color: var(--home-text-primary);
+	margin: 0;
+	letter-spacing: -0.025em;
 }
 
 .home-header__subtitle {
-  font-size: 1.25rem;
-  color: var(--home-text-secondary);
-  max-width: 32rem;
-  margin: 0 auto;
+	font-size: 0.75rem;
+	color: var(--home-text-muted);
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
 }
 
-/* Main action button */
-.home-main-action {
-  text-align: center;
-  margin-bottom: 3rem;
+.home-header__actions {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
 }
 
-.home-create-btn {
-  display: inline-flex;
-  align-items: center;
-  padding: 1rem 2rem;
-  border: none;
-  font-size: 1.125rem;
-  font-weight: 500;
-  border-radius: 9999px;
-  color: var(--home-button-text);
-  background: var(--home-button-bg);
-  cursor: pointer;
-  transition: all 0.2s ease;
+.home-header__create-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.625rem 1.25rem;
+	background: var(--home-button-bg);
+	color: var(--home-button-text);
+	border: none;
+	border-radius: 0.5rem;
+	font-size: 0.8rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
 }
 
-.home-create-btn:hover {
-  background: var(--home-button-hover);
+.home-header__create-btn:hover {
+	background: var(--home-button-hover);
 }
 
-/* Dark theme - Use Atom's green without effects */
-[data-theme="dark"] .home-create-btn {
-  background: var(--theme-syntax-green);
-  color: var(--theme-bg-primary);
+.home-header__create-btn:active {
+	transform: none;
 }
 
-[data-theme="dark"] .home-create-btn:hover {
-  background: #7fb069;
+/* Keep green accent in dark mode for the header button */
+[data-theme="dark"] .home-header__create-btn {
+	background: var(--home-accent);
+	color: var(--home-bg);
 }
 
-.home-create-btn svg {
-  margin-left: 0.5rem;
-  width: 1.25rem;
-  height: 1.25rem;
+[data-theme="dark"] .home-header__create-btn:hover {
+	background: var(--home-accent-hover);
+}
+
+.home-header__create-icon {
+	width: 0.875rem;
+	height: 0.875rem;
+}
+
+/* Main Content */
+.home-main {
+	padding: 2.5rem 1.5rem;
+	background: linear-gradient(
+		180deg,
+		var(--home-bg) 0%,
+		var(--home-bg-subtle) 100%
+	);
+	min-height: calc(100vh - 4rem);
+}
+
+.home-main__content {
+	max-width: 80rem;
+	margin: 0 auto;
+}
+
+/* Quick Actions */
+.home-quick-actions {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 1.5rem;
+	margin-bottom: 3rem;
+}
+
+.home-quick-action {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 1.25rem;
+	background: var(--home-card-bg);
+	border: 1px solid var(--home-border);
+	border-radius: 0.75rem;
+	cursor: pointer;
+	transition: border-color 0.2s ease;
+	text-align: left;
+	width: 100%;
+	position: relative;
+}
+
+.home-quick-action:hover {
+	border-color: var(--home-text-primary);
+}
+
+[data-theme="dark"] .home-quick-action:hover {
+	border-color: var(--home-accent);
+}
+
+.home-quick-action__icon {
+	width: 2.25rem;
+	height: 2.25rem;
+	color: var(--home-text-primary);
+	flex-shrink: 0;
+	padding: 0.5rem;
+	background: var(--home-accent-light);
+	border-radius: 0.5rem;
+}
+
+[data-theme="dark"] .home-quick-action__icon {
+	color: var(--home-accent);
+}
+
+.home-quick-action__content {
+	flex: 1;
+}
+
+.home-quick-action__title {
+	font-size: 1rem;
+	font-weight: 600;
+	color: var(--home-text-primary);
+	margin: 0 0 0.25rem 0;
+	letter-spacing: -0.025em;
+}
+
+.home-quick-action__desc {
+	font-size: 0.8rem;
+	color: var(--home-text-secondary);
+	margin: 0;
+	line-height: 1.4;
 }
 
 /* Workflows section */
 .home-workflows {
-  border-top: 1px solid var(--home-border);
-  padding-top: 3rem;
+	margin-top: 1.5rem;
 }
 
 .home-workflows__header {
-  text-align: center;
-  margin-bottom: 2rem;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1.5rem;
+	flex-wrap: wrap;
+	gap: 1rem;
+}
+
+.home-workflows__title-section {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
 }
 
 .home-workflows__title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--home-text-primary);
-  margin-bottom: 0.5rem;
+	font-size: 1.5rem;
+	font-weight: 600;
+	color: var(--home-text-primary);
+	margin: 0;
 }
 
-.home-workflows__subtitle {
-  color: var(--home-text-secondary);
+.home-workflows__count {
+	font-size: 0.75rem;
+	color: var(--home-text-secondary);
+	padding: 0.25rem 0.625rem;
+	background: var(--home-bg-subtle);
+	border-radius: 0.375rem;
+	border: 1px solid var(--home-border);
+}
+
+.home-workflows__controls {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+
+.home-workflows__search {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.home-workflows__search-icon {
+	position: absolute;
+	left: 0.625rem;
+	width: 1rem;
+	height: 1rem;
+	color: var(--home-text-muted);
+}
+
+.home-workflows__search-input {
+	padding: 0.625rem 0.625rem 0.625rem 2.25rem;
+	background: var(--home-card-bg);
+	border: 1px solid var(--home-border);
+	border-radius: 0.375rem;
+	font-size: 0.8rem;
+	color: var(--home-text-primary);
+	width: 14rem;
+	transition: border-color 0.2s ease;
+	box-shadow: none;
+}
+
+.home-workflows__search-input:focus {
+	outline: none !important;
+	border-color: var(--home-text-primary) !important;
+	box-shadow: none !important;
+}
+
+[data-theme="dark"] .home-workflows__search-input:focus {
+	border-color: #98c379 !important;
+	box-shadow: none !important;
+}
+
+[data-theme="dark"]
+	.home-workflows__search:focus-within
+	.home-workflows__search-icon {
+	color: var(--home-accent);
+}
+
+.home-workflows__search-input::placeholder {
+	color: var(--home-text-muted);
+}
+
+.home-workflows__filter-btn {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.625rem 0.875rem;
+	background: var(--home-card-bg);
+	border: 1px solid var(--home-border);
+	border-radius: 0.375rem;
+	font-size: 0.8rem;
+	color: var(--home-text-primary);
+	cursor: pointer;
+	transition: border-color 0.2s ease;
+}
+
+.home-workflows__filter-btn:hover {
+	border-color: var(--home-text-primary);
+}
+
+[data-theme="dark"] .home-workflows__filter-btn:hover {
+	border-color: var(--home-accent);
+}
+
+.home-workflows__filter-icon {
+	width: 1rem;
+	height: 1rem;
 }
 
 /* Workflow grid */
 .home-workflows__grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: 1fr;
+	display: grid;
+	gap: 1.5rem;
+	grid-template-columns: 1fr;
 }
 
 @media (min-width: 640px) {
-  .home-workflows__grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+	.home-workflows__grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
 }
 
 @media (min-width: 1024px) {
-  .home-workflows__grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+	.home-workflows__grid {
+		grid-template-columns: repeat(3, 1fr);
+	}
 }
 
 /* Workflow card */
 .home-workflow-card {
-  position: relative;
-  background: var(--home-card-bg);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+	background: var(--home-card-bg);
+	border: 1px solid var(--home-border);
+	border-radius: 0.75rem;
+	padding: 1.25rem;
+	cursor: pointer;
+	transition: border-color 0.2s ease;
 }
 
 .home-workflow-card:hover {
-  background: var(--home-card-hover);
+	border-color: var(--home-text-primary);
 }
 
-/* Dark theme - Green accent on workflow card hover */
 [data-theme="dark"] .home-workflow-card:hover {
-  background: var(--home-card-hover);
-  border: 1px solid var(--theme-syntax-green);
+	border-color: var(--home-accent);
 }
 
 .home-workflow-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	margin-bottom: 0.75rem;
 }
 
-.home-workflow-card__icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: var(--home-text-secondary);
-}
-
-.home-workflow-card__date {
-  font-size: 0.75rem;
-  color: var(--home-text-muted);
+.home-workflow-card__info {
+	flex: 1;
 }
 
 .home-workflow-card__title {
-  font-weight: 500;
-  color: var(--home-text-primary);
-  margin-bottom: 0.5rem;
+	font-size: 1rem;
+	font-weight: 600;
+	color: var(--home-text-primary);
+	margin: 0 0 0.375rem 0;
+}
+
+.home-workflow-card__meta {
+	display: flex;
+	align-items: center;
+	gap: 0.375rem;
+	font-size: 0.7rem;
+	color: var(--home-text-muted);
+}
+
+.home-workflow-card__meta-icon {
+	width: 0.75rem;
+	height: 0.75rem;
+}
+
+.home-workflow-card__menu {
+	background: transparent;
+	border: none;
+	padding: 0.25rem;
+	cursor: pointer;
+	color: var(--home-text-muted);
+	transition: color 0.2s ease;
+	border-radius: 0.25rem;
+}
+
+.home-workflow-card__menu:hover {
+	color: var(--home-text-primary);
+	background: var(--home-bg-subtle);
+}
+
+.home-workflow-card__menu-icon {
+	width: 1rem;
+	height: 1rem;
 }
 
 .home-workflow-card__description {
-  font-size: 0.875rem;
-  color: var(--home-text-secondary);
-  margin-bottom: 0.75rem;
+	font-size: 0.8rem;
+	line-height: 1.4;
+	color: var(--home-text-secondary);
+	margin-bottom: 1rem;
+}
+
+.home-workflow-card__footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 }
 
 .home-workflow-card__stats {
-  display: flex;
-  align-items: center;
-  font-size: 0.75rem;
-  color: var(--home-text-muted);
+	display: flex;
+	align-items: center;
+	gap: 0.625rem;
+	font-size: 0.7rem;
+	color: var(--home-text-muted);
 }
 
-.home-workflow-card__stats span + span::before {
-  content: "•";
-  margin: 0 0.5rem;
+.home-workflow-card__stat {
+	padding: 0.25rem 0.5rem;
+	background: var(--home-bg-muted);
+	border-radius: 0.375rem;
+	font-weight: 500;
+	border: 1px solid var(--home-border-light);
+}
+
+.home-workflow-card__status {
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.home-workflow-card__status--active {
+	background: var(--home-success);
+	color: var(--home-success);
+}
+
+.home-workflow-card__status--draft {
+	background: var(--home-warning);
+	color: var(--home-warning);
 }
 
 /* Empty state card */
 .home-empty-card {
-  border: 2px dashed var(--home-border-dashed);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  text-align: center;
-  transition: border-color 0.2s ease;
+	border: 2px dashed var(--home-border-dashed);
+	border-radius: 0.75rem;
+	padding: 1.25rem;
+	text-align: center;
+	transition: border-color 0.2s ease;
+	background: var(--home-card-bg);
+	cursor: pointer;
 }
 
 .home-empty-card:hover {
-  border-color: var(--home-border-dashed-hover);
+	border-color: var(--home-text-primary);
+	border-style: solid;
+}
+
+[data-theme="dark"] .home-empty-card:hover {
+	border-color: var(--home-accent);
 }
 
 .home-empty-card__icon {
-  width: 2rem;
-  height: 2rem;
-  color: var(--home-text-muted);
-  margin: 0 auto 0.75rem;
+	width: 2rem;
+	height: 2rem;
+	color: var(--home-text-muted);
+	margin: 0 auto 0.75rem;
+}
+
+.home-empty-card__title {
+	font-size: 1rem;
+	font-weight: 600;
+	color: var(--home-text-primary);
+	margin: 0 0 0.375rem 0;
 }
 
 .home-empty-card__text {
-  font-size: 0.875rem;
-  color: var(--home-text-secondary);
-  margin-bottom: 0.5rem;
+	font-size: 0.8rem;
+	color: var(--home-text-secondary);
+	margin: 0;
+	line-height: 1.4;
 }
 
-.home-empty-card__button {
-  background: none;
-  border: none;
-  font-size: 0.875rem;
-  color: var(--home-text-primary);
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.2s ease;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+	.home-header__content {
+		padding: 0 1rem;
+	}
+
+	.home-header__brand {
+		gap: 0.5rem;
+	}
+
+	.home-header__title {
+		font-size: 1.25rem;
+	}
+
+	.home-header__subtitle {
+		display: none;
+	}
+
+	.home-header__create-btn {
+		padding: 0.5rem 1rem;
+		font-size: 0.75rem;
+	}
+
+	.home-main {
+		padding: 2rem 1rem;
+	}
+
+	.home-workflows__header {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 1rem;
+	}
+
+	.home-workflows__title-section {
+		justify-content: center;
+	}
+
+	.home-workflows__controls {
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.home-workflows__search-input {
+		width: 100%;
+	}
+
+	.home-quick-actions {
+		grid-template-columns: 1fr;
+		gap: 1rem;
+	}
+
+	.home-workflows__grid {
+		grid-template-columns: 1fr;
+		gap: 1rem;
+	}
 }
 
-.home-empty-card__button:hover {
-  color: var(--home-text-secondary);
-}
+@media (max-width: 480px) {
+	.home-header {
+		padding: 0.75rem 0;
+	}
 
-/* Dark theme - Green accent for empty state button */
-[data-theme="dark"] .home-empty-card__button:hover {
-  color: var(--theme-syntax-green);
-}
+	.home-header__title {
+		font-size: 1.125rem;
+	}
 
-/* Footer */
-.home-footer {
-  margin-top: 5rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--home-border);
-}
+	.home-header__create-btn {
+		padding: 0.5rem 0.75rem;
+	}
 
-.home-footer__text {
-  text-align: center;
-  font-size: 0.875rem;
-  color: var(--home-text-muted);
-}
+	.home-main {
+		padding: 1.5rem 0.75rem;
+	}
 
-/* Theme toggle positioning */
-.home-theme-toggle {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 50;
+	.home-quick-action {
+		padding: 1rem;
+	}
+
+	.home-workflow-card {
+		padding: 1rem;
+	}
+
+	.home-workflows__title {
+		font-size: 1.25rem;
+	}
 }

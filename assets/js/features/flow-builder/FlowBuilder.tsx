@@ -833,12 +833,15 @@ function FlowBuilderInternal() {
 
   return (
     <div className='flow-builder'>
-      {/* Top Bar with Helix Logo (same as original) */}
+      {/* Header with consistent branding */}
       <div className='flow-builder__header'>
-        <a href='/' className='flow-builder__logo'>
-          <Cpu size={20} />
-          Helix
-        </a>
+        <div className='flow-builder__brand'>
+          <a href='/' style={{ display: 'contents' }}>
+            <Cpu className='flow-builder__logo' />
+            <h1 className='flow-builder__title'>Helix</h1>
+            <span className='flow-builder__subtitle'>AI Flow Builder</span>
+          </a>
+        </div>
 
         <div className='flow-builder__header-controls'>
           <div className='flow-builder__stats'>
@@ -1002,9 +1005,14 @@ function FlowBuilderInternal() {
                 background: 'transparent',
                 borderBottom:
                   activeTemplateTab === 'technology'
-                    ? '2px solid #0ea5e9'
+                    ? `2px solid ${theme === 'dark' ? '#98c379' : '#0f172a'}`
                     : '2px solid transparent',
-                color: activeTemplateTab === 'technology' ? '#0ea5e9' : '#6b7280',
+                color:
+                  activeTemplateTab === 'technology'
+                    ? theme === 'dark'
+                      ? '#98c379'
+                      : '#0f172a'
+                    : '#6b7280',
                 fontWeight: activeTemplateTab === 'technology' ? '600' : '400',
                 cursor: 'pointer',
                 display: 'flex',
@@ -1023,8 +1031,15 @@ function FlowBuilderInternal() {
                 border: 'none',
                 background: 'transparent',
                 borderBottom:
-                  activeTemplateTab === 'gaming' ? '2px solid #0ea5e9' : '2px solid transparent',
-                color: activeTemplateTab === 'gaming' ? '#0ea5e9' : '#6b7280',
+                  activeTemplateTab === 'gaming'
+                    ? `2px solid ${theme === 'dark' ? '#98c379' : '#0f172a'}`
+                    : '2px solid transparent',
+                color:
+                  activeTemplateTab === 'gaming'
+                    ? theme === 'dark'
+                      ? '#98c379'
+                      : '#0f172a'
+                    : '#6b7280',
                 fontWeight: activeTemplateTab === 'gaming' ? '600' : '400',
                 cursor: 'pointer',
                 display: 'flex',
