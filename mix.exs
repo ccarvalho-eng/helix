@@ -11,6 +11,7 @@ defmodule Helix.MixProject do
       aliases: aliases(),
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
+      listeners: [Phoenix.CodeReloader],
       excoveralls: [
         "coveralls.json": [export: "cov"],
         "coveralls.html": [export: "html"]

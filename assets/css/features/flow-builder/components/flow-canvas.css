@@ -16,9 +16,70 @@
   bottom: 24px;
   left: 24px;
   background: var(--flow-builder-bg);
-  border: 1px solid var(--flow-builder-border);
+  border: 1.5px solid var(--flow-builder-border);
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 6px;
+  backdrop-filter: blur(8px);
+}
+
+/* Style individual control buttons */
+.flow-canvas__controls button {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  background: var(--flow-builder-button-hover-bg) !important;
+  border: 1px solid var(--flow-builder-border) !important;
+  color: var(--flow-builder-text-primary) !important;
+  margin: 1px !important;
+  transition: all 0.2s ease !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+.flow-canvas__controls button:hover {
+  background: var(--flow-builder-text-primary) !important;
+  color: var(--flow-builder-bg) !important;
+  transform: scale(1.05) !important;
+}
+
+.flow-canvas__controls button:hover svg {
+  color: var(--flow-builder-bg) !important;
+  fill: var(--flow-builder-bg) !important;
+  stroke: var(--flow-builder-bg) !important;
+}
+
+[data-theme="dark"] .flow-canvas__controls button:hover {
+  background: var(--theme-syntax-green) !important;
+  color: var(--theme-bg-primary) !important;
+  border-color: var(--theme-syntax-green) !important;
+}
+
+[data-theme="dark"] .flow-canvas__controls button:hover svg {
+  color: var(--theme-bg-primary) !important;
+  fill: var(--theme-bg-primary) !important;
+  stroke: var(--theme-bg-primary) !important;
+}
+
+.flow-canvas__controls button:active {
+  transform: scale(0.95) !important;
+}
+
+/* Canvas locked state visual feedback */
+.flow-canvas__reactflow--locked {
+  cursor: not-allowed;
+}
+
+.flow-canvas__reactflow--locked .react-flow__node {
+  cursor: not-allowed !important;
+}
+
+.flow-canvas__reactflow--locked .react-flow__edge {
+  cursor: not-allowed !important;
+}
+
+/* Hide React Flow attribution */
+.react-flow__attribution {
+  display: none !important;
 }
 
 .flow-canvas__background {
