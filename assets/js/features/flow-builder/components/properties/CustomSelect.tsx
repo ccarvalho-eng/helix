@@ -130,7 +130,9 @@ export function CustomSelect({
         aria-expanded={isOpen}
         aria-haspopup='listbox'
         aria-controls={isOpen ? listboxId : undefined}
-        aria-activedescendant={highlightedIndex >= 0 ? `${listboxId}-option-${highlightedIndex}` : undefined}
+        aria-activedescendant={
+          highlightedIndex >= 0 ? `${listboxId}-option-${highlightedIndex}` : undefined
+        }
       >
         <span
           className={`custom-select__value ${!value ? 'custom-select__value--placeholder' : ''}`}
@@ -145,8 +147,8 @@ export function CustomSelect({
 
       {isOpen && (
         <div className='custom-select__dropdown'>
-          <ul 
-            className='custom-select__options' 
+          <ul
+            className='custom-select__options'
             role='listbox'
             id={listboxId}
             aria-labelledby={triggerId}

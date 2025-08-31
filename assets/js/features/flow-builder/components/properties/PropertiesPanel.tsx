@@ -591,7 +591,8 @@ export function PropertiesPanel({
                             type='button'
                             className='properties-panel__number-btn'
                             onClick={() => {
-                              const currentValue = parseInt(String(node.config?.[field.key] || '0')) || 0;
+                              const currentValue =
+                                parseInt(String(node.config?.[field.key] || '0')) || 0;
                               const newValue = Math.min(
                                 field.max ?? Number.MAX_SAFE_INTEGER,
                                 currentValue + (field.step ?? 1)
@@ -610,7 +611,8 @@ export function PropertiesPanel({
                             type='button'
                             className='properties-panel__number-btn'
                             onClick={() => {
-                              const currentValue = parseInt(String(node.config?.[field.key] || '0')) || 0;
+                              const currentValue =
+                                parseInt(String(node.config?.[field.key] || '0')) || 0;
                               const newValue = Math.max(
                                 field.min ?? 0,
                                 currentValue - (field.step ?? 1)
