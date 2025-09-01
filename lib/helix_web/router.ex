@@ -21,10 +21,19 @@ defmodule HelixWeb.Router do
     get "/flow", FlowController, :index
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", HelixWeb do
-  #   pipe_through :api
-  # end
+  # API routes
+  scope "/api", HelixWeb do
+    pipe_through :api
+
+    # Flow management API
+    get "/flows", FlowController, :list_flows
+    get "/flows/active", FlowController, :active_flows
+    get "/flows/:id", FlowController, :get_flow
+    post "/flows", FlowController, :create_flow
+    put "/flows/:id", FlowController, :update_flow
+    delete "/flows/:id", FlowController, :delete_flow
+    post "/flows/:id/save", FlowController, :save_flow
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:helix, :dev_routes) do

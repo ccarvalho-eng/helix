@@ -14,6 +14,10 @@ defmodule Helix.Application do
       {Phoenix.PubSub, name: Helix.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: Helix.Finch},
+      # Start the Registry for flow process discovery
+      {Registry, keys: :unique, name: Helix.FlowProcessRegistry},
+      # Start the FlowRegistry supervisor for managing flow processes
+      Helix.FlowRegistry,
       # Start a worker by calling: Helix.Worker.start_link(arg)
       # {Helix.Worker, arg},
       # Start to serve requests, typically the last entry

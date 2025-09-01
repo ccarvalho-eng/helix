@@ -16,6 +16,7 @@
 		"@types/react": "^19.1.12",
 		"@types/react-dom": "^19.1.8",
 		"lucide-react": "^0.542.0",
+		"phoenix": "^1.8.1",
 		"react": "^19.1.1",
 		"react-dnd": "^16.0.1",
 		"react-dnd-html5-backend": "^16.0.1",
@@ -23,11 +24,12 @@
 		"reactflow": "^11.11.4"
 	},
 	"devDependencies": {
-		"prettier": "^3.6.2",
-		"typescript": "^5.6.0",
-		"eslint": "^9.16.0",
+		"@types/node": "^24.3.0",
+		"@types/phoenix": "^1.6.6",
 		"@typescript-eslint/eslint-plugin": "^8.18.0",
 		"@typescript-eslint/parser": "^8.18.0",
-		"@types/node": "^24.3.0"
+		"eslint": "^9.16.0",
+		"prettier": "^3.6.2",
+		"typescript": "^5.6.0"
 	}
 }

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   ReactFlow,
   Node,
@@ -34,6 +34,7 @@ import { ErrorBoundary } from '../../shared/components/ui/ErrorBoundary';
 import { ThemeProvider, useThemeContext } from './contexts/ThemeContext';
 import { ThemeToggle } from './components/ThemeToggle';
 import { Modal } from './components/Modal';
+import { FlowManager } from './components/FlowManager';
 import {
   Bot,
   Eye,
@@ -51,7 +52,11 @@ import {
   Sliders,
   Settings,
   Gamepad2,
+  FolderOpen,
+  Save,
 } from 'lucide-react';
+
+import { useFlowServer, useFlowStorage, FlowState } from './hooks';
 
 // Extended node type for React Flow
 type ReactFlowAINode = OriginalAIFlowNode;
@@ -400,42 +405,85 @@ function ReactFlowNodePalette({
   );
 }
 
-// Local storage functions (same as original)
-const STORAGE_KEY = 'react-flow-ai-flow-builder-state';
-
-const saveToLocalStorage = (data: {
-  nodes: Node<ReactFlowAINode>[];
-  edges: Edge[];
-  viewport: { x: number; y: number; zoom: number };
-}) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {
-    // Failed to save to localStorage
-  }
-};
-
-const loadFromLocalStorage = () => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch {
-    // Failed to load from localStorage
-  }
-  return null;
-};
+// GenServer + localStorage hybrid storage system for reliability
 
 // Internal component that uses React Flow hooks
 function FlowBuilderInternal() {
   const { theme = 'light' } = useThemeContext() ?? { theme: 'light' };
-  const initialState = loadFromLocalStorage();
 
-  const [nodes, setNodes, onNodesChange] = useNodesState<ReactFlowAINode>(
-    initialState?.nodes || []
-  );
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialState?.edges || []);
+  // Generate or get flow ID from URL params or create new one
+  const flowId = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlFlowId = params.get('flow');
+    if (urlFlowId) return urlFlowId;
+
+    // Generate a new flow ID
+    const newFlowId = `flow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Update URL without reloading
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('flow', newFlowId);
+    window.history.replaceState({}, '', newUrl.toString());
+    return newFlowId;
+  }, []);
+
+  // Generate user ID (in a real app, this would come from authentication)
+  const userId = useMemo(() => {
+    let storedUserId = localStorage.getItem('helix-user-id');
+    if (!storedUserId) {
+      storedUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('helix-user-id', storedUserId);
+    }
+    return storedUserId;
+  }, []);
+
+  // Initialize local storage and server hooks
+  const storage = useFlowStorage();
+
+  const server = useFlowServer({
+    flowId,
+    userId,
+    onFlowUpdated: flow => {
+      console.log('Flow updated from server:', flow);
+      // Update React Flow state
+      setNodes(flow.nodes || []);
+      setEdges(flow.edges || []);
+    },
+    onNodesUpdated: flow => {
+      console.log('Nodes updated from server:', flow);
+      setNodes(flow.nodes || []);
+    },
+    onEdgesUpdated: flow => {
+      console.log('Edges updated from server:', flow);
+      setEdges(flow.edges || []);
+    },
+    onSaveRequested: async flow => {
+      console.log('Save requested by server:', flow);
+      try {
+        await storage.saveFlow(flow);
+        console.log('Flow saved to localStorage');
+      } catch (error) {
+        console.error('Failed to save flow to localStorage:', error);
+      }
+    },
+    onConnectionStatusChange: connected => {
+      setServerConnected(connected);
+    },
+  });
+
+  // React Flow state
+  const [nodes, setNodes, onNodesChangeOriginal] = useNodesState<ReactFlowAINode>([]);
+  const [edges, setEdges, onEdgesChangeOriginal] = useEdgesState([]);
+
+  // Wrap change handlers to track unsaved changes
+  const onNodesChange = useCallback((changes: any) => {
+    onNodesChangeOriginal(changes);
+    setHasUnsavedChanges(true);
+  }, [onNodesChangeOriginal]);
+
+  const onEdgesChange = useCallback((changes: any) => {
+    onEdgesChangeOriginal(changes);
+    setHasUnsavedChanges(true);
+  }, [onEdgesChangeOriginal]);
   const [selectedNode, setSelectedNode] = useState<ReactFlowAINode | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
@@ -445,6 +493,65 @@ function FlowBuilderInternal() {
   const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
   const [activeTemplateTab, setActiveTemplateTab] = useState<'technology' | 'gaming'>('technology');
   const [isCanvasLocked, setIsCanvasLocked] = useState(false);
+  const [serverConnected, setServerConnected] = useState(false);
+  const [currentFlowName, setCurrentFlowName] = useState('Untitled Flow');
+  const [isFlowManagerOpen, setIsFlowManagerOpen] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+  const [isEditingFlowName, setIsEditingFlowName] = useState(false);
+  const [editingFlowName, setEditingFlowName] = useState('');
+
+  // Initialize flow on mount
+  useEffect(() => {
+    if (server.connected && server.flowState) {
+      // Load from server state
+      setNodes(server.flowState.nodes || []);
+      setEdges(server.flowState.edges || []);
+      setCurrentFlowName(server.flowState.name);
+
+      // Update viewport if available
+      if (server.flowState.viewport && reactFlowInstance) {
+        reactFlowInstance.setViewport(server.flowState.viewport);
+      }
+    } else {
+      // Try to load from localStorage as fallback
+      const tryLoadFromLocalStorage = async () => {
+        try {
+          const savedFlow = await storage.loadFlow(flowId);
+          if (savedFlow) {
+            console.log('Loaded flow from localStorage:', savedFlow);
+            // Create flow on server with saved data
+            if (server.connected) {
+              await server.createFlow({
+                name: savedFlow.name,
+                description: savedFlow.description,
+                nodes: savedFlow.nodes,
+                edges: savedFlow.edges,
+                viewport: savedFlow.viewport,
+              });
+            } else {
+              // Load directly if server not connected
+              setNodes(savedFlow.nodes || []);
+              setEdges(savedFlow.edges || []);
+              setCurrentFlowName(savedFlow.name);
+              if (reactFlowInstance && savedFlow.viewport) {
+                reactFlowInstance.setViewport(savedFlow.viewport);
+              }
+            }
+          } else {
+            // Create new flow
+            if (server.connected) {
+              await server.createFlow({ name: 'Untitled Flow', description: '' });
+            }
+          }
+        } catch (error) {
+          console.error('Failed to initialize flow:', error);
+        }
+      };
+
+      tryLoadFromLocalStorage();
+    }
+  }, [server.connected, server.flowState, flowId, reactFlowInstance]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
@@ -455,6 +562,20 @@ function FlowBuilderInternal() {
     return () => {
       mq.removeEventListener('change', update);
     };
+  }, []);
+
+  // Check for templates parameter and open templates modal
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shouldShowTemplates = params.get('templates') === 'true';
+    
+    if (shouldShowTemplates) {
+      setIsTemplatesModalOpen(true);
+      // Clean up URL
+      params.delete('templates');
+      const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+      window.history.replaceState({}, '', newUrl);
+    }
   }, []);
 
   // Helper function to get node description by type
@@ -537,9 +658,15 @@ function FlowBuilderInternal() {
         },
       };
 
-      setNodes(nds => nds.concat(newNode));
+      const newNodes = [...nodes, newNode];
+      setNodes(newNodes);
+
+      // Sync with server
+      if (server.connected) {
+        server.updateNodes(newNodes.map(n => n.data)).catch(console.error);
+      }
     },
-    [setNodes]
+    [setNodes, nodes, server]
   );
 
   // Handle connections
@@ -565,9 +692,15 @@ function FlowBuilderInternal() {
           strokeWidth: 2,
         },
       };
-      setEdges(eds => addEdge(edge, eds));
+      const newEdges = addEdge(edge, edges);
+      setEdges(newEdges);
+
+      // Sync with server
+      if (server.connected) {
+        server.updateEdges(newEdges).catch(console.error);
+      }
     },
-    [setEdges]
+    [setEdges, edges, server]
   );
 
   // Handle drag over for node palette
@@ -645,9 +778,15 @@ function FlowBuilderInternal() {
         },
       };
 
-      setNodes(nds => nds.concat(newNode));
+      const newNodes = [...nodes, newNode];
+      setNodes(newNodes);
+
+      // Sync with server
+      if (server.connected) {
+        server.updateNodes(newNodes.map(n => n.data)).catch(console.error);
+      }
     },
-    [reactFlowInstance, setNodes]
+    [reactFlowInstance, setNodes, nodes, server]
   );
 
   // Handle node selection
@@ -666,33 +805,48 @@ function FlowBuilderInternal() {
   // Update node function
   const updateNode = useCallback(
     (id: string, updates: Partial<ReactFlowAINode>) => {
-      setNodes(nds =>
-        nds.map(node => {
-          if (node.id === id) {
-            const updatedData = { ...node.data, ...updates };
-            return { ...node, data: updatedData };
-          }
-          return node;
-        })
-      );
+      const newNodes = nodes.map(node => {
+        if (node.id === id) {
+          const updatedData = { ...node.data, ...updates };
+          return { ...node, data: updatedData };
+        }
+        return node;
+      });
+
+      setNodes(newNodes);
 
       if (selectedNode?.id === id) {
         setSelectedNode({ ...selectedNode, ...updates });
       }
+
+      // Sync with server
+      if (server.connected) {
+        server.updateNodes(newNodes.map(n => n.data)).catch(console.error);
+      }
     },
-    [setNodes, selectedNode]
+    [setNodes, selectedNode, nodes, server]
   );
 
   // Delete node function
   const deleteNode = useCallback(
     (id: string) => {
-      setNodes(nds => nds.filter(node => node.id !== id));
-      setEdges(eds => eds.filter(edge => edge.source !== id && edge.target !== id));
+      const newNodes = nodes.filter(node => node.id !== id);
+      const newEdges = edges.filter(edge => edge.source !== id && edge.target !== id);
+
+      setNodes(newNodes);
+      setEdges(newEdges);
+
       if (selectedNode?.id === id) {
         setSelectedNode(null);
       }
+
+      // Sync with server
+      if (server.connected) {
+        server.updateNodes(newNodes.map(n => n.data)).catch(console.error);
+        server.updateEdges(newEdges).catch(console.error);
+      }
     },
-    [setNodes, setEdges, selectedNode]
+    [setNodes, setEdges, selectedNode, nodes, edges, server]
   );
 
   // Duplicate node function
@@ -796,13 +950,92 @@ function FlowBuilderInternal() {
     [setNodes, setEdges]
   );
 
-  // Auto-save to localStorage
-  useEffect(() => {
-    if (reactFlowInstance) {
-      const viewport = reactFlowInstance.getViewport();
-      saveToLocalStorage({ nodes, edges, viewport });
+  // FlowManager functions
+  const handleLoadFlow = useCallback(
+    async (flowId: string) => {
+      try {
+        const savedFlow = await storage.loadFlow(flowId);
+        if (savedFlow) {
+          if (server.connected) {
+            await server.loadFlow(savedFlow);
+          } else {
+            setNodes(savedFlow.nodes || []);
+            setEdges(savedFlow.edges || []);
+            setCurrentFlowName(savedFlow.name);
+            if (reactFlowInstance && savedFlow.viewport) {
+              reactFlowInstance.setViewport(savedFlow.viewport);
+            }
+          }
+          setIsFlowManagerOpen(false);
+        }
+      } catch (error) {
+        console.error('Failed to load flow:', error);
+        alert('Failed to load flow. Please try again.');
+      }
+    },
+    [storage, server, setNodes, setEdges, reactFlowInstance]
+  );
+
+  const handleCreateNewFlow = useCallback(async () => {
+    try {
+      // Clear current state
+      setNodes([]);
+      setEdges([]);
+      setCurrentFlowName('Untitled Flow');
+
+      if (server.connected) {
+        await server.createFlow({ name: 'Untitled Flow', description: '' });
+      }
+
+      // Update URL with new flow ID
+      const newFlowId = `flow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('flow', newFlowId);
+      window.history.pushState({}, '', newUrl.toString());
+
+      setIsFlowManagerOpen(false);
+    } catch (error) {
+      console.error('Failed to create new flow:', error);
+      alert('Failed to create new flow. Please try again.');
     }
-  }, [nodes, edges, reactFlowInstance]);
+  }, [server, setNodes, setEdges]);
+
+  // Flow name editing handlers
+  const handleStartEditingFlowName = useCallback(() => {
+    setEditingFlowName(currentFlowName);
+    setIsEditingFlowName(true);
+  }, [currentFlowName]);
+
+  const handleSaveFlowName = useCallback(async () => {
+    const trimmedName = editingFlowName.trim();
+    if (!trimmedName) {
+      setEditingFlowName(currentFlowName);
+      setIsEditingFlowName(false);
+      return;
+    }
+
+    try {
+      if (server.connected) {
+        await server.updateMetadata(trimmedName, server.flowState?.description || '');
+      }
+      setCurrentFlowName(trimmedName);
+      setIsEditingFlowName(false);
+      setHasUnsavedChanges(true);
+    } catch (error) {
+      console.error('Failed to update flow name:', error);
+      // Revert on error
+      setEditingFlowName(currentFlowName);
+      setIsEditingFlowName(false);
+    }
+  }, [editingFlowName, currentFlowName, server]);
+
+  const handleCancelEditingFlowName = useCallback(() => {
+    setEditingFlowName(currentFlowName);
+    setIsEditingFlowName(false);
+  }, [currentFlowName]);
+
+  // Note: Viewport auto-save removed to prevent infinite update loops
+  // Viewport will be saved manually when user makes significant changes
 
   // Handle keyboard events
   useEffect(() => {
@@ -854,6 +1087,84 @@ function FlowBuilderInternal() {
           </a>
         </div>
 
+        <div className='flow-builder__flow-info'>
+          <div className='flow-builder__flow-name'>
+            {isEditingFlowName ? (
+              <input
+                type='text'
+                value={editingFlowName}
+                onChange={(e) => setEditingFlowName(e.target.value)}
+                onBlur={handleSaveFlowName}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSaveFlowName();
+                  } else if (e.key === 'Escape') {
+                    handleCancelEditingFlowName();
+                  }
+                }}
+                autoFocus
+                style={{
+                  background: theme === 'dark' ? 'rgba(40, 44, 52, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                  border: `2px solid ${theme === 'dark' ? '#98c379' : '#000000'}`,
+                  fontSize: 'inherit',
+                  fontFamily: 'inherit',
+                  fontWeight: '600',
+                  color: 'inherit',
+                  outline: 'none',
+                  borderRadius: '6px',
+                  padding: '6px 10px',
+                  minWidth: '140px',
+                  boxShadow: theme === 'dark' 
+                    ? '0 0 0 3px rgba(152, 195, 121, 0.1), 0 2px 8px rgba(0, 0, 0, 0.3)'
+                    : '0 0 0 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.1)',
+                  transition: 'all 0.2s ease',
+                }}
+              />
+            ) : (
+              <span
+                onClick={handleStartEditingFlowName}
+                style={{
+                  cursor: 'pointer',
+                  padding: '6px 10px',
+                  borderRadius: '6px',
+                  transition: 'all 0.2s ease',
+                  border: '2px solid transparent',
+                  fontWeight: '600',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 
+                    theme === 'dark' ? 'rgba(152, 195, 121, 0.1)' : 'rgba(0, 0, 0, 0.03)';
+                  e.currentTarget.style.borderColor = 
+                    theme === 'dark' ? 'rgba(152, 195, 121, 0.3)' : 'rgba(0, 0, 0, 0.1)';
+                  e.currentTarget.style.boxShadow = 
+                    theme === 'dark' 
+                      ? '0 0 0 2px rgba(152, 195, 121, 0.05), 0 1px 4px rgba(0, 0, 0, 0.2)'
+                      : '0 0 0 2px rgba(0, 0, 0, 0.02), 0 1px 4px rgba(0, 0, 0, 0.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.borderColor = 'transparent';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+                title="Click to edit flow name"
+              >
+                {currentFlowName}
+              </span>
+            )}
+          </div>
+          <div className='flow-builder__connection-status'>
+            <div
+              className={`flow-builder__status-indicator ${serverConnected ? 'connected' : 'disconnected'}`}
+              title={serverConnected ? 'Connected to server' : 'Server disconnected'}
+            />
+            {server.connectedUsers.length > 1 && (
+              <span className='flow-builder__collaborators'>
+                {server.connectedUsers.length} users
+              </span>
+            )}
+          </div>
+        </div>
+
         <div className='flow-builder__header-controls'>
           <div className='flow-builder__stats'>
             <span className='flow-builder__stat'>
@@ -865,6 +1176,80 @@ function FlowBuilderInternal() {
               {edges.length} connections
             </span>
           </div>
+
+          <button
+            className='flow-builder__save-btn'
+            onClick={async () => {
+              try {
+                if (server.connected && server.flowState) {
+                  await storage.saveFlow(server.flowState);
+                  setHasUnsavedChanges(false);
+                  setLastSavedTime(new Date());
+                  console.log('Flow saved successfully');
+                } else {
+                  console.warn('No server connection or flow state to save');
+                }
+              } catch (error) {
+                console.error('Failed to save flow:', error);
+              }
+            }}
+            style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: `1px solid ${hasUnsavedChanges ? '#f59e0b' : (theme === 'dark' ? '#374151' : '#d1d5db')}`,
+              backgroundColor: hasUnsavedChanges ? (theme === 'dark' ? '#f59e0b' : '#f59e0b') : (theme === 'dark' ? '#98c379' : '#000000'),
+              color: 'white',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '600',
+              boxShadow: hasUnsavedChanges 
+                ? '0 0 0 2px rgba(245, 158, 11, 0.2)' 
+                : 'none',
+            }}
+            title={hasUnsavedChanges ? 'Save Flow (Unsaved changes)' : 'Save Flow'}
+          >
+            <Save size={16} />
+            {hasUnsavedChanges ? 'Save*' : 'Save'}
+            {hasUnsavedChanges && (
+              <span style={{ 
+                position: 'absolute',
+                top: '-2px',
+                right: '-2px',
+                width: '8px',
+                height: '8px',
+                backgroundColor: '#dc2626',
+                borderRadius: '50%',
+                border: '2px solid white'
+              }} />
+            )}
+          </button>
+
+          <button
+            className='flow-builder__flow-manager-btn'
+            onClick={() => setIsFlowManagerOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: `1px solid ${theme === 'dark' ? '#374151' : '#d1d5db'}`,
+              backgroundColor: 'transparent',
+              color: theme === 'dark' ? 'white' : '#374151',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+            }}
+            title='Flow Manager'
+          >
+            <FolderOpen size={16} />
+            Flows
+          </button>
+
           <ThemeToggle />
           {/* Mobile burgers */}
           <button
@@ -921,7 +1306,7 @@ function FlowBuilderInternal() {
             onDragOver={onDragOver}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
-            defaultViewport={initialState?.viewport || { x: 0, y: 0, zoom: 1 }}
+            defaultViewport={server.flowState?.viewport || { x: 0, y: 0, zoom: 1 }}
             className={`flow-canvas__reactflow ${isCanvasLocked ? 'flow-canvas__reactflow--locked' : ''}`}
             connectionLineStyle={{ stroke: '#9ca3af', strokeWidth: 2 }}
             defaultEdgeOptions={{
@@ -1167,6 +1552,15 @@ function FlowBuilderInternal() {
           </div>
         </div>
       )}
+
+      {/* Flow Manager */}
+      <FlowManager
+        isOpen={isFlowManagerOpen}
+        onClose={() => setIsFlowManagerOpen(false)}
+        currentFlow={server.flowState}
+        onLoadFlow={handleLoadFlow}
+        onCreateNew={handleCreateNewFlow}
+      />
     </div>
   );
 }
