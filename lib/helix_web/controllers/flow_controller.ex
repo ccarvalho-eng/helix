@@ -107,11 +107,6 @@ defmodule HelixWeb.FlowController do
         conn
         |> put_status(:not_found)
         |> json(%{error: "Flow not found"})
-
-      {:error, reason} ->
-        conn
-        |> put_status(:internal_server_error)
-        |> json(%{error: "Failed to delete flow", reason: inspect(reason)})
     end
   end
 
@@ -177,7 +172,8 @@ defmodule HelixWeb.FlowController do
   defp generate_flow_id do
     :crypto.strong_rand_bytes(16)
     |> Base.encode64(padding: false)
-    |> String.replace(["+", "/"], ["_", "-"])
+    |> String.replace("+", "_")
+    |> String.replace("/", "-")
     |> String.slice(0, 16)
   end
 end
