@@ -231,7 +231,11 @@ const HomePageInternal: React.FC = () => {
                     <div
                       className='home-workflow-card__menu-container'
                       style={{ position: 'relative' }}
-                      ref={el => (menuRefs.current[flow.id] = el)}
+                      ref={el => {
+                        if (el) {
+                          menuRefs.current[flow.id] = el;
+                        }
+                      }}
                     >
                       <button
                         className='home-workflow-card__menu'
@@ -384,10 +388,7 @@ const HomePageInternal: React.FC = () => {
                   <div className='home-workflow-card__footer'>
                     <div className='home-workflow-card__stats'>
                       <span className='home-workflow-card__stat'>
-                        {flow.nodes?.length || 0} nodes
-                      </span>
-                      <span className='home-workflow-card__stat'>
-                        {flow.edges?.length || 0} connections
+                        Saved Flow
                       </span>
                       <span className='home-workflow-card__stat'>Saved</span>
                     </div>

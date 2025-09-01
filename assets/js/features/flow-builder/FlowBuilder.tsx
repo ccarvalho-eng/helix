@@ -1552,8 +1552,9 @@ function FlowBuilderInternal({
                   })),
                   edges: edges,
                   viewport: currentViewport,
-                  createdAt: server.flowState?.createdAt || new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
+                  created_at: server.flowState?.created_at || new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                  connected_users: server.connectedUsers || [],
                 };
 
                 await storage.saveFlow(currentFlowState);
