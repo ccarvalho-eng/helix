@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   ReactFlow,
   Node,
@@ -35,6 +35,8 @@ import { ThemeProvider, useThemeContext } from './contexts/ThemeContext';
 import { ThemeToggle } from './components/ThemeToggle';
 import { Modal } from './components/Modal';
 import { FlowManager } from './components/FlowManager';
+import { UserListPopover } from './components/UserListPopover';
+import { generateUsername } from './utils/usernameGenerator';
 import {
   Bot,
   Eye,
@@ -56,19 +58,18 @@ import {
   Save,
 } from 'lucide-react';
 
-import { useFlowServer, useFlowStorage, FlowState } from './hooks';
+import { useFlowServer, useFlowStorage } from './hooks';
 
 // Extended node type for React Flow
 type ReactFlowAINode = OriginalAIFlowNode;
 
 // Custom Node Component that matches the original design
-function FlowNode({
-  data,
-  selected,
-}: {
-  readonly data: ReactFlowAINode;
-  readonly selected: boolean;
-}) {
+function FlowNode({ data, selected }: { data: ReactFlowAINode; selected?: boolean }) {
+  // Handle case where data might be undefined
+  if (!data) {
+    console.error('FlowNode: data is undefined');
+    return <div>Error: Node data missing</div>;
+  }
   const { theme } = useThemeContext();
   const NodeIcon = {
     agent: Bot,
@@ -408,7 +409,13 @@ function ReactFlowNodePalette({
 // GenServer + localStorage hybrid storage system for reliability
 
 // Internal component that uses React Flow hooks
-function FlowBuilderInternal() {
+function FlowBuilderInternal({
+  username,
+  onUsernameChange,
+}: {
+  username: string;
+  onUsernameChange: (username: string) => void;
+}) {
   const { theme = 'light' } = useThemeContext() ?? { theme: 'light' };
 
   // Generate or get flow ID from URL params or create new one
@@ -426,31 +433,90 @@ function FlowBuilderInternal() {
     return newFlowId;
   }, []);
 
-  // Generate user ID (in a real app, this would come from authentication)
+  // Generate user ID
   const userId = useMemo(() => {
     let storedUserId = localStorage.getItem('helix-user-id');
+
     if (!storedUserId) {
+      // Generate a persistent user ID that will be reused across sessions
       storedUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       localStorage.setItem('helix-user-id', storedUserId);
     }
+
     return storedUserId;
   }, []);
 
   // Initialize local storage and server hooks
   const storage = useFlowStorage();
 
+  // Create the combined user identifier
+  const serverUserId = `${username}_${userId}`;
+
+  // Track if we're currently making local updates to prevent echo conflicts
+  const localUpdateInProgressRef = useRef(false);
+
   const server = useFlowServer({
     flowId,
-    userId,
+    userId: serverUserId,
     onFlowUpdated: flow => {
-      console.log('Flow updated from server:', flow);
-      // Update React Flow state
-      setNodes(flow.nodes || []);
-      setEdges(flow.edges || []);
+      console.log('📥 Flow updated from server:', flow);
+      // Only update metadata, not nodes/edges (handled by onNodesUpdated/onEdgesUpdated)
+      if (flow.name && flow.name !== currentFlowName) {
+        setCurrentFlowName(flow.name);
+      }
+      setHasUnsavedChanges(false); // Server is the source of truth
     },
     onNodesUpdated: flow => {
-      console.log('Nodes updated from server:', flow);
-      setNodes(flow.nodes || []);
+      console.log('📥 Server nodes update received:', {
+        nodeCount: flow.nodes?.length || 0,
+        localUpdateInProgress: localUpdateInProgressRef.current,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Skip server updates if we're in the middle of a local update
+      if (localUpdateInProgressRef.current) {
+        console.log('⏸️ Ignoring server node update - local update in progress');
+        return;
+      }
+
+      console.log('🔧 Processing server nodes update:', flow);
+      if (flow.nodes) {
+        // Check if server data is actually different from current state
+        setNodes(currentNodes => {
+          const serverNodes = flow.nodes.map((nodeData: ReactFlowAINode) => ({
+            id: nodeData.id,
+            type: 'aiFlowNode',
+            position: nodeData.position || { x: nodeData.x || 0, y: nodeData.y || 0 },
+            data: nodeData,
+            style: {
+              width: nodeData.width,
+              height: nodeData.height,
+            },
+          }));
+
+          // Only update if the server has different data
+          const hasChanges = serverNodes.some(serverNode => {
+            const currentNode = currentNodes.find(n => n.id === serverNode.id);
+            if (!currentNode) return true; // New node
+
+            // Check if position is significantly different (avoid floating point issues)
+            const positionChanged =
+              Math.abs((currentNode.position?.x || 0) - (serverNode.position?.x || 0)) > 5 ||
+              Math.abs((currentNode.position?.y || 0) - (serverNode.position?.y || 0)) > 5;
+
+            return positionChanged || currentNode.data.label !== serverNode.data.label;
+          });
+
+          if (hasChanges) {
+            console.log('✅ Applying server node updates - changes detected');
+            setHasUnsavedChanges(false);
+            return serverNodes;
+          } else {
+            console.log('⏸️ Ignoring server update - no significant changes');
+            return currentNodes;
+          }
+        });
+      }
     },
     onEdgesUpdated: flow => {
       console.log('Edges updated from server:', flow);
@@ -474,16 +540,119 @@ function FlowBuilderInternal() {
   const [nodes, setNodes, onNodesChangeOriginal] = useNodesState<ReactFlowAINode>([]);
   const [edges, setEdges, onEdgesChangeOriginal] = useEdgesState([]);
 
-  // Wrap change handlers to track unsaved changes
-  const onNodesChange = useCallback((changes: any) => {
-    onNodesChangeOriginal(changes);
-    setHasUnsavedChanges(true);
-  }, [onNodesChangeOriginal]);
+  // Debounced server sync
+  const serverSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const onEdgesChange = useCallback((changes: any) => {
-    onEdgesChangeOriginal(changes);
-    setHasUnsavedChanges(true);
-  }, [onEdgesChangeOriginal]);
+  // Wrap change handlers to track unsaved changes
+  const onNodesChange = useCallback(
+    (changes: any) => {
+      // Check if these are meaningful changes or just noise
+      const significantChanges = changes.filter((c: any) => {
+        // Ignore these types of changes as they're usually React Flow internal updates
+        if (['select', 'dimensions', 'replace'].includes(c.type)) {
+          return false;
+        }
+
+        if (c.type === 'position' && !c.dragging) {
+          // Position change without dragging - check if it's a significant move
+          const node = c.item || c;
+          if (node.position) {
+            const positionDelta = Math.abs(node.position.x || 0) + Math.abs(node.position.y || 0);
+            return positionDelta > 5; // Only care about moves > 5px
+          }
+        }
+
+        // Allow other types (add, remove, etc.)
+        return true;
+      });
+
+      if (significantChanges.length === 0) {
+        console.log(
+          '👻 Phantom node changes (ignored):',
+          changes.map((c: any) => c.type)
+        );
+        return; // Skip processing phantom changes
+      }
+
+      console.log('🔄 Significant node changes detected:', significantChanges);
+      console.log(
+        '🔍 Change types:',
+        significantChanges.map((c: any) => c.type)
+      );
+      console.log('🔍 Stack trace:', new Error().stack?.split('\n').slice(1, 5));
+
+      // Mark that we're doing a local update to prevent server echo conflicts
+      localUpdateInProgressRef.current = true;
+
+      onNodesChangeOriginal(changes);
+      setHasUnsavedChanges(true);
+
+      // Sync all changes to server (debounced)
+      if (server.connected) {
+        // Clear previous timeout
+        if (serverSyncTimeoutRef.current) {
+          clearTimeout(serverSyncTimeoutRef.current);
+        }
+
+        // Set new timeout for server sync
+        serverSyncTimeoutRef.current = setTimeout(() => {
+          console.log('Syncing node changes to server...');
+          // Get the latest node state after the timeout
+          setNodes(currentNodes => {
+            const updatedNodes = currentNodes.map(n => ({
+              ...n.data,
+              position: n.position,
+              x: n.position.x,
+              y: n.position.y,
+            }));
+            console.log('Sending updated nodes to server:', updatedNodes.length);
+
+            server
+              .updateNodes(updatedNodes)
+              .then(() => {
+                // Clear the local update flag after successful server sync
+                setTimeout(() => {
+                  localUpdateInProgressRef.current = false;
+                }, 500); // Brief delay to avoid race conditions
+              })
+              .catch(error => {
+                console.error('Failed to sync nodes to server:', error);
+                localUpdateInProgressRef.current = false;
+              });
+
+            return currentNodes; // Don't change the nodes, just sync to server
+          });
+        }, 500); // Increased debounce to reduce phantom updates
+      } else {
+        // Clear the flag immediately if not connected to server
+        setTimeout(() => {
+          localUpdateInProgressRef.current = false;
+        }, 100);
+      }
+    },
+    [onNodesChangeOriginal, server]
+  );
+
+  const onEdgesChange = useCallback(
+    (changes: any) => {
+      console.log('Edge changes detected:', changes);
+      onEdgesChangeOriginal(changes);
+      setHasUnsavedChanges(true);
+
+      // Sync edge changes to server
+      if (server.connected) {
+        setTimeout(() => {
+          console.log('Syncing edge changes to server...');
+          setEdges(currentEdges => {
+            console.log('Sending updated edges to server:', currentEdges.length);
+            server.updateEdges(currentEdges).catch(console.error);
+            return currentEdges;
+          });
+        }, 200); // Quick sync for edges
+      }
+    },
+    [onEdgesChangeOriginal, server]
+  );
   const [selectedNode, setSelectedNode] = useState<ReactFlowAINode | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
@@ -497,15 +666,100 @@ function FlowBuilderInternal() {
   const [currentFlowName, setCurrentFlowName] = useState('Untitled Flow');
   const [isFlowManagerOpen, setIsFlowManagerOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+  const [_lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
   const [isEditingFlowName, setIsEditingFlowName] = useState(false);
   const [editingFlowName, setEditingFlowName] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [editingUsername, setEditingUsername] = useState('');
+  const [showUserList, setShowUserList] = useState(false);
+  const [userListAnchor, setUserListAnchor] = useState<HTMLElement | null>(null);
 
-  // Initialize flow on mount
+  // Track if we've initialized to prevent re-initialization loops
+  const initializationRef = useRef(false);
+
+  // Initialize flow on mount - ONLY ONCE
   useEffect(() => {
-    if (server.connected && server.flowState) {
-      // Load from server state
-      setNodes(server.flowState.nodes || []);
+    if (initializationRef.current) {
+      console.log('⏭️ Skipping re-initialization - already initialized');
+      return;
+    }
+
+    console.log('🚀 Initializing flow - first time only');
+    initializationRef.current = true;
+
+    const initializeFlow = async () => {
+      try {
+        // First try to load from localStorage
+        const savedFlow = await storage.loadFlow(flowId);
+        if (savedFlow) {
+          console.log('📂 Loaded flow from localStorage:', savedFlow);
+          // Load directly - convert to React Flow format
+          const reactFlowNodes = (savedFlow.nodes || []).map((nodeData: any) => ({
+            id: nodeData.id,
+            type: 'aiFlowNode',
+            position: nodeData.position || { x: nodeData.x || 0, y: nodeData.y || 0 },
+            data: nodeData,
+            style: {
+              width: nodeData.width,
+              height: nodeData.height,
+            },
+          }));
+          setNodes(reactFlowNodes);
+          setEdges(savedFlow.edges || []);
+          setCurrentFlowName(savedFlow.name);
+
+          // Fit view to content after loading (with delay to ensure nodes are rendered)
+          setTimeout(() => {
+            if (reactFlowInstance && reactFlowNodes.length > 0) {
+              reactFlowInstance.fitView({ padding: 0.1 });
+            }
+          }, 100);
+
+          // Create flow on server if connected (server will handle initial sync)
+          if (server.connected) {
+            await server.createFlow({
+              name: savedFlow.name,
+              description: savedFlow.description,
+              nodes: savedFlow.nodes,
+              edges: savedFlow.edges,
+              viewport: savedFlow.viewport,
+            });
+          }
+        } else {
+          console.log('🆕 Creating new flow');
+          // Create new flow
+          if (server.connected) {
+            await server.createFlow({ name: 'Untitled Flow', description: '' });
+          }
+        }
+      } catch (error) {
+        console.error('❌ Failed to initialize flow:', error);
+        initializationRef.current = false; // Allow retry on error
+      }
+    };
+
+    initializeFlow();
+  }, [flowId]); // Only depend on flowId - run once per flow
+
+  // Separate effect to handle server connection and initial load from server
+  useEffect(() => {
+    if (!server.connected || !server.flowState) return;
+
+    // Only load from server if we haven't loaded anything yet (empty canvas)
+    if (nodes.length === 0 && server.flowState.nodes?.length > 0) {
+      console.log('🔄 Loading initial data from server');
+      const reactFlowNodes = (server.flowState.nodes || []).map((nodeData: ReactFlowAINode) => ({
+        id: nodeData.id,
+        type: 'aiFlowNode',
+        position: nodeData.position || { x: nodeData.x || 0, y: nodeData.y || 0 },
+        data: nodeData,
+        style: {
+          width: nodeData.width,
+          height: nodeData.height,
+        },
+      }));
+      setNodes(reactFlowNodes);
       setEdges(server.flowState.edges || []);
       setCurrentFlowName(server.flowState.name);
 
@@ -513,45 +767,8 @@ function FlowBuilderInternal() {
       if (server.flowState.viewport && reactFlowInstance) {
         reactFlowInstance.setViewport(server.flowState.viewport);
       }
-    } else {
-      // Try to load from localStorage as fallback
-      const tryLoadFromLocalStorage = async () => {
-        try {
-          const savedFlow = await storage.loadFlow(flowId);
-          if (savedFlow) {
-            console.log('Loaded flow from localStorage:', savedFlow);
-            // Create flow on server with saved data
-            if (server.connected) {
-              await server.createFlow({
-                name: savedFlow.name,
-                description: savedFlow.description,
-                nodes: savedFlow.nodes,
-                edges: savedFlow.edges,
-                viewport: savedFlow.viewport,
-              });
-            } else {
-              // Load directly if server not connected
-              setNodes(savedFlow.nodes || []);
-              setEdges(savedFlow.edges || []);
-              setCurrentFlowName(savedFlow.name);
-              if (reactFlowInstance && savedFlow.viewport) {
-                reactFlowInstance.setViewport(savedFlow.viewport);
-              }
-            }
-          } else {
-            // Create new flow
-            if (server.connected) {
-              await server.createFlow({ name: 'Untitled Flow', description: '' });
-            }
-          }
-        } catch (error) {
-          console.error('Failed to initialize flow:', error);
-        }
-      };
-
-      tryLoadFromLocalStorage();
     }
-  }, [server.connected, server.flowState, flowId, reactFlowInstance]);
+  }, [server.connected]); // Only run when connection changes
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
@@ -568,7 +785,7 @@ function FlowBuilderInternal() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const shouldShowTemplates = params.get('templates') === 'true';
-    
+
     if (shouldShowTemplates) {
       setIsTemplatesModalOpen(true);
       // Clean up URL
@@ -769,7 +986,7 @@ function FlowBuilderInternal() {
 
       const newNode: Node<ReactFlowAINode> = {
         id: nodeData.id,
-        type: 'aiFlowNode',
+        type: 'aiFlowNode', // Always use aiFlowNode as the React Flow type
         position,
         data: nodeData,
         style: {
@@ -959,7 +1176,18 @@ function FlowBuilderInternal() {
           if (server.connected) {
             await server.loadFlow(savedFlow);
           } else {
-            setNodes(savedFlow.nodes || []);
+            // Convert to React Flow format
+            const reactFlowNodes = (savedFlow.nodes || []).map((nodeData: any) => ({
+              id: nodeData.id,
+              type: 'aiFlowNode',
+              position: nodeData.position || { x: nodeData.x || 0, y: nodeData.y || 0 },
+              data: nodeData,
+              style: {
+                width: nodeData.width,
+                height: nodeData.height,
+              },
+            }));
+            setNodes(reactFlowNodes);
             setEdges(savedFlow.edges || []);
             setCurrentFlowName(savedFlow.name);
             if (reactFlowInstance && savedFlow.viewport) {
@@ -1034,6 +1262,29 @@ function FlowBuilderInternal() {
     setIsEditingFlowName(false);
   }, [currentFlowName]);
 
+  // Username editing handlers
+  const handleStartEditingUsername = useCallback(() => {
+    setEditingUsername(username);
+    setIsEditingUsername(true);
+  }, [username]);
+
+  const handleSaveUsername = useCallback(() => {
+    const trimmedUsername = editingUsername.trim();
+    if (!trimmedUsername) {
+      setEditingUsername(username);
+      setIsEditingUsername(false);
+      return;
+    }
+
+    onUsernameChange(trimmedUsername);
+    setIsEditingUsername(false);
+  }, [editingUsername, username, onUsernameChange]);
+
+  const handleCancelEditingUsername = useCallback(() => {
+    setEditingUsername(username);
+    setIsEditingUsername(false);
+  }, [username]);
+
   // Note: Viewport auto-save removed to prevent infinite update loops
   // Viewport will be saved manually when user makes significant changes
 
@@ -1088,80 +1339,181 @@ function FlowBuilderInternal() {
         </div>
 
         <div className='flow-builder__flow-info'>
-          <div className='flow-builder__flow-name'>
-            {isEditingFlowName ? (
-              <input
-                type='text'
-                value={editingFlowName}
-                onChange={(e) => setEditingFlowName(e.target.value)}
-                onBlur={handleSaveFlowName}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSaveFlowName();
-                  } else if (e.key === 'Escape') {
-                    handleCancelEditingFlowName();
-                  }
-                }}
-                autoFocus
-                style={{
-                  background: theme === 'dark' ? 'rgba(40, 44, 52, 0.8)' : 'rgba(255, 255, 255, 0.9)',
-                  border: `2px solid ${theme === 'dark' ? '#98c379' : '#000000'}`,
-                  fontSize: 'inherit',
-                  fontFamily: 'inherit',
-                  fontWeight: '600',
-                  color: 'inherit',
-                  outline: 'none',
-                  borderRadius: '6px',
-                  padding: '6px 10px',
-                  minWidth: '140px',
-                  boxShadow: theme === 'dark' 
-                    ? '0 0 0 3px rgba(152, 195, 121, 0.1), 0 2px 8px rgba(0, 0, 0, 0.3)'
-                    : '0 0 0 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.1)',
-                  transition: 'all 0.2s ease',
-                }}
-              />
-            ) : (
-              <span
-                onClick={handleStartEditingFlowName}
-                style={{
-                  cursor: 'pointer',
-                  padding: '6px 10px',
-                  borderRadius: '6px',
-                  transition: 'all 0.2s ease',
-                  border: '2px solid transparent',
-                  fontWeight: '600',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 
-                    theme === 'dark' ? 'rgba(152, 195, 121, 0.1)' : 'rgba(0, 0, 0, 0.03)';
-                  e.currentTarget.style.borderColor = 
-                    theme === 'dark' ? 'rgba(152, 195, 121, 0.3)' : 'rgba(0, 0, 0, 0.1)';
-                  e.currentTarget.style.boxShadow = 
-                    theme === 'dark' 
-                      ? '0 0 0 2px rgba(152, 195, 121, 0.05), 0 1px 4px rgba(0, 0, 0, 0.2)'
-                      : '0 0 0 2px rgba(0, 0, 0, 0.02), 0 1px 4px rgba(0, 0, 0, 0.05)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.borderColor = 'transparent';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-                title="Click to edit flow name"
-              >
-                {currentFlowName}
-              </span>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* Flow Name */}
+            <div className='flow-builder__flow-name'>
+              {isEditingFlowName ? (
+                <input
+                  type='text'
+                  value={editingFlowName}
+                  onChange={e => setEditingFlowName(e.target.value)}
+                  onBlur={handleSaveFlowName}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      handleSaveFlowName();
+                    } else if (e.key === 'Escape') {
+                      handleCancelEditingFlowName();
+                    }
+                  }}
+                  autoFocus
+                  style={{
+                    background:
+                      theme === 'dark' ? 'rgba(40, 44, 52, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                    border: `2px solid ${theme === 'dark' ? '#98c379' : '#000000'}`,
+                    fontSize: 'inherit',
+                    fontFamily: 'inherit',
+                    fontWeight: '600',
+                    color: 'inherit',
+                    outline: 'none',
+                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    minWidth: '140px',
+                    boxShadow:
+                      theme === 'dark'
+                        ? '0 0 0 3px rgba(152, 195, 121, 0.1), 0 2px 8px rgba(0, 0, 0, 0.3)'
+                        : '0 0 0 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.1)',
+                    transition: 'all 0.2s ease',
+                  }}
+                />
+              ) : (
+                <span
+                  onClick={handleStartEditingFlowName}
+                  style={{
+                    cursor: 'pointer',
+                    padding: '6px 10px',
+                    borderRadius: '6px',
+                    transition: 'all 0.2s ease',
+                    border: '2px solid transparent',
+                    fontWeight: '600',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.backgroundColor =
+                      theme === 'dark' ? 'rgba(152, 195, 121, 0.1)' : 'rgba(0, 0, 0, 0.03)';
+                    e.currentTarget.style.borderColor =
+                      theme === 'dark' ? 'rgba(152, 195, 121, 0.3)' : 'rgba(0, 0, 0, 0.1)';
+                    e.currentTarget.style.boxShadow =
+                      theme === 'dark'
+                        ? '0 0 0 2px rgba(152, 195, 121, 0.05), 0 1px 4px rgba(0, 0, 0, 0.2)'
+                        : '0 0 0 2px rgba(0, 0, 0, 0.02), 0 1px 4px rgba(0, 0, 0, 0.05)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.borderColor = 'transparent';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  title='Click to edit flow name'
+                >
+                  {currentFlowName}
+                </span>
+              )}
+            </div>
+
+            {/* User Info - moved inline */}
+            <div
+              className='flow-builder__user-info'
+              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              {/* Current user display */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '12px', color: theme === 'dark' ? '#5c6370' : '#6b7280' }}>
+                  joined as
+                </span>
+                {isEditingUsername ? (
+                  <input
+                    type='text'
+                    value={editingUsername}
+                    onChange={e => setEditingUsername(e.target.value)}
+                    onBlur={handleSaveUsername}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        handleSaveUsername();
+                      } else if (e.key === 'Escape') {
+                        handleCancelEditingUsername();
+                      }
+                    }}
+                    autoFocus
+                    style={{
+                      background:
+                        theme === 'dark' ? 'rgba(40, 44, 52, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                      border: `1px solid ${theme === 'dark' ? '#61afef' : '#3b82f6'}`,
+                      fontSize: '12px',
+                      fontFamily: 'inherit',
+                      fontWeight: '500',
+                      color: 'inherit',
+                      outline: 'none',
+                      borderRadius: '4px',
+                      padding: '2px 6px',
+                      minWidth: '80px',
+                    }}
+                  />
+                ) : (
+                  <span
+                    onClick={handleStartEditingUsername}
+                    style={{
+                      cursor: 'pointer',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      transition: 'all 0.2s ease',
+                      fontWeight: '500',
+                      fontSize: '12px',
+                      backgroundColor: theme === 'dark' ? '#61afef20' : '#3b82f620',
+                      color: theme === 'dark' ? '#61afef' : '#3b82f6',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.backgroundColor =
+                        theme === 'dark' ? '#61afef30' : '#3b82f630';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.backgroundColor =
+                        theme === 'dark' ? '#61afef20' : '#3b82f620';
+                    }}
+                    title='Click to edit username'
+                  >
+                    {username}
+                  </span>
+                )}
+              </div>
+
+              {/* Connected users count */}
+              {server.connectedUsers.length > 1 && (
+                <span
+                  onClick={e => {
+                    setUserListAnchor(e.currentTarget);
+                    setShowUserList(true);
+                  }}
+                  style={{
+                    cursor: 'pointer',
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    backgroundColor: theme === 'dark' ? '#22c55e20' : '#22c55e20',
+                    color: theme === 'dark' ? '#22c55e' : '#16a34a',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.backgroundColor =
+                      theme === 'dark' ? '#22c55e30' : '#22c55e30';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.backgroundColor =
+                      theme === 'dark' ? '#22c55e20' : '#22c55e20';
+                  }}
+                  title='Click to see all connected users'
+                >
+                  +{server.connectedUsers.length - 1} other
+                  {server.connectedUsers.length === 2 ? '' : 's'}
+                </span>
+              )}
+            </div>
           </div>
+
+          {/* Connection status - now separate row */}
           <div className='flow-builder__connection-status'>
             <div
               className={`flow-builder__status-indicator ${serverConnected ? 'connected' : 'disconnected'}`}
               title={serverConnected ? 'Connected to server' : 'Server disconnected'}
             />
-            {server.connectedUsers.length > 1 && (
-              <span className='flow-builder__collaborators'>
-                {server.connectedUsers.length} users
-              </span>
-            )}
           </div>
         </div>
 
@@ -1180,17 +1532,45 @@ function FlowBuilderInternal() {
           <button
             className='flow-builder__save-btn'
             onClick={async () => {
+              if (isSaving) return; // Prevent multiple saves
+
               try {
-                if (server.connected && server.flowState) {
-                  await storage.saveFlow(server.flowState);
-                  setHasUnsavedChanges(false);
-                  setLastSavedTime(new Date());
-                  console.log('Flow saved successfully');
-                } else {
-                  console.warn('No server connection or flow state to save');
+                setIsSaving(true);
+
+                // Capture current React Flow state including positions
+                const currentViewport = reactFlowInstance?.getViewport() || { x: 0, y: 0, zoom: 1 };
+                const currentFlowState = {
+                  id: flowId,
+                  name: currentFlowName,
+                  description: server.flowState?.description || '',
+                  nodes: nodes.map(n => ({
+                    ...n.data,
+                    position: n.position,
+                    x: n.position.x,
+                    y: n.position.y,
+                  })),
+                  edges: edges,
+                  viewport: currentViewport,
+                  createdAt: server.flowState?.createdAt || new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                };
+
+                await storage.saveFlow(currentFlowState);
+
+                // Also update server if connected
+                if (server.connected) {
+                  await server.updateMetadata(currentFlowName, server.flowState?.description || '');
+                  await server.updateNodes(currentFlowState.nodes);
+                  await server.updateEdges(edges);
                 }
+
+                setHasUnsavedChanges(false);
+                setLastSavedTime(new Date());
+                console.log('Flow saved successfully');
               } catch (error) {
                 console.error('Failed to save flow:', error);
+              } finally {
+                setIsSaving(false);
               }
             }}
             style={{
@@ -1200,31 +1580,57 @@ function FlowBuilderInternal() {
               gap: '6px',
               padding: '6px 12px',
               borderRadius: '6px',
-              border: `1px solid ${hasUnsavedChanges ? '#f59e0b' : (theme === 'dark' ? '#374151' : '#d1d5db')}`,
-              backgroundColor: hasUnsavedChanges ? (theme === 'dark' ? '#f59e0b' : '#f59e0b') : (theme === 'dark' ? '#98c379' : '#000000'),
+              border: `1px solid ${
+                isSaving
+                  ? '#06b6d4'
+                  : hasUnsavedChanges
+                    ? '#f59e0b'
+                    : theme === 'dark'
+                      ? '#374151'
+                      : '#d1d5db'
+              }`,
+              backgroundColor: isSaving
+                ? '#06b6d4'
+                : hasUnsavedChanges
+                  ? '#f59e0b'
+                  : theme === 'dark'
+                    ? '#16a34a'
+                    : '#16a34a',
               color: 'white',
-              cursor: 'pointer',
+              cursor: isSaving ? 'not-allowed' : 'pointer',
               fontSize: '14px',
               fontWeight: '600',
-              boxShadow: hasUnsavedChanges 
-                ? '0 0 0 2px rgba(245, 158, 11, 0.2)' 
-                : 'none',
+              boxShadow: isSaving
+                ? '0 0 0 2px rgba(6, 182, 212, 0.2)'
+                : hasUnsavedChanges
+                  ? '0 0 0 2px rgba(245, 158, 11, 0.2)'
+                  : 'none',
+              opacity: isSaving ? 0.8 : 1,
+              transition: 'all 0.2s ease',
             }}
-            title={hasUnsavedChanges ? 'Save Flow (Unsaved changes)' : 'Save Flow'}
+            title={
+              isSaving
+                ? 'Saving...'
+                : hasUnsavedChanges
+                  ? 'Save Flow (Unsaved changes)'
+                  : 'Save Flow'
+            }
           >
             <Save size={16} />
-            {hasUnsavedChanges ? 'Save*' : 'Save'}
-            {hasUnsavedChanges && (
-              <span style={{ 
-                position: 'absolute',
-                top: '-2px',
-                right: '-2px',
-                width: '8px',
-                height: '8px',
-                backgroundColor: '#dc2626',
-                borderRadius: '50%',
-                border: '2px solid white'
-              }} />
+            {isSaving ? 'Saving...' : hasUnsavedChanges ? 'Save*' : 'Save'}
+            {hasUnsavedChanges && !isSaving && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-2px',
+                  right: '-2px',
+                  width: '8px',
+                  height: '8px',
+                  backgroundColor: '#dc2626',
+                  borderRadius: '50%',
+                  border: '2px solid white',
+                }}
+              />
             )}
           </button>
 
@@ -1314,7 +1720,6 @@ function FlowBuilderInternal() {
               markerEnd: { type: MarkerType.ArrowClosed, color: '#9ca3af' },
               style: { stroke: '#9ca3af', strokeWidth: 2 },
             }}
-            fitView
             attributionPosition='bottom-left'
             proOptions={{ hideAttribution: true }}
             panOnScroll={!isCanvasLocked}
@@ -1561,8 +1966,48 @@ function FlowBuilderInternal() {
         onLoadFlow={handleLoadFlow}
         onCreateNew={handleCreateNewFlow}
       />
+
+      {/* User List Popover */}
+      <UserListPopover
+        isOpen={showUserList}
+        onClose={() => setShowUserList(false)}
+        users={server.connectedUsers}
+        currentUser={`${username}_${userId}`}
+        anchorElement={userListAnchor}
+      />
     </div>
   );
+}
+
+// Username wrapper component that generates username automatically
+function FlowBuilderWithAuth() {
+  const [currentUsername, setCurrentUsername] = useState('');
+
+  // Generate or get username on mount - persist for this tab session
+  useEffect(() => {
+    // Check if we already have a username for this tab session
+    const sessionUsername = sessionStorage.getItem('helix-session-username');
+    if (sessionUsername) {
+      setCurrentUsername(sessionUsername);
+    } else {
+      // Generate a new username and store it for this session
+      const newUsername = generateUsername();
+      setCurrentUsername(newUsername);
+      sessionStorage.setItem('helix-session-username', newUsername);
+    }
+  }, []);
+
+  // Handle username changes and optionally persist for this session
+  const handleUsernameChange = useCallback((newUsername: string) => {
+    setCurrentUsername(newUsername);
+    // Optional: store in sessionStorage instead of localStorage for per-tab persistence
+    sessionStorage.setItem('helix-session-username', newUsername);
+  }, []);
+
+  // Don't render until we have a username
+  if (!currentUsername) return null;
+
+  return <FlowBuilderInternal username={currentUsername} onUsernameChange={handleUsernameChange} />;
 }
 
 // Main React Flow AI Flow Builder with Provider wrapper
@@ -1571,7 +2016,7 @@ export function FlowBuilder() {
     <ErrorBoundary>
       <ThemeProvider>
         <ReactFlowProvider>
-          <FlowBuilderInternal />
+          <FlowBuilderWithAuth />
         </ReactFlowProvider>
       </ThemeProvider>
     </ErrorBoundary>

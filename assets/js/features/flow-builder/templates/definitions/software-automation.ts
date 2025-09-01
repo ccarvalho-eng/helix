@@ -42,7 +42,7 @@ export const softwareAutomationTemplate: Template = {
       y: 200,
       config: {
         source_type: 'document_analysis',
-        formats: 'markdown, confluence, figma',
+        formats: 'markdown, confluence, html',
       },
     },
     {

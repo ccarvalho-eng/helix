@@ -1,7 +1,6 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Save,
-  FolderOpen,
   Trash2,
   Copy,
   Download,
@@ -140,7 +139,7 @@ export function FlowManager({
         const importedFlow = await storage.importFlow(content);
         storage.refreshFlowList();
         event.target.value = ''; // Reset input
-        
+
         // Close modal and navigate to imported flow
         onClose();
         await onLoadFlow(importedFlow.id);
@@ -246,18 +245,14 @@ export function FlowManager({
                   fontSize: '14px',
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.backgroundColor = 
-                    theme === 'dark' ? '#98c379' : '#000000';
+                  e.currentTarget.style.backgroundColor = theme === 'dark' ? '#98c379' : '#000000';
                   e.currentTarget.style.color = 'white';
-                  e.currentTarget.style.borderColor = 
-                    theme === 'dark' ? '#98c379' : '#000000';
+                  e.currentTarget.style.borderColor = theme === 'dark' ? '#98c379' : '#000000';
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = 
-                    theme === 'dark' ? 'white' : '#374151';
-                  e.currentTarget.style.borderColor = 
-                    theme === 'dark' ? '#374151' : '#d1d5db';
+                  e.currentTarget.style.color = theme === 'dark' ? 'white' : '#374151';
+                  e.currentTarget.style.borderColor = theme === 'dark' ? '#374151' : '#d1d5db';
                 }}
               >
                 <Save size={16} />
@@ -279,18 +274,14 @@ export function FlowManager({
                 fontSize: '14px',
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.backgroundColor = 
-                  theme === 'dark' ? '#98c379' : '#000000';
+                e.currentTarget.style.backgroundColor = theme === 'dark' ? '#98c379' : '#000000';
                 e.currentTarget.style.color = 'white';
-                e.currentTarget.style.borderColor = 
-                  theme === 'dark' ? '#98c379' : '#000000';
+                e.currentTarget.style.borderColor = theme === 'dark' ? '#98c379' : '#000000';
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = 
-                  theme === 'dark' ? 'white' : '#374151';
-                e.currentTarget.style.borderColor = 
-                  theme === 'dark' ? '#374151' : '#d1d5db';
+                e.currentTarget.style.color = theme === 'dark' ? 'white' : '#374151';
+                e.currentTarget.style.borderColor = theme === 'dark' ? '#374151' : '#d1d5db';
               }}
             >
               <ArrowDown size={16} />
@@ -359,8 +350,12 @@ export function FlowManager({
               borderRadius: '6px',
               border: `2px solid ${
                 isSearchFocused
-                  ? theme === 'dark' ? '#98c379' : '#000000'
-                  : theme === 'dark' ? '#374151' : '#d1d5db'
+                  ? theme === 'dark'
+                    ? '#98c379'
+                    : '#000000'
+                  : theme === 'dark'
+                    ? '#374151'
+                    : '#d1d5db'
               }`,
               backgroundColor: theme === 'dark' ? 'var(--theme-bg-primary)' : 'white',
               color: theme === 'dark' ? 'white' : '#374151',
@@ -406,7 +401,12 @@ export function FlowManager({
               style={{
                 width: `${storageUsage.percentage}%`,
                 height: '100%',
-                backgroundColor: storageUsage.percentage > 80 ? '#ef4444' : (theme === 'dark' ? '#98c379' : '#000000'),
+                backgroundColor:
+                  storageUsage.percentage > 80
+                    ? '#ef4444'
+                    : theme === 'dark'
+                      ? '#98c379'
+                      : '#000000',
                 borderRadius: '2px',
               }}
             />

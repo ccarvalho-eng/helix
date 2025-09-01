@@ -66,7 +66,10 @@ export function useFlowServer(options: UseFlowServerOptions): UseFlowServerRetur
 
   // Initialize socket and channel
   useEffect(() => {
-    if (!flowId || !userId) return;
+    if (!flowId || !userId) {
+      console.log('useFlowServer: Missing flowId or userId', { flowId, userId });
+      return;
+    }
 
     setConnecting(true);
     setError(null);
@@ -103,7 +106,11 @@ export function useFlowServer(options: UseFlowServerOptions): UseFlowServerRetur
       .join()
       .receive('ok', (response: any) => {
         console.log('Joined flow channel successfully', response);
+        console.log('Initial connected users:', response.connected_users);
         setFlowState(response);
+        if (response.connected_users) {
+          setConnectedUsers(response.connected_users);
+        }
         setConnected(true);
         setConnecting(false);
         setError(null);
@@ -156,6 +163,7 @@ export function useFlowServer(options: UseFlowServerOptions): UseFlowServerRetur
 
       ch.on('presence_updated', (presence: { connected_users: string[] }) => {
         console.log('Presence updated:', presence);
+        console.log('Setting connected users to:', presence.connected_users);
         setConnectedUsers(presence.connected_users);
         onPresenceUpdated?.(presence);
       });

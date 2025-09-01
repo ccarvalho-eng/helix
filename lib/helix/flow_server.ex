@@ -9,7 +9,7 @@ defmodule Helix.FlowServer do
 
   alias Helix.FlowRegistry
 
-  @auto_save_interval :timer.minutes(2)
+  @auto_save_interval :timer.minutes(5)
   @cleanup_after :timer.minutes(30)
 
   defstruct [

@@ -1,7 +1,18 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Cpu, Plus, FolderOpen, Clock, Settings, Search, Filter, FileText, Users, Trash2, Copy, Download } from 'lucide-react';
+import {
+  Cpu,
+  Plus,
+  FolderOpen,
+  Clock,
+  Settings,
+  Search,
+  FileText,
+  Trash2,
+  Copy,
+  Download,
+} from 'lucide-react';
 import { ThemeToggle } from '../flow-builder/components/ThemeToggle';
-import { useFlowStorage, SavedFlowMetadata } from '../flow-builder/hooks';
+import { useFlowStorage } from '../flow-builder/hooks';
 import { useThemeContext, ThemeProvider } from '../flow-builder/contexts/ThemeContext';
 
 const HomePageInternal: React.FC = () => {
@@ -34,7 +45,7 @@ const HomePageInternal: React.FC = () => {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) return 'Today';
     if (diffDays === 2) return 'Yesterday';
     if (diffDays <= 7) return `${diffDays} days ago`;
@@ -58,7 +69,7 @@ const HomePageInternal: React.FC = () => {
       setFlowToDelete(null);
     } catch (error) {
       console.error('Failed to delete flow:', error);
-      alert('Failed to delete flow. Please try again.');
+      console.error('Failed to delete flow. Please try again.');
     }
   };
 
@@ -74,7 +85,7 @@ const HomePageInternal: React.FC = () => {
       setOpenMenuId(null);
     } catch (error) {
       console.error('Failed to duplicate flow:', error);
-      alert('Failed to duplicate flow. Please try again.');
+      console.error('Failed to duplicate flow. Please try again.');
     }
   };
 
@@ -93,7 +104,7 @@ const HomePageInternal: React.FC = () => {
       setOpenMenuId(null);
     } catch (error) {
       console.error('Failed to export flow:', error);
-      alert('Failed to export flow. Please try again.');
+      console.error('Failed to export flow. Please try again.');
     }
   };
 
@@ -148,7 +159,10 @@ const HomePageInternal: React.FC = () => {
               </div>
             </button>
 
-            <div className='home-quick-action' onClick={() => window.location.href = '/flow?templates=true'}>
+            <div
+              className='home-quick-action'
+              onClick={() => (window.location.href = '/flow?templates=true')}
+            >
               <FolderOpen className='home-quick-action__icon' />
               <div className='home-quick-action__content'>
                 <h3 className='home-quick-action__title'>Browse Templates</h3>
@@ -173,7 +187,7 @@ const HomePageInternal: React.FC = () => {
                     placeholder='Search workflows...'
                     className='home-workflows__search-input'
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={e => setSearchQuery(e.target.value)}
                   />
                 </div>
               </div>
@@ -200,10 +214,10 @@ const HomePageInternal: React.FC = () => {
                 </div>
               )}
 
-              {filteredFlows.map((flow) => (
-                <div 
-                  key={flow.id} 
-                  className='home-workflow-card' 
+              {filteredFlows.map(flow => (
+                <div
+                  key={flow.id}
+                  className='home-workflow-card'
                   onClick={() => handleOpenFlow(flow.id)}
                 >
                   <div className='home-workflow-card__header'>
@@ -214,16 +228,16 @@ const HomePageInternal: React.FC = () => {
                         <span>Last edited {formatDate(flow.updated_at)}</span>
                       </div>
                     </div>
-                    <div 
+                    <div
                       className='home-workflow-card__menu-container'
                       style={{ position: 'relative' }}
-                      ref={(el) => (menuRefs.current[flow.id] = el)}
+                      ref={el => (menuRefs.current[flow.id] = el)}
                     >
                       <button
                         className='home-workflow-card__menu'
                         type='button'
                         aria-label='Open workflow menu'
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           setOpenMenuId(openMenuId === flow.id ? null : flow.id);
                         }}
@@ -246,18 +260,20 @@ const HomePageInternal: React.FC = () => {
                             right: '0',
                             top: '100%',
                             marginTop: '4px',
-                            backgroundColor: theme === 'dark' ? 'var(--theme-bg-secondary)' : 'white',
+                            backgroundColor:
+                              theme === 'dark' ? 'var(--theme-bg-secondary)' : 'white',
                             border: `1px solid ${theme === 'dark' ? '#374151' : '#d1d5db'}`,
                             borderRadius: '6px',
-                            boxShadow: theme === 'dark'
-                              ? '0 10px 25px rgba(0, 0, 0, 0.3)'
-                              : '0 10px 25px rgba(0, 0, 0, 0.1)',
+                            boxShadow:
+                              theme === 'dark'
+                                ? '0 10px 25px rgba(0, 0, 0, 0.3)'
+                                : '0 10px 25px rgba(0, 0, 0, 0.1)',
                             zIndex: 50,
                             minWidth: '160px',
                           }}
                         >
                           <button
-                            onClick={(e) => {
+                            onClick={e => {
                               e.stopPropagation();
                               handleDuplicateFlow(flow.id);
                             }}
@@ -274,11 +290,13 @@ const HomePageInternal: React.FC = () => {
                               alignItems: 'center',
                               gap: '8px',
                             }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = 
-                                theme === 'dark' ? 'rgba(152, 195, 121, 0.1)' : 'rgba(0, 0, 0, 0.03)';
+                            onMouseEnter={e => {
+                              e.currentTarget.style.backgroundColor =
+                                theme === 'dark'
+                                  ? 'rgba(152, 195, 121, 0.1)'
+                                  : 'rgba(0, 0, 0, 0.03)';
                             }}
-                            onMouseLeave={(e) => {
+                            onMouseLeave={e => {
                               e.currentTarget.style.backgroundColor = 'transparent';
                             }}
                           >
@@ -287,7 +305,7 @@ const HomePageInternal: React.FC = () => {
                           </button>
 
                           <button
-                            onClick={(e) => {
+                            onClick={e => {
                               e.stopPropagation();
                               handleExportFlow(flow.id);
                             }}
@@ -304,11 +322,13 @@ const HomePageInternal: React.FC = () => {
                               alignItems: 'center',
                               gap: '8px',
                             }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = 
-                                theme === 'dark' ? 'rgba(152, 195, 121, 0.1)' : 'rgba(0, 0, 0, 0.03)';
+                            onMouseEnter={e => {
+                              e.currentTarget.style.backgroundColor =
+                                theme === 'dark'
+                                  ? 'rgba(152, 195, 121, 0.1)'
+                                  : 'rgba(0, 0, 0, 0.03)';
                             }}
-                            onMouseLeave={(e) => {
+                            onMouseLeave={e => {
                               e.currentTarget.style.backgroundColor = 'transparent';
                             }}
                           >
@@ -316,14 +336,16 @@ const HomePageInternal: React.FC = () => {
                             Export
                           </button>
 
-                          <div style={{
-                            height: '1px',
-                            backgroundColor: theme === 'dark' ? '#374151' : '#e5e7eb',
-                            margin: '4px 0',
-                          }} />
+                          <div
+                            style={{
+                              height: '1px',
+                              backgroundColor: theme === 'dark' ? '#374151' : '#e5e7eb',
+                              margin: '4px 0',
+                            }}
+                          />
 
                           <button
-                            onClick={(e) => {
+                            onClick={e => {
                               e.stopPropagation();
                               handleDeleteFlow(flow.id, flow.name);
                             }}
@@ -340,10 +362,10 @@ const HomePageInternal: React.FC = () => {
                               alignItems: 'center',
                               gap: '8px',
                             }}
-                            onMouseEnter={(e) => {
+                            onMouseEnter={e => {
                               e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
                             }}
-                            onMouseLeave={(e) => {
+                            onMouseLeave={e => {
                               e.currentTarget.style.backgroundColor = 'transparent';
                             }}
                           >
@@ -411,64 +433,77 @@ const HomePageInternal: React.FC = () => {
               margin: '20px',
               maxWidth: '400px',
               width: '100%',
-              boxShadow: theme === 'dark'
-                ? '0 25px 50px rgba(0, 0, 0, 0.5)'
-                : '0 25px 50px rgba(0, 0, 0, 0.15)',
+              boxShadow:
+                theme === 'dark'
+                  ? '0 25px 50px rgba(0, 0, 0, 0.5)'
+                  : '0 25px 50px rgba(0, 0, 0, 0.15)',
               border: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              marginBottom: '16px',
-            }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            <div
+              style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-              }}>
+                gap: '12px',
+                marginBottom: '16px',
+              }}
+            >
+              <div
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 <Trash2 size={24} style={{ color: '#ef4444' }} />
               </div>
               <div>
-                <h3 style={{
-                  margin: 0,
-                  fontSize: '18px',
-                  fontWeight: '600',
-                  color: theme === 'dark' ? 'white' : '#111827',
-                }}>
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    color: theme === 'dark' ? 'white' : '#111827',
+                  }}
+                >
                   Delete Flow
                 </h3>
-                <p style={{
-                  margin: 0,
-                  fontSize: '14px',
-                  color: theme === 'dark' ? '#9ca3af' : '#64748b',
-                }}>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '14px',
+                    color: theme === 'dark' ? '#9ca3af' : '#64748b',
+                  }}
+                >
                   This action cannot be undone
                 </p>
               </div>
             </div>
 
-            <p style={{
-              margin: '0 0 24px 0',
-              fontSize: '14px',
-              lineHeight: '1.5',
-              color: theme === 'dark' ? '#d1d5db' : '#374151',
-            }}>
-              Are you sure you want to delete <strong>"{flowToDelete.name}"</strong>? 
-              All data including nodes, connections, and settings will be permanently removed.
+            <p
+              style={{
+                margin: '0 0 24px 0',
+                fontSize: '14px',
+                lineHeight: '1.5',
+                color: theme === 'dark' ? '#d1d5db' : '#374151',
+              }}
+            >
+              Are you sure you want to delete <strong>"{flowToDelete.name}"</strong>? All data
+              including nodes, connections, and settings will be permanently removed.
             </p>
 
-            <div style={{
-              display: 'flex',
-              gap: '12px',
-              justifyContent: 'flex-end',
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: '12px',
+                justifyContent: 'flex-end',
+              }}
+            >
               <button
                 onClick={cancelDeleteFlow}
                 style={{
@@ -481,17 +516,17 @@ const HomePageInternal: React.FC = () => {
                   fontSize: '14px',
                   fontWeight: '500',
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 
+                onMouseEnter={e => {
+                  e.currentTarget.style.backgroundColor =
                     theme === 'dark' ? 'rgba(152, 195, 121, 0.1)' : 'rgba(0, 0, 0, 0.03)';
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={e => {
                   e.currentTarget.style.backgroundColor = 'transparent';
                 }}
               >
                 Cancel
               </button>
-              
+
               <button
                 onClick={confirmDeleteFlow}
                 style={{
@@ -504,10 +539,10 @@ const HomePageInternal: React.FC = () => {
                   fontSize: '14px',
                   fontWeight: '600',
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={e => {
                   e.currentTarget.style.backgroundColor = '#dc2626';
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={e => {
                   e.currentTarget.style.backgroundColor = '#ef4444';
                 }}
               >
