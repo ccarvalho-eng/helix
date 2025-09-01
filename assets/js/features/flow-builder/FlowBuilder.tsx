@@ -550,7 +550,7 @@ function FlowBuilderInternal({
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
       // Check if these are meaningful changes or just noise
-      const significantChanges = changes.filter((c) => {
+      const significantChanges = changes.filter(c => {
         // Ignore these types of changes as they're usually React Flow internal updates
         if (['select', 'dimensions', 'replace'].includes(c.type)) {
           return false;
@@ -572,7 +572,7 @@ function FlowBuilderInternal({
       if (significantChanges.length === 0) {
         console.log(
           '👻 Phantom node changes (ignored):',
-          changes.map((c) => c.type)
+          changes.map(c => c.type)
         );
         return; // Skip processing phantom changes
       }
@@ -580,7 +580,7 @@ function FlowBuilderInternal({
       console.log('🔄 Significant node changes detected:', significantChanges);
       console.log(
         '🔍 Change types:',
-        significantChanges.map((c) => c.type)
+        significantChanges.map(c => c.type)
       );
       console.log('🔍 Stack trace:', new Error().stack?.split('\n').slice(1, 5));
 
