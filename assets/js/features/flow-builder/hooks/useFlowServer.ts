@@ -5,8 +5,8 @@ export interface FlowState {
   id: string;
   name: string;
   description: string;
-  nodes: any[];
-  edges: any[];
+  nodes: unknown[];
+  edges: unknown[];
   viewport: { x: number; y: number; zoom: number };
   created_at: string;
   updated_at: string;
@@ -16,12 +16,12 @@ export interface FlowState {
 export interface UseFlowServerOptions {
   flowId: string;
   userId: string;
-  onFlowUpdated?: (flow: FlowState) => void;
-  onNodesUpdated?: (flow: FlowState) => void;
-  onEdgesUpdated?: (flow: FlowState) => void;
-  onPresenceUpdated?: (presence: { connected_users: string[] }) => void;
-  onSaveRequested?: (flow: FlowState) => void;
-  onConnectionStatusChange?: (connected: boolean) => void;
+  onFlowUpdated?: (_flow: FlowState) => void;
+  onNodesUpdated?: (_flow: FlowState) => void;
+  onEdgesUpdated?: (_flow: FlowState) => void;
+  onPresenceUpdated?: (_presence: { connected_users: string[] }) => void;
+  onSaveRequested?: (_flow: FlowState) => void;
+  onConnectionStatusChange?: (_connected: boolean) => void;
 }
 
 export interface UseFlowServerReturn {
@@ -32,14 +32,14 @@ export interface UseFlowServerReturn {
   connectedUsers: string[];
 
   // Flow operations
-  createFlow: (attrs?: Partial<FlowState>) => Promise<FlowState>;
+  createFlow: (_attrs?: Partial<FlowState>) => Promise<FlowState>;
   getFlow: () => Promise<FlowState>;
-  updateMetadata: (name: string, description: string) => Promise<FlowState>;
-  updateNodes: (nodes: any[]) => Promise<FlowState>;
-  updateEdges: (edges: any[]) => Promise<FlowState>;
-  updateViewport: (viewport: { x: number; y: number; zoom: number }) => Promise<FlowState>;
+  updateMetadata: (_name: string, _description: string) => Promise<FlowState>;
+  updateNodes: (_nodes: unknown[]) => Promise<FlowState>;
+  updateEdges: (_edges: unknown[]) => Promise<FlowState>;
+  updateViewport: (_viewport: { x: number; y: number; zoom: number }) => Promise<FlowState>;
   saveFlow: () => Promise<void>;
-  loadFlow: (flowData: any) => Promise<FlowState>;
+  loadFlow: (_flowData: unknown) => Promise<FlowState>;
 }
 
 export function useFlowServer(options: UseFlowServerOptions): UseFlowServerReturn {
@@ -89,7 +89,7 @@ export function useFlowServer(options: UseFlowServerOptions): UseFlowServerRetur
       onConnectionStatusChange?.(false);
     });
 
-    newSocket.onError((error: any) => {
+    newSocket.onError((error: unknown) => {
       console.error('Socket error:', error);
       setError('Connection failed');
       setConnecting(false);
@@ -103,7 +103,7 @@ export function useFlowServer(options: UseFlowServerOptions): UseFlowServerRetur
 
     newChannel
       .join()
-      .receive('ok', (response: any) => {
+      .receive('ok', (response: unknown) => {
         console.log('Joined flow channel successfully', response);
         console.log('Initial connected users:', response.connected_users);
         setFlowState(response);
@@ -115,7 +115,7 @@ export function useFlowServer(options: UseFlowServerOptions): UseFlowServerRetur
         setError(null);
         onConnectionStatusChange?.(true);
       })
-      .receive('error', (reason: any) => {
+      .receive('error', (reason: unknown) => {
         console.error('Failed to join flow channel:', reason);
         setError(`Failed to join flow: ${reason.reason || 'unknown error'}`);
         setConnecting(false);
@@ -176,7 +176,7 @@ export function useFlowServer(options: UseFlowServerOptions): UseFlowServerRetur
 
   // Channel operation helpers
   const pushToChannel = useCallback(
-    async (event: string, payload: any = {}): Promise<any> => {
+    async (event: string, payload: unknown = {}): Promise<unknown> => {
       return new Promise((resolve, reject) => {
         if (!channel || !connected) {
           reject(new Error('Not connected to channel'));
@@ -215,7 +215,7 @@ export function useFlowServer(options: UseFlowServerOptions): UseFlowServerRetur
   );
 
   const updateNodes = useCallback(
-    async (nodes: any[]): Promise<FlowState> => {
+    async (nodes: unknown[]): Promise<FlowState> => {
       const result = await pushToChannel('update_nodes', { nodes });
       setFlowState(result);
       return result;
@@ -224,7 +224,7 @@ export function useFlowServer(options: UseFlowServerOptions): UseFlowServerRetur
   );
 
   const updateEdges = useCallback(
-    async (edges: any[]): Promise<FlowState> => {
+    async (edges: unknown[]): Promise<FlowState> => {
       const result = await pushToChannel('update_edges', { edges });
       setFlowState(result);
       return result;
@@ -246,7 +246,7 @@ export function useFlowServer(options: UseFlowServerOptions): UseFlowServerRetur
   }, [pushToChannel]);
 
   const loadFlow = useCallback(
-    async (flowData: any): Promise<FlowState> => {
+    async (flowData: unknown): Promise<FlowState> => {
       const result = await pushToChannel('load_flow', { flow_data: flowData });
       setFlowState(result);
       return result;

@@ -18,6 +18,8 @@ import {
   ReactFlowProvider,
   NodeResizer,
   ReactFlowInstance,
+  NodeChange,
+  EdgeChange,
 } from 'reactflow';
 
 import { AIFlowNode as OriginalAIFlowNode } from './types';
@@ -546,9 +548,9 @@ function FlowBuilderInternal({
 
   // Wrap change handlers to track unsaved changes
   const onNodesChange = useCallback(
-    (changes: any) => {
+    (changes: NodeChange[]) => {
       // Check if these are meaningful changes or just noise
-      const significantChanges = changes.filter((c: any) => {
+      const significantChanges = changes.filter((c) => {
         // Ignore these types of changes as they're usually React Flow internal updates
         if (['select', 'dimensions', 'replace'].includes(c.type)) {
           return false;
@@ -570,7 +572,7 @@ function FlowBuilderInternal({
       if (significantChanges.length === 0) {
         console.log(
           '👻 Phantom node changes (ignored):',
-          changes.map((c: any) => c.type)
+          changes.map((c) => c.type)
         );
         return; // Skip processing phantom changes
       }
@@ -578,7 +580,7 @@ function FlowBuilderInternal({
       console.log('🔄 Significant node changes detected:', significantChanges);
       console.log(
         '🔍 Change types:',
-        significantChanges.map((c: any) => c.type)
+        significantChanges.map((c) => c.type)
       );
       console.log('🔍 Stack trace:', new Error().stack?.split('\n').slice(1, 5));
 
@@ -635,7 +637,7 @@ function FlowBuilderInternal({
   );
 
   const onEdgesChange = useCallback(
-    (changes: any) => {
+    (changes: EdgeChange[]) => {
       console.log('Edge changes detected:', changes);
       onEdgesChangeOriginal(changes);
       setHasUnsavedChanges(true);
@@ -696,7 +698,7 @@ function FlowBuilderInternal({
         if (savedFlow) {
           console.log('📂 Loaded flow from localStorage:', savedFlow);
           // Load directly - convert to React Flow format
-          const reactFlowNodes = (savedFlow.nodes || []).map((nodeData: any) => ({
+          const reactFlowNodes = (savedFlow.nodes || []).map((nodeData: unknown) => ({
             id: nodeData.id,
             type: 'aiFlowNode',
             position: nodeData.position || { x: nodeData.x || 0, y: nodeData.y || 0 },
@@ -1178,7 +1180,7 @@ function FlowBuilderInternal({
             await server.loadFlow(savedFlow);
           } else {
             // Convert to React Flow format
-            const reactFlowNodes = (savedFlow.nodes || []).map((nodeData: any) => ({
+            const reactFlowNodes = (savedFlow.nodes || []).map((nodeData: unknown) => ({
               id: nodeData.id,
               type: 'aiFlowNode',
               position: nodeData.position || { x: nodeData.x || 0, y: nodeData.y || 0 },

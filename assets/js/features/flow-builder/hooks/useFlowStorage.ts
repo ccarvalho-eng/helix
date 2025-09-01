@@ -12,8 +12,8 @@ export interface SavedFlowMetadata {
 }
 
 export interface SavedFlow extends SavedFlowMetadata {
-  nodes: any[];
-  edges: any[];
+  nodes: unknown[];
+  edges: unknown[];
   viewport: { x: number; y: number; zoom: number };
 }
 
@@ -24,12 +24,12 @@ export interface UseFlowStorageReturn {
   savedFlows: SavedFlowMetadata[];
 
   // Flow operations
-  saveFlow: (flowState: FlowState, thumbnail?: string) => Promise<void>;
-  loadFlow: (flowId: string) => Promise<SavedFlow | null>;
-  deleteFlow: (flowId: string) => Promise<void>;
-  duplicateFlow: (flowId: string, newName?: string) => Promise<SavedFlow>;
-  exportFlow: (flowId: string) => Promise<string>; // JSON string
-  importFlow: (flowData: string) => Promise<SavedFlow>;
+  saveFlow: (_flowState: FlowState, _thumbnail?: string) => Promise<void>;
+  loadFlow: (_flowId: string) => Promise<SavedFlow | null>;
+  deleteFlow: (_flowId: string) => Promise<void>;
+  duplicateFlow: (_flowId: string, _newName?: string) => Promise<SavedFlow>;
+  exportFlow: (_flowId: string) => Promise<string>; // JSON string
+  importFlow: (_flowData: string) => Promise<SavedFlow>;
 
   // Storage management
   refreshFlowList: () => void;
@@ -63,7 +63,7 @@ export function useFlowStorage(): UseFlowStorageReturn {
   }, []);
 
   const updateFlowsList = useCallback(
-    (updater: (flows: SavedFlowMetadata[]) => SavedFlowMetadata[]) => {
+    (updater: (_flows: SavedFlowMetadata[]) => SavedFlowMetadata[]) => {
       try {
         const flowsData = localStorage.getItem(FLOWS_STORAGE_KEY);
         const currentFlows: SavedFlowMetadata[] = flowsData ? JSON.parse(flowsData) : [];

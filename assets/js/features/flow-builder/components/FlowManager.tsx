@@ -8,7 +8,7 @@ interface FlowManagerProps {
   isOpen: boolean;
   onClose: () => void;
   currentFlow?: FlowState | null;
-  onLoadFlow: (flowId: string) => Promise<void>;
+  onLoadFlow: (_flowId: string) => Promise<void>;
   onCreateNew: () => Promise<void>;
 }
 
