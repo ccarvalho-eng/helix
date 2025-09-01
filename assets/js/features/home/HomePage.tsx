@@ -387,9 +387,7 @@ const HomePageInternal: React.FC = () => {
 
                   <div className='home-workflow-card__footer'>
                     <div className='home-workflow-card__stats'>
-                      <span className='home-workflow-card__stat'>
-                        Saved Flow
-                      </span>
+                      <span className='home-workflow-card__stat'>Saved Flow</span>
                       <span className='home-workflow-card__stat'>Saved</span>
                     </div>
                     <div className='home-workflow-card__status home-workflow-card__status--saved'></div>
