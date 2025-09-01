@@ -13,8 +13,11 @@ export default [
         document: 'readonly',
         console: 'readonly',
         localStorage: 'readonly',
+        sessionStorage: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
+        alert: 'readonly',
+        confirm: 'readonly',
         NodeJS: 'readonly',
         React: 'readonly',
         KeyboardEvent: 'readonly'
@@ -34,7 +37,7 @@ export default [
     rules: {
       ...tseslint.configs.recommended.rules,
       'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      'no-console': ['error', { allow: ['error'] }],
+      'no-console': ['error', { allow: ['error', 'log', 'warn', 'info'] }],
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/no-empty-object-type': 'error',
