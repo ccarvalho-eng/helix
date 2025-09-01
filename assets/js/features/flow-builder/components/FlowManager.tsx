@@ -1,6 +1,18 @@
 import React, { useState, useCallback } from 'react';
-import { Save, Trash2, Copy, Download, Plus, Search, Clock, ArrowDown } from 'lucide-react';
-import { useFlowStorage, FlowState } from '../hooks';
+import {
+  Save,
+  Trash2,
+  Copy,
+  Download,
+  Upload,
+  Plus,
+  Search,
+  Clock,
+  Users,
+  FileText,
+  ArrowDown,
+} from 'lucide-react';
+import { useFlowStorage, SavedFlowMetadata, useFlowServer, FlowState } from '../hooks';
 import { Modal } from './Modal';
 import { useThemeContext } from '../contexts/ThemeContext';
 
@@ -529,13 +541,7 @@ export function FlowManager({
                         color: theme === 'dark' ? '#6b7280' : '#9ca3af',
                       }}
                     >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                        }}
-                      >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Clock size={12} />
                         {formatDate(flow.updated_at)}
                       </div>
