@@ -274,9 +274,12 @@ const animals = [
 ];
 
 export function generateUsername(): string {
-  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const animal = animals[Math.floor(Math.random() * animals.length)];
-  const number = Math.floor(Math.random() * 100);
+  const randomValues = new Uint32Array(3);
+  window.crypto.getRandomValues(randomValues);
+
+  const adjective = adjectives[randomValues[0] % adjectives.length];
+  const animal = animals[randomValues[1] % animals.length];
+  const number = randomValues[2] % 100;
 
   return `${adjective} ${animal} ${number}`;
 }

@@ -18,21 +18,31 @@ defmodule HelixWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    get "/flow", FlowController, :index
+  end
+
+  # Flow routes
+  scope "/flow", HelixWeb do
+    pipe_through :browser
+
+    get "/", FlowController, :index
   end
 
   # API routes
   scope "/api", HelixWeb do
     pipe_through :api
+  end
 
-    # Flow management API
-    get "/flows", FlowController, :list_flows
-    get "/flows/active", FlowController, :active_flows
-    get "/flows/:id", FlowController, :get_flow
-    post "/flows", FlowController, :create_flow
-    put "/flows/:id", FlowController, :update_flow
-    delete "/flows/:id", FlowController, :delete_flow
-    post "/flows/:id/save", FlowController, :save_flow
+  # Flow API routes
+  scope "/api/flows", HelixWeb do
+    pipe_through :api
+
+    get "/", FlowController, :list_flows
+    get "/active", FlowController, :active_flows
+    get "/:id", FlowController, :get_flow
+    post "/", FlowController, :create_flow
+    put "/:id", FlowController, :update_flow
+    delete "/:id", FlowController, :delete_flow
+    post "/:id/save", FlowController, :save_flow
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

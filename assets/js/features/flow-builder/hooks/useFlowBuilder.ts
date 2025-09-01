@@ -10,6 +10,7 @@ import {
   ReactFlowInstance,
 } from 'reactflow';
 import { AIFlowNode } from '../types';
+import { generateId, cryptoRandom } from '../../../shared/utils';
 
 const STORAGE_KEY = 'react-flow-ai-flow-builder-state';
 
@@ -62,7 +63,7 @@ export function useFlowBuilder() {
     (type: AIFlowNode['type'], customLabel?: string, customDescription?: string) => {
       const defaults = nodeDefaults[type];
       const nodeData: AIFlowNode = {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        id: generateId(),
         type,
         position: { x: 0, y: 0 },
         dimensions: { width: defaults.width, height: defaults.height },
@@ -82,8 +83,8 @@ export function useFlowBuilder() {
         id: nodeData.id,
         type: 'aiFlowNode',
         position: {
-          x: Math.random() * 400 + 100,
-          y: Math.random() * 400 + 100,
+          x: cryptoRandom() * 400 + 100,
+          y: cryptoRandom() * 400 + 100,
         },
         data: nodeData,
       };
@@ -141,7 +142,7 @@ export function useFlowBuilder() {
 
       const defaults = nodeDefaults[type];
       const nodeData: AIFlowNode = {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        id: generateId(),
         type,
         position: { x: position.x, y: position.y },
         dimensions: { width: defaults.width, height: defaults.height },

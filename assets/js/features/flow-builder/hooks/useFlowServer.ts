@@ -54,7 +54,6 @@ export function useFlowServer(options: UseFlowServerOptions): UseFlowServerRetur
     onConnectionStatusChange,
   } = options;
 
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [channel, setChannel] = useState<Channel | null>(null);
   const [flowState, setFlowState] = useState<FlowState | null>(null);
   const [connected, setConnected] = useState(false);
@@ -126,7 +125,6 @@ export function useFlowServer(options: UseFlowServerOptions): UseFlowServerRetur
     // Set up channel event listeners
     setupChannelListeners(newChannel);
 
-    setSocket(newSocket);
     setChannel(newChannel);
     channelRef.current = newChannel;
 

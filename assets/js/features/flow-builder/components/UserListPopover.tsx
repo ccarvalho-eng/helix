@@ -161,8 +161,6 @@ export function UserListPopover({
         <div style={{ padding: '8px' }}>
           {users.map((user, index) => {
             const isCurrentUser = user === currentUser;
-            const color = getUserColor(user);
-            const initials = getInitials(user);
 
             // Extract username from the combined userId (remove the _user_xxxxx part)
             const displayName = user.split('_user_')[0].replace(/_/g, ' ');

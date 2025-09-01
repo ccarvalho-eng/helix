@@ -37,6 +37,7 @@ import { Modal } from './components/Modal';
 import { FlowManager } from './components/FlowManager';
 import { UserListPopover } from './components/UserListPopover';
 import { generateUsername } from './utils/usernameGenerator';
+import { generateId, cryptoRandom } from '../../shared/utils';
 import {
   Bot,
   Eye,
@@ -414,7 +415,7 @@ function FlowBuilderInternal({
   onUsernameChange,
 }: {
   username: string;
-  onUsernameChange: (username: string) => void;
+  onUsernameChange: (_username: string) => void;
 }) {
   const { theme = 'light' } = useThemeContext() ?? { theme: 'light' };
 
@@ -425,7 +426,7 @@ function FlowBuilderInternal({
     if (urlFlowId) return urlFlowId;
 
     // Generate a new flow ID
-    const newFlowId = `flow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newFlowId = `flow_${generateId()}`;
     // Update URL without reloading
     const newUrl = new URL(window.location.href);
     newUrl.searchParams.set('flow', newFlowId);
@@ -439,7 +440,7 @@ function FlowBuilderInternal({
 
     if (!storedUserId) {
       // Generate a persistent user ID that will be reused across sessions
-      storedUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      storedUserId = `user_${generateId()}`;
       localStorage.setItem('helix-user-id', storedUserId);
     }
 
@@ -845,7 +846,7 @@ function FlowBuilderInternal({
 
       const defaults = nodeDefaults[type];
       const nodeData: ReactFlowAINode = {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        id: generateId(),
         type,
         position: { x: 0, y: 0 },
         dimensions: { width: defaults.width, height: defaults.height },
@@ -865,8 +866,8 @@ function FlowBuilderInternal({
         id: nodeData.id,
         type: 'aiFlowNode',
         position: {
-          x: Math.random() * 400 + 100,
-          y: Math.random() * 400 + 100,
+          x: cryptoRandom() * 400 + 100,
+          y: cryptoRandom() * 400 + 100,
         },
         data: nodeData,
         style: {
@@ -968,7 +969,7 @@ function FlowBuilderInternal({
 
       const defaults = nodeDefaults[type];
       const nodeData: ReactFlowAINode = {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        id: generateId(),
         type,
         position: { x: position.x, y: position.y },
         dimensions: { width: defaults.width, height: defaults.height },
@@ -1073,7 +1074,7 @@ function FlowBuilderInternal({
         const nodeToDuplicate = nds.find(node => node.id === nodeId);
         if (!nodeToDuplicate) return nds;
 
-        const newNodeId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+        const newNodeId = generateId();
         const duplicatedNode: Node<ReactFlowAINode> = {
           ...nodeToDuplicate,
           id: newNodeId,
@@ -1216,7 +1217,7 @@ function FlowBuilderInternal({
       }
 
       // Update URL with new flow ID
-      const newFlowId = `flow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const newFlowId = `flow_${generateId()}`;
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.set('flow', newFlowId);
       window.history.pushState({}, '', newUrl.toString());

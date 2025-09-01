@@ -1,7 +1,18 @@
 // Utility functions
+import { nanoid } from 'nanoid';
 
 export const generateId = (): string => {
-  return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  return nanoid();
+};
+
+export const cryptoRandom = (): number => {
+  const randomValues = new Uint32Array(1);
+  window.crypto.getRandomValues(randomValues);
+  return randomValues[0] / 0xffffffff;
+};
+
+export const generateRandomString = (length: number = 9): string => {
+  return nanoid(length);
 };
 
 export const debounce = <T extends (..._args: unknown[]) => unknown>(

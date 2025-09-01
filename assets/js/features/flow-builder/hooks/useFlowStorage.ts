@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FlowState } from './useFlowServer';
+import { nanoid } from 'nanoid';
 
 export interface SavedFlowMetadata {
   id: string;
@@ -346,5 +347,5 @@ export function useFlowStorage(): UseFlowStorageReturn {
 
 // Helper function to generate unique flow IDs
 function generateFlowId(): string {
-  return `flow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `flow_${nanoid()}`;
 }
