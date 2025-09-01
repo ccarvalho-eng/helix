@@ -10,44 +10,6 @@ interface UserListPopoverProps {
   anchorElement?: HTMLElement | null;
 }
 
-// Generate consistent colors for users based on their username
-function getUserColor(username: string): string {
-  const colors = [
-    '#ef4444', // red
-    '#f97316', // orange
-    '#f59e0b', // amber
-    '#84cc16', // lime
-    '#22c55e', // green
-    '#10b981', // emerald
-    '#06b6d4', // cyan
-    '#0ea5e9', // sky
-    '#3b82f6', // blue
-    '#6366f1', // indigo
-    '#8b5cf6', // violet
-    '#a855f7', // purple
-    '#d946ef', // fuchsia
-    '#ec4899', // pink
-  ];
-
-  // Simple hash function to get consistent color for username
-  let hash = 0;
-  for (let i = 0; i < username.length; i++) {
-    hash = ((hash << 5) - hash + username.charCodeAt(i)) & 0xffffffff;
-  }
-  return colors[Math.abs(hash) % colors.length];
-}
-
-// Generate avatar initials from username
-function getInitials(username: string): string {
-  if (!username) return '?';
-
-  const words = username.split(' ');
-  if (words.length >= 2) {
-    return (words[0][0] + words[1][0]).toUpperCase();
-  }
-  return username.slice(0, 2).toUpperCase();
-}
-
 export function UserListPopover({
   isOpen,
   onClose,
