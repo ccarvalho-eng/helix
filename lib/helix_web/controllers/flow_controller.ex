@@ -76,39 +76,7 @@ defmodule HelixWeb.FlowController do
 
     case FlowServer.get_flow(flow_id) do
       {:ok, _} ->
-        # Update metadata if provided
-        result =
-          if Map.has_key?(attrs, "name") or Map.has_key?(attrs, "description") do
-            FlowServer.update_flow_metadata(flow_id, attrs)
-          else
-            {:ok, nil}
-          end
-
-        # Update nodes if provided
-        result =
-          if Map.has_key?(attrs, "nodes") do
-            FlowServer.update_nodes(flow_id, attrs["nodes"])
-          else
-            result
-          end
-
-        # Update edges if provided
-        result =
-          if Map.has_key?(attrs, "edges") do
-            FlowServer.update_edges(flow_id, attrs["edges"])
-          else
-            result
-          end
-
-        # Update viewport if provided
-        result =
-          if Map.has_key?(attrs, "viewport") do
-            FlowServer.update_viewport(flow_id, attrs["viewport"])
-          else
-            result
-          end
-
-        case result do
+        case perform_flow_updates(flow_id, attrs) do
           {:ok, flow_state} ->
             json(conn, flow_state)
 
@@ -172,6 +140,39 @@ defmodule HelixWeb.FlowController do
   end
 
   # Private functions
+
+  defp perform_flow_updates(flow_id, attrs) do
+    # Update metadata if provided
+    result =
+      if Map.has_key?(attrs, "name") or Map.has_key?(attrs, "description") do
+        FlowServer.update_flow_metadata(flow_id, attrs)
+      else
+        {:ok, nil}
+      end
+
+    # Update nodes if provided
+    result =
+      if Map.has_key?(attrs, "nodes") do
+        FlowServer.update_nodes(flow_id, attrs["nodes"])
+      else
+        result
+      end
+
+    # Update edges if provided
+    result =
+      if Map.has_key?(attrs, "edges") do
+        FlowServer.update_edges(flow_id, attrs["edges"])
+      else
+        result
+      end
+
+    # Update viewport if provided
+    if Map.has_key?(attrs, "viewport") do
+      FlowServer.update_viewport(flow_id, attrs["viewport"])
+    else
+      result
+    end
+  end
 
   defp generate_flow_id do
     :crypto.strong_rand_bytes(16)
