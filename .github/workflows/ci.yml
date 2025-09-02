@@ -203,9 +203,13 @@ jobs:
         run: |
           mix ecto.create
           mix ecto.migrate
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/helix_test
 
       - name: Run E2E tests
         run: npm run test:e2e
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/helix_test
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
