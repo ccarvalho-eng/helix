@@ -54,10 +54,10 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: {
-    command: process.env.CI ? 'MIX_ENV=test mix phx.server' : 'mix phx.server',
+  webServer: process.env.CI ? undefined : {
+    command: 'mix phx.server',
     url: 'http://127.0.0.1:4000',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 120 * 1000,
   },
 });
