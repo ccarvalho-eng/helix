@@ -19,6 +19,7 @@
 		"@types/react": "^19.1.12",
 		"@types/react-dom": "^19.1.8",
 		"lucide-react": "^0.542.0",
+		"phoenix": "^1.7.14",
 		"react": "^19.1.1",
 		"react-dnd": "^16.0.1",
 		"react-dnd-html5-backend": "^16.0.1",
