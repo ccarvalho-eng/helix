@@ -94,8 +94,9 @@ defmodule Helix.FlowRegistry do
     |> Enum.map(fn {flow_id, pid} ->
       %{
         flow_id: flow_id,
-        pid: pid,
-        alive: Process.alive?(pid)
+        pid: inspect(pid),
+        alive: Process.alive?(pid),
+        started_at: DateTime.utc_now() |> DateTime.to_iso8601()
       }
     end)
   end

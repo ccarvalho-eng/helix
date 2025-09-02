@@ -16,7 +16,7 @@ defmodule HelixWeb.FlowChannel do
     Logger.info("User #{user_id} attempting to join flow: #{flow_id}")
 
     case get_or_start_flow(flow_id) do
-      {:ok, flow_state} ->
+      {:ok, _flow_state} ->
         # Add user to the flow's connected users
         FlowServer.user_joined(flow_id, user_id)
 
@@ -28,8 +28,9 @@ defmodule HelixWeb.FlowChannel do
           |> assign(:flow_id, flow_id)
           |> assign(:user_id, user_id)
 
-        # Send current flow state to the joining user
-        {:ok, flow_state, socket}
+        # Get updated flow state after user joined
+        {:ok, updated_flow_state} = FlowServer.get_flow(flow_id)
+        {:ok, updated_flow_state, socket}
 
       {:error, reason} ->
         Logger.error("Failed to join flow #{flow_id}: #{inspect(reason)}")
@@ -71,10 +72,21 @@ defmodule HelixWeb.FlowChannel do
   end
 
   @impl true
-  def handle_in("update_metadata", %{"name" => name, "description" => description}, socket) do
+  def handle_in("update_metadata", payload, socket) do
     flow_id = socket.assigns.flow_id
 
-    case FlowServer.update_flow_metadata(flow_id, %{name: name, description: description}) do
+    # Extract name and description if present
+    attrs = %{}
+
+    attrs =
+      if Map.has_key?(payload, "name"), do: Map.put(attrs, :name, payload["name"]), else: attrs
+
+    attrs =
+      if Map.has_key?(payload, "description"),
+        do: Map.put(attrs, :description, payload["description"]),
+        else: attrs
+
+    case FlowServer.update_flow_metadata(flow_id, attrs) do
       {:ok, flow_state} ->
         {:reply, {:ok, flow_state}, socket}
 
@@ -84,7 +96,7 @@ defmodule HelixWeb.FlowChannel do
   end
 
   @impl true
-  def handle_in("update_nodes", %{"nodes" => nodes}, socket) do
+  def handle_in("update_nodes", %{"nodes" => nodes}, socket) when is_list(nodes) do
     flow_id = socket.assigns.flow_id
 
     case FlowServer.update_nodes(flow_id, nodes) do
@@ -97,7 +109,7 @@ defmodule HelixWeb.FlowChannel do
   end
 
   @impl true
-  def handle_in("update_edges", %{"edges" => edges}, socket) do
+  def handle_in("update_edges", %{"edges" => edges}, socket) when is_list(edges) do
     flow_id = socket.assigns.flow_id
 
     case FlowServer.update_edges(flow_id, edges) do
@@ -147,13 +159,26 @@ defmodule HelixWeb.FlowChannel do
   def handle_in("create_flow", payload, socket) do
     flow_id = socket.assigns.flow_id
 
-    case FlowServer.create_flow(flow_id, payload) do
+    # Convert string keys to atom keys for FlowServer
+    attrs =
+      payload
+      |> Enum.into(%{}, fn
+        {key, value} when is_binary(key) -> {String.to_atom(key), value}
+        {key, value} -> {key, value}
+      end)
+
+    case FlowServer.create_flow(flow_id, attrs) do
       {:ok, flow_state} ->
         {:reply, {:ok, flow_state}, socket}
 
       {:error, reason} ->
         {:reply, {:error, %{reason: inspect(reason)}}, socket}
     end
+  end
+
+  @impl true
+  def handle_in(_event, _payload, socket) do
+    {:reply, {:error, %{reason: "Unknown event or malformed payload"}}, socket}
   end
 
   # Handle PubSub broadcasts from FlowServer

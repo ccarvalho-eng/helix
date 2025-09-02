@@ -53,7 +53,11 @@ defmodule HelixWeb.FlowController do
   """
   def create_flow(conn, params) do
     flow_id = params["id"] || generate_flow_id()
-    attrs = Map.take(params, ["name", "description", "nodes", "edges", "viewport"])
+
+    attrs =
+      params
+      |> Map.take(["name", "description", "nodes", "edges", "viewport"])
+      |> atomize_keys()
 
     case FlowServer.create_flow(flow_id, attrs) do
       {:ok, flow_state} ->
@@ -72,7 +76,10 @@ defmodule HelixWeb.FlowController do
   PUT /api/flows/:id - Update a flow
   """
   def update_flow(conn, %{"id" => flow_id} = params) do
-    attrs = Map.take(params, ["name", "description", "nodes", "edges", "viewport"])
+    attrs =
+      params
+      |> Map.take(["name", "description", "nodes", "edges", "viewport"])
+      |> atomize_keys()
 
     case FlowServer.get_flow(flow_id) do
       {:ok, _} ->
@@ -139,7 +146,7 @@ defmodule HelixWeb.FlowController do
   defp perform_flow_updates(flow_id, attrs) do
     # Update metadata if provided
     result =
-      if Map.has_key?(attrs, "name") or Map.has_key?(attrs, "description") do
+      if Map.has_key?(attrs, :name) or Map.has_key?(attrs, :description) do
         FlowServer.update_flow_metadata(flow_id, attrs)
       else
         {:ok, nil}
@@ -147,26 +154,30 @@ defmodule HelixWeb.FlowController do
 
     # Update nodes if provided
     result =
-      if Map.has_key?(attrs, "nodes") do
-        FlowServer.update_nodes(flow_id, attrs["nodes"])
+      if Map.has_key?(attrs, :nodes) do
+        FlowServer.update_nodes(flow_id, attrs[:nodes])
       else
         result
       end
 
     # Update edges if provided
     result =
-      if Map.has_key?(attrs, "edges") do
-        FlowServer.update_edges(flow_id, attrs["edges"])
+      if Map.has_key?(attrs, :edges) do
+        FlowServer.update_edges(flow_id, attrs[:edges])
       else
         result
       end
 
     # Update viewport if provided
-    if Map.has_key?(attrs, "viewport") do
-      FlowServer.update_viewport(flow_id, attrs["viewport"])
+    if Map.has_key?(attrs, :viewport) do
+      FlowServer.update_viewport(flow_id, attrs[:viewport])
     else
       result
     end
+  end
+
+  defp atomize_keys(map) when is_map(map) do
+    Map.new(map, fn {key, value} -> {String.to_atom(key), value} end)
   end
 
   defp generate_flow_id do

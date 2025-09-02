@@ -153,6 +153,7 @@ defmodule Helix.FlowServer do
   def handle_call({:create_flow, attrs}, _from, state) do
     now = DateTime.utc_now()
 
+    # Complete replacement of flow state with new attributes
     new_state = %{
       state
       | name: Map.get(attrs, :name, "Untitled Flow"),
@@ -160,9 +161,12 @@ defmodule Helix.FlowServer do
         nodes: Map.get(attrs, :nodes, []),
         edges: Map.get(attrs, :edges, []),
         viewport: Map.get(attrs, :viewport, %{x: 0, y: 0, zoom: 1}),
-        created_at: now,
+        # Keep original creation time if exists
+        created_at: state.created_at || now,
         updated_at: now,
-        last_activity: now
+        last_activity: now,
+        # Preserve connected users
+        connected_users: state.connected_users
     }
 
     broadcast_state_change(new_state)
