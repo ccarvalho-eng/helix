@@ -8,7 +8,10 @@
 		"typecheck": "tsc --noEmit",
 		"check": "npm run prettier:check && npm run lint && npm run typecheck",
 		"fix": "npm run prettier && npm run lint:fix && npm run typecheck",
-		"test": "echo \"No frontend tests configured yet\" && exit 0",
+		"test:e2e": "playwright test",
+		"test:e2e:ui": "playwright test --ui",
+		"test:e2e:debug": "playwright test --debug",
+		"test:e2e:headed": "playwright test --headed",
 		"test:coverage": "echo \"No coverage tests configured yet\" && exit 0",
 		"build:test": "echo \"No test build configured yet\" && exit 0"
 	},
@@ -23,11 +26,12 @@
 		"reactflow": "^11.11.4"
 	},
 	"devDependencies": {
-		"prettier": "^3.6.2",
-		"typescript": "^5.6.0",
-		"eslint": "^9.16.0",
+		"@playwright/test": "^1.55.0",
+		"@types/node": "^24.3.0",
 		"@typescript-eslint/eslint-plugin": "^8.18.0",
 		"@typescript-eslint/parser": "^8.18.0",
-		"@types/node": "^24.3.0"
+		"eslint": "^9.16.0",
+		"prettier": "^3.6.2",
+		"typescript": "^5.6.0"
 	}
 }
