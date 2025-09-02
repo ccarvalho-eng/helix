@@ -20,8 +20,7 @@ config :helix, HelixWeb.Endpoint,
   server: true
 
 # Disable live reload for e2e tests
-config :helix, HelixWeb.Endpoint,
-  live_reload: []
+config :helix, HelixWeb.Endpoint, live_reload: []
 
 # Disable dev routes for e2e environment
 config :helix, dev_routes: false
