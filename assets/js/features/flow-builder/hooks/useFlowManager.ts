@@ -142,6 +142,28 @@ export function useFlowManager(flowId: string | null) {
   const prevFlowDataRef = useRef<FlowData | null>(null);
   const hasInitializedRef = useRef(false);
 
+  // Function to normalize data for comparison (exclude selection and other UI-only state)
+  const normalizeDataForComparison = useCallback((data: FlowData) => {
+    return {
+      nodes: data.nodes.map((node: any) => ({
+        ...node,
+        selected: undefined, // Remove selection state
+        dragging: undefined, // Remove dragging state
+        data: node.data ? {
+          ...node.data,
+          selected: undefined,
+          dragging: undefined,
+        } : node.data
+      })),
+      edges: data.edges.map((edge: any) => ({
+        ...edge,
+        selected: undefined, // Remove selection state
+        animated: undefined, // Remove animation state if it's UI-only
+      })),
+      viewport: data.viewport
+    };
+  }, []);
+
   // Auto-save flow data when nodes or edges change
   useEffect(() => {
     if (currentFlow && reactFlowInstance && hasInitializedRef.current && !isUpdatingFromRemote.current) {
@@ -152,14 +174,17 @@ export function useFlowManager(flowId: string | null) {
         viewport
       };
       
-      // Check if data actually changed
+      // Check if data actually changed (exclude selection and UI-only changes)
       const prevData = prevFlowDataRef.current;
-      const hasChanges = !prevData || 
-        JSON.stringify(prevData.nodes) !== JSON.stringify(flowData.nodes) ||
-        JSON.stringify(prevData.edges) !== JSON.stringify(flowData.edges) ||
-        Math.abs(prevData.viewport.x - flowData.viewport.x) > 1 ||
-        Math.abs(prevData.viewport.y - flowData.viewport.y) > 1 ||
-        Math.abs(prevData.viewport.zoom - flowData.viewport.zoom) > 0.01;
+      const normalizedCurrent = normalizeDataForComparison(flowData);
+      const normalizedPrevious = prevData ? normalizeDataForComparison(prevData) : null;
+      
+      const hasChanges = !normalizedPrevious || 
+        JSON.stringify(normalizedPrevious.nodes) !== JSON.stringify(normalizedCurrent.nodes) ||
+        JSON.stringify(normalizedPrevious.edges) !== JSON.stringify(normalizedCurrent.edges) ||
+        Math.abs(normalizedPrevious.viewport.x - normalizedCurrent.viewport.x) > 1 ||
+        Math.abs(normalizedPrevious.viewport.y - normalizedCurrent.viewport.y) > 1 ||
+        Math.abs(normalizedPrevious.viewport.zoom - normalizedCurrent.viewport.zoom) > 0.01;
 
       if (!hasChanges) {
         return; // No actual changes, skip save and broadcast
@@ -193,15 +218,16 @@ export function useFlowManager(flowId: string | null) {
         // Set initial reference data
         if (reactFlowInstance) {
           const viewport = reactFlowInstance.getViewport();
-          prevFlowDataRef.current = {
+          const initialFlowData = {
             nodes,
             edges,
             viewport
           };
+          prevFlowDataRef.current = normalizeDataForComparison(initialFlowData);
         }
       }
     }
-  }, [currentFlow, nodes, edges, reactFlowInstance]);
+  }, [currentFlow, nodes, edges, reactFlowInstance, normalizeDataForComparison]);
 
   const updateFlowTitle = useCallback(
     (newTitle: string) => {
