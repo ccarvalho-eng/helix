@@ -3,6 +3,23 @@ defmodule Helix.FlowSessionManagerTest do
 
   alias Helix.FlowSessionManager
 
+  setup do
+    # Start FlowSessionManager for tests
+    pid = start_supervised({FlowSessionManager, []})
+
+    on_exit(fn ->
+      case pid do
+        {:ok, pid} ->
+          Process.exit(pid, :normal)
+
+        _ ->
+          :ok
+      end
+    end)
+
+    :ok
+  end
+
   # Use unique flow IDs with test process PID to avoid conflicts
   defp test_flow_id(base_id) do
     "#{base_id}-#{inspect(self())}-#{:erlang.unique_integer([:positive])}"
@@ -29,15 +46,17 @@ defmodule Helix.FlowSessionManagerTest do
     end
 
     test "allows same client to join multiple flows" do
-      client_id = "client-123"
+      client_id = test_client_id("client")
+      flow_id_1 = test_flow_id("flow-1")
+      flow_id_2 = test_flow_id("flow-2")
 
-      assert {:ok, 1} = FlowSessionManager.join_flow("flow-1", client_id)
-      assert {:ok, 1} = FlowSessionManager.join_flow("flow-2", client_id)
+      assert {:ok, 1} = FlowSessionManager.join_flow(flow_id_1, client_id)
+      assert {:ok, 1} = FlowSessionManager.join_flow(flow_id_2, client_id)
     end
 
     test "joining the same flow twice with same client increments count only once" do
-      flow_id = "flow-123"
-      client_id = "client-abc"
+      flow_id = test_flow_id("flow-123")
+      client_id = test_client_id("client-abc")
 
       assert {:ok, 1} = FlowSessionManager.join_flow(flow_id, client_id)
       assert {:ok, 1} = FlowSessionManager.join_flow(flow_id, client_id)
@@ -46,23 +65,26 @@ defmodule Helix.FlowSessionManagerTest do
 
   describe "leave_flow/2" do
     test "successfully leaves a flow" do
-      flow_id = "flow-123"
-      client_id = "client-abc"
+      flow_id = test_flow_id("flow-123")
+      client_id = test_client_id("client-abc")
 
       FlowSessionManager.join_flow(flow_id, client_id)
       assert {:ok, 0} = FlowSessionManager.leave_flow(flow_id, client_id)
     end
 
     test "decrements client count correctly" do
-      flow_id = "flow-123"
+      flow_id = test_flow_id("flow-123")
+      client_1 = test_client_id("client-1")
+      client_2 = test_client_id("client-2")
+      client_3 = test_client_id("client-3")
 
-      FlowSessionManager.join_flow(flow_id, "client-1")
-      FlowSessionManager.join_flow(flow_id, "client-2")
-      FlowSessionManager.join_flow(flow_id, "client-3")
+      FlowSessionManager.join_flow(flow_id, client_1)
+      FlowSessionManager.join_flow(flow_id, client_2)
+      FlowSessionManager.join_flow(flow_id, client_3)
 
-      assert {:ok, 2} = FlowSessionManager.leave_flow(flow_id, "client-1")
-      assert {:ok, 1} = FlowSessionManager.leave_flow(flow_id, "client-2")
-      assert {:ok, 0} = FlowSessionManager.leave_flow(flow_id, "client-3")
+      assert {:ok, 2} = FlowSessionManager.leave_flow(flow_id, client_1)
+      assert {:ok, 1} = FlowSessionManager.leave_flow(flow_id, client_2)
+      assert {:ok, 0} = FlowSessionManager.leave_flow(flow_id, client_3)
     end
 
     test "returns 0 when leaving non-existent flow" do
@@ -70,15 +92,15 @@ defmodule Helix.FlowSessionManagerTest do
     end
 
     test "returns correct count when leaving with non-existent client" do
-      flow_id = "flow-123"
+      flow_id = test_flow_id("flow-123")
 
       FlowSessionManager.join_flow(flow_id, "client-1")
       assert {:ok, 1} = FlowSessionManager.leave_flow(flow_id, "non-existent-client")
     end
 
     test "removes empty sessions" do
-      flow_id = "flow-123"
-      client_id = "client-abc"
+      flow_id = test_flow_id("flow-123")
+      client_id = test_client_id("client-abc")
 
       FlowSessionManager.join_flow(flow_id, client_id)
       FlowSessionManager.leave_flow(flow_id, client_id)
@@ -95,8 +117,8 @@ defmodule Helix.FlowSessionManagerTest do
     end
 
     test "returns active status for existing flow" do
-      flow_id = "flow-123"
-      client_id = "client-abc"
+      flow_id = test_flow_id("flow-123")
+      client_id = test_client_id("client-abc")
 
       FlowSessionManager.join_flow(flow_id, client_id)
 
@@ -106,7 +128,7 @@ defmodule Helix.FlowSessionManagerTest do
     end
 
     test "updates client count correctly" do
-      flow_id = "flow-123"
+      flow_id = test_flow_id("flow-123")
 
       FlowSessionManager.join_flow(flow_id, "client-1")
       FlowSessionManager.join_flow(flow_id, "client-2")
@@ -123,8 +145,8 @@ defmodule Helix.FlowSessionManagerTest do
 
   describe "broadcast_flow_change/2" do
     test "broadcasts to active flow session" do
-      flow_id = "flow-123"
-      client_id = "client-abc"
+      flow_id = test_flow_id("flow-123")
+      client_id = test_client_id("client-abc")
       changes = %{nodes: [%{id: "node-1"}], edges: []}
 
       # Subscribe to the flow topic to receive broadcasts
@@ -138,7 +160,7 @@ defmodule Helix.FlowSessionManagerTest do
     end
 
     test "does not broadcast to inactive flow session" do
-      flow_id = "flow-123"
+      flow_id = test_flow_id("flow-123")
       changes = %{nodes: [], edges: []}
 
       # Subscribe but don't join the flow
@@ -151,8 +173,8 @@ defmodule Helix.FlowSessionManagerTest do
     end
 
     test "updates last_activity when broadcasting" do
-      flow_id = "flow-123"
-      client_id = "client-abc"
+      flow_id = test_flow_id("flow-123")
+      client_id = test_client_id("client-abc")
       changes = %{nodes: [], edges: []}
 
       FlowSessionManager.join_flow(flow_id, client_id)
@@ -161,7 +183,7 @@ defmodule Helix.FlowSessionManagerTest do
       initial_status = FlowSessionManager.get_flow_status(flow_id)
 
       # Wait a bit to ensure timestamp difference
-      :timer.sleep(10)
+      :timer.sleep(1001)
 
       FlowSessionManager.broadcast_flow_change(flow_id, changes)
 
@@ -197,7 +219,7 @@ defmodule Helix.FlowSessionManagerTest do
     end
 
     test "reflects changes as clients join and leave" do
-      flow_id = "flow-123"
+      flow_id = test_flow_id("flow-123")
 
       # Initially empty
       assert %{} = FlowSessionManager.get_active_sessions()
@@ -220,8 +242,8 @@ defmodule Helix.FlowSessionManagerTest do
 
   describe "session cleanup" do
     test "inactive sessions are tracked with last_activity" do
-      flow_id = "flow-123"
-      client_id = "client-abc"
+      flow_id = test_flow_id("flow-123")
+      client_id = test_client_id("client-abc")
 
       FlowSessionManager.join_flow(flow_id, client_id)
 
@@ -231,30 +253,30 @@ defmodule Helix.FlowSessionManagerTest do
     end
 
     test "last_activity is updated on join" do
-      flow_id = "flow-123"
+      flow_id = test_flow_id("flow-123")
 
       FlowSessionManager.join_flow(flow_id, "client-1")
       initial_time = FlowSessionManager.get_flow_status(flow_id).last_activity
 
-      :timer.sleep(10)
+      :timer.sleep(1001)
 
-      FlowSessionManager.join_flow(flow_id, "client-2")
+      FlowSessionManager.join_flow(flow_id, test_client_id("client-2"))
       updated_time = FlowSessionManager.get_flow_status(flow_id).last_activity
 
       assert updated_time > initial_time
     end
 
     test "last_activity is updated on leave" do
-      flow_id = "flow-123"
+      flow_id = test_flow_id("flow-123")
 
       FlowSessionManager.join_flow(flow_id, "client-1")
       FlowSessionManager.join_flow(flow_id, "client-2")
-      
+
       initial_time = FlowSessionManager.get_flow_status(flow_id).last_activity
 
-      :timer.sleep(10)
+      :timer.sleep(1001)
 
-      FlowSessionManager.leave_flow(flow_id, "client-1")
+      FlowSessionManager.leave_flow(flow_id, test_client_id("client-1"))
       updated_time = FlowSessionManager.get_flow_status(flow_id).last_activity
 
       assert updated_time > initial_time
@@ -268,7 +290,7 @@ defmodule Helix.FlowSessionManagerTest do
     end
 
     test "handles malformed client_id gracefully" do
-      flow_id = "flow-123"
+      flow_id = test_flow_id("flow-123")
       assert {:ok, 1} = FlowSessionManager.join_flow(flow_id, "")
       assert {:ok, 0} = FlowSessionManager.leave_flow(flow_id, "")
     end
@@ -282,7 +304,7 @@ defmodule Helix.FlowSessionManagerTest do
 
   describe "concurrency" do
     test "handles concurrent joins to same flow" do
-      flow_id = "flow-123"
+      flow_id = test_flow_id("flow-123")
 
       # Simulate multiple clients joining concurrently
       tasks =
@@ -302,7 +324,7 @@ defmodule Helix.FlowSessionManagerTest do
     end
 
     test "handles concurrent leaves from same flow" do
-      flow_id = "flow-123"
+      flow_id = test_flow_id("flow-123")
       client_ids = Enum.map(1..10, &"client-#{&1}")
 
       # Join all clients first

@@ -4,8 +4,12 @@ defmodule HelixWeb.FlowControllerTest do
   alias Helix.FlowSessionManager
 
   setup do
-    # Start FlowSessionManager for each test
-    start_supervised!({FlowSessionManager, []})
+    # Ensure FlowSessionManager is started, but don't fail if already started
+    case start_supervised({FlowSessionManager, []}) do
+      {:ok, _pid} -> :ok
+      {:error, {:already_started, _pid}} -> :ok
+    end
+
     :ok
   end
 
@@ -37,6 +41,7 @@ defmodule HelixWeb.FlowControllerTest do
   describe "POST /api/flows/:id/sync" do
     test "successfully broadcasts flow changes", %{conn: conn} do
       flow_id = "test-flow-123"
+
       changes = %{
         "nodes" => [
           %{
@@ -48,18 +53,21 @@ defmodule HelixWeb.FlowControllerTest do
         "edges" => []
       }
 
+      # First, ensure there's an active session by joining a flow
+      FlowSessionManager.join_flow(flow_id, "test-client")
+
       # Subscribe to PubSub to verify broadcast
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
 
-      conn = 
+      conn =
         conn
         |> put_req_header("content-type", "application/json")
         |> post(~p"/api/flows/#{flow_id}/sync", %{"changes" => changes})
 
       assert json_response(conn, 200) == %{
-        "success" => true,
-        "message" => "Flow changes broadcasted"
-      }
+               "success" => true,
+               "message" => "Flow changes broadcasted"
+             }
 
       # Verify the broadcast was sent
       assert_receive {:flow_change, ^changes}, 1000
@@ -67,49 +75,50 @@ defmodule HelixWeb.FlowControllerTest do
 
     test "handles empty changes", %{conn: conn} do
       flow_id = "empty-changes-flow"
-      
-      conn = 
+
+      conn =
         conn
         |> put_req_header("content-type", "application/json")
         |> post(~p"/api/flows/#{flow_id}/sync", %{})
 
       assert json_response(conn, 200) == %{
-        "success" => true,
-        "message" => "Flow changes broadcasted"
-      }
+               "success" => true,
+               "message" => "Flow changes broadcasted"
+             }
     end
 
     test "handles malformed changes payload", %{conn: conn} do
       flow_id = "malformed-flow"
-      
-      conn = 
+
+      conn =
         conn
         |> put_req_header("content-type", "application/json")
         |> post(~p"/api/flows/#{flow_id}/sync", %{"changes" => "invalid"})
 
       # Should still succeed as the controller doesn't validate the changes structure
       assert json_response(conn, 200) == %{
-        "success" => true,
-        "message" => "Flow changes broadcasted"
-      }
+               "success" => true,
+               "message" => "Flow changes broadcasted"
+             }
     end
 
     test "handles missing changes parameter", %{conn: conn} do
       flow_id = "missing-changes-flow"
-      
-      conn = 
+
+      conn =
         conn
         |> put_req_header("content-type", "application/json")
         |> post(~p"/api/flows/#{flow_id}/sync", %{"other" => "data"})
 
       assert json_response(conn, 200) == %{
-        "success" => true,
-        "message" => "Flow changes broadcasted"
-      }
+               "success" => true,
+               "message" => "Flow changes broadcasted"
+             }
     end
 
     test "broadcasts complex flow changes", %{conn: conn} do
       flow_id = "complex-flow"
+
       changes = %{
         "nodes" => [
           %{
@@ -126,7 +135,7 @@ defmodule HelixWeb.FlowControllerTest do
             }
           },
           %{
-            "id" => "sensor-1", 
+            "id" => "sensor-1",
             "type" => "sensor",
             "position" => %{"x" => 300, "y" => 100},
             "data" => %{
@@ -151,30 +160,33 @@ defmodule HelixWeb.FlowControllerTest do
         }
       }
 
+      # First, ensure there's an active session by joining a flow
+      FlowSessionManager.join_flow(flow_id, "test-client")
+
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
 
-      conn = 
+      conn =
         conn
         |> put_req_header("content-type", "application/json")
         |> post(~p"/api/flows/#{flow_id}/sync", %{"changes" => changes})
 
       assert json_response(conn, 200) == %{
-        "success" => true,
-        "message" => "Flow changes broadcasted"
-      }
+               "success" => true,
+               "message" => "Flow changes broadcasted"
+             }
 
       assert_receive {:flow_change, ^changes}, 1000
     end
 
     test "handles concurrent sync requests", %{conn: conn} do
       flow_id = "concurrent-flow"
-      
+
       # Send multiple concurrent requests
-      tasks = 
+      tasks =
         Enum.map(1..5, fn i ->
           Task.async(fn ->
             changes = %{"nodes" => [%{"id" => "node-#{i}"}]}
-            
+
             conn
             |> put_req_header("content-type", "application/json")
             |> post(~p"/api/flows/#{flow_id}/sync", %{"changes" => changes})
@@ -197,24 +209,24 @@ defmodule HelixWeb.FlowControllerTest do
   describe "GET /api/flows/:id/status" do
     test "returns inactive status for non-existent flow", %{conn: conn} do
       flow_id = "non-existent-flow"
-      
+
       conn = get(conn, ~p"/api/flows/#{flow_id}/status")
-      
+
       assert json_response(conn, 200) == %{
-        "active" => false,
-        "client_count" => 0
-      }
+               "active" => false,
+               "client_count" => 0
+             }
     end
 
     test "returns active status for flow with clients", %{conn: conn} do
       flow_id = "active-flow"
       client_id = "test-client"
-      
+
       # Join a client to make the flow active
       {:ok, client_count} = FlowSessionManager.join_flow(flow_id, client_id)
-      
+
       conn = get(conn, ~p"/api/flows/#{flow_id}/status")
-      
+
       response = json_response(conn, 200)
       assert response["active"] == true
       assert response["client_count"] == client_count
@@ -223,70 +235,70 @@ defmodule HelixWeb.FlowControllerTest do
 
     test "reflects client count changes", %{conn: conn} do
       flow_id = "count-changes-flow"
-      
+
       # Initially inactive
       conn1 = get(conn, ~p"/api/flows/#{flow_id}/status")
       assert json_response(conn1, 200)["client_count"] == 0
-      
+
       # Add clients
       FlowSessionManager.join_flow(flow_id, "client-1")
       FlowSessionManager.join_flow(flow_id, "client-2")
-      
+
       conn2 = get(conn, ~p"/api/flows/#{flow_id}/status")
       assert json_response(conn2, 200)["client_count"] == 2
-      
+
       # Remove one client
       FlowSessionManager.leave_flow(flow_id, "client-1")
-      
+
       conn3 = get(conn, ~p"/api/flows/#{flow_id}/status")
       assert json_response(conn3, 200)["client_count"] == 1
-      
+
       # Remove last client
       FlowSessionManager.leave_flow(flow_id, "client-2")
-      
+
       conn4 = get(conn, ~p"/api/flows/#{flow_id}/status")
+
       assert json_response(conn4, 200) == %{
-        "active" => false,
-        "client_count" => 0
-      }
+               "active" => false,
+               "client_count" => 0
+             }
     end
 
     test "handles special characters in flow ID", %{conn: conn} do
       flow_id = "flow-with_special.chars-123"
-      
+
       conn = get(conn, ~p"/api/flows/#{flow_id}/status")
-      
+
       assert json_response(conn, 200) == %{
-        "active" => false,
-        "client_count" => 0
-      }
+               "active" => false,
+               "client_count" => 0
+             }
     end
 
     test "returns consistent last_activity timestamp", %{conn: conn} do
       flow_id = "timestamp-flow"
-      
+
       FlowSessionManager.join_flow(flow_id, "client-1")
-      
+
       conn1 = get(conn, ~p"/api/flows/#{flow_id}/status")
       response1 = json_response(conn1, 200)
-      
+
       # Wait a moment
       :timer.sleep(50)
-      
+
       conn2 = get(conn, ~p"/api/flows/#{flow_id}/status")
       response2 = json_response(conn2, 200)
-      
+
       # Timestamp should be the same (no activity between calls)
       assert response1["last_activity"] == response2["last_activity"]
-      
-      # Activity should update it
+
+      # Wait to ensure timestamp will be different, then broadcast activity
+      :timer.sleep(1001)
       FlowSessionManager.broadcast_flow_change(flow_id, %{})
-      
-      :timer.sleep(10)
-      
-      conn3 = get(conn, ~p"/api/flows/#{flow_id}/status") 
+
+      conn3 = get(conn, ~p"/api/flows/#{flow_id}/status")
       response3 = json_response(conn3, 200)
-      
+
       # Should be newer
       assert response3["last_activity"] > response1["last_activity"]
     end
@@ -296,39 +308,38 @@ defmodule HelixWeb.FlowControllerTest do
     test "sync handles URL decoding correctly", %{conn: conn} do
       # Test flow ID with encoded characters
       encoded_flow_id = "flow%20with%20spaces"
-      
-      conn = 
+
+      conn =
         conn
         |> put_req_header("content-type", "application/json")
         |> post("/api/flows/#{encoded_flow_id}/sync", %{"changes" => %{}})
 
       assert json_response(conn, 200) == %{
-        "success" => true,
-        "message" => "Flow changes broadcasted"
-      }
+               "success" => true,
+               "message" => "Flow changes broadcasted"
+             }
     end
 
     test "status handles URL decoding correctly", %{conn: conn} do
       encoded_flow_id = "flow%20with%20spaces"
-      
+
       conn = get(conn, "/api/flows/#{encoded_flow_id}/status")
-      
+
       assert json_response(conn, 200) == %{
-        "active" => false,
-        "client_count" => 0
-      }
+               "active" => false,
+               "client_count" => 0
+             }
     end
 
     test "handles invalid JSON in sync request", %{conn: conn} do
       flow_id = "invalid-json-flow"
-      
-      conn = 
+
+      # Phoenix should raise a ParseError for invalid JSON
+      assert_raise Plug.Parsers.ParseError, fn ->
         conn
         |> put_req_header("content-type", "application/json")
         |> post(~p"/api/flows/#{flow_id}/sync", "invalid json")
-
-      # Phoenix should handle this and return 400 or similar
-      assert conn.status in [400, 422]
+      end
     end
   end
 
@@ -336,64 +347,64 @@ defmodule HelixWeb.FlowControllerTest do
     test "sync and status work together", %{conn: conn} do
       flow_id = "integration-flow"
       changes = %{"nodes" => [], "edges" => []}
-      
+
       # Initially inactive
       conn1 = get(conn, ~p"/api/flows/#{flow_id}/status")
       assert json_response(conn1, 200)["active"] == false
-      
+
       # Add a client to make it active
       FlowSessionManager.join_flow(flow_id, "client-1")
-      
+
       # Now should be active
       conn2 = get(conn, ~p"/api/flows/#{flow_id}/status")
       initial_activity = json_response(conn2, 200)["last_activity"]
-      
+
       # Wait and sync changes
-      :timer.sleep(10)
-      
-      conn3 = 
+      :timer.sleep(1001)
+
+      conn3 =
         conn
-        |> put_req_header("content-type", "application/json") 
+        |> put_req_header("content-type", "application/json")
         |> post(~p"/api/flows/#{flow_id}/sync", %{"changes" => changes})
-      
+
       assert json_response(conn3, 200)["success"] == true
-      
+
       # Status should reflect updated activity
       conn4 = get(conn, ~p"/api/flows/#{flow_id}/status")
       updated_activity = json_response(conn4, 200)["last_activity"]
-      
+
       assert updated_activity > initial_activity
     end
 
     test "multiple flows are handled independently", %{conn: conn} do
       flow1_id = "independent-flow-1"
       flow2_id = "independent-flow-2"
-      
+
       # Set up different states for each flow
       FlowSessionManager.join_flow(flow1_id, "client-1")
       FlowSessionManager.join_flow(flow2_id, "client-2a")
       FlowSessionManager.join_flow(flow2_id, "client-2b")
-      
+
       # Check individual statuses
       conn1 = get(conn, ~p"/api/flows/#{flow1_id}/status")
       conn2 = get(conn, ~p"/api/flows/#{flow2_id}/status")
-      
+
       assert json_response(conn1, 200)["client_count"] == 1
       assert json_response(conn2, 200)["client_count"] == 2
-      
+
       # Sync changes to one flow
       changes = %{"test" => "data"}
-      
+
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow1_id}")
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow2_id}")
-      
-      conn3 = 
+
+      conn3 =
         conn
         |> put_req_header("content-type", "application/json")
         |> post(~p"/api/flows/#{flow1_id}/sync", %{"changes" => changes})
-      
+
       assert json_response(conn3, 200)["success"] == true
-      
+
       # Only flow1 should receive the broadcast
       assert_receive {:flow_change, ^changes}, 1000
       refute_receive {:flow_change, _}, 100

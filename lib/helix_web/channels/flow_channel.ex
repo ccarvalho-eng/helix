@@ -105,11 +105,24 @@ defmodule HelixWeb.FlowChannel do
             "Client #{client_id} left flow #{flow_id}. Remaining clients: #{remaining_clients}"
           )
 
-          # Broadcast that a client left
-          broadcast(socket, "client_left", %{
-            client_count: remaining_clients,
-            flow_id: flow_id
-          })
+          # Broadcast that a client left using broadcast_from
+          # This may fail if the channel is already terminating or never properly joined
+          try do
+            broadcast_from(socket, "client_left", %{
+              client_count: remaining_clients,
+              flow_id: flow_id
+            })
+          rescue
+            RuntimeError ->
+              Logger.debug(
+                "Could not broadcast client_left during termination - socket not joined"
+              )
+          catch
+            :exit, _ ->
+              Logger.debug(
+                "Could not broadcast client_left during termination - channel already closed"
+              )
+          end
 
         {:error, reason} ->
           Logger.error("Error leaving flow #{flow_id}: #{inspect(reason)}")
