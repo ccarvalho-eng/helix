@@ -214,7 +214,6 @@ test.describe('Flow Persistence and Data Integrity', () => {
         await page.waitForTimeout(1000);
       }
 
-      const flowUrl = page.url();
       const nodeCountBefore = await page.locator('.react-flow__node').count();
 
       // Refresh the page
@@ -340,7 +339,6 @@ test.describe('Flow Persistence and Data Integrity', () => {
       await page.waitForTimeout(1000);
 
       // Track localStorage write operations
-      let saveCount = 0;
       await page.evaluate(() => {
         const originalSetItem = localStorage.setItem;
         localStorage.setItem = function(key, value) {
