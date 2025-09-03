@@ -56,7 +56,7 @@ class FlowStorageServiceImpl implements FlowStorageService {
       // Update registry with metadata
       const registry = this.getFlowRegistry();
       const flowIndex = registry.flows.findIndex(f => f.id === id);
-      
+
       if (flowIndex >= 0) {
         registry.flows[flowIndex].lastModified = new Date().toISOString();
         registry.flows[flowIndex].nodeCount = data.nodes?.length || 0;
@@ -82,7 +82,7 @@ class FlowStorageServiceImpl implements FlowStorageService {
       lastModified: now,
       createdAt: now,
       nodeCount: 0,
-      connectionCount: 0
+      connectionCount: 0,
     };
 
     // Add to registry
@@ -94,7 +94,7 @@ class FlowStorageServiceImpl implements FlowStorageService {
     const emptyFlowData: FlowData = {
       nodes: [],
       edges: [],
-      viewport: { x: 0, y: 0, zoom: 1 }
+      viewport: { x: 0, y: 0, zoom: 1 },
     };
     this.saveFlow(id, emptyFlowData);
 
@@ -107,7 +107,7 @@ class FlowStorageServiceImpl implements FlowStorageService {
   updateFlowTitle(id: string, title: string): void {
     const registry = this.getFlowRegistry();
     const flowIndex = registry.flows.findIndex(f => f.id === id);
-    
+
     if (flowIndex >= 0) {
       registry.flows[flowIndex].title = title;
       registry.flows[flowIndex].lastModified = new Date().toISOString();
@@ -154,7 +154,7 @@ class FlowStorageServiceImpl implements FlowStorageService {
       lastModified: now,
       createdAt: now,
       nodeCount: sourceFlow.nodes?.length || 0,
-      connectionCount: sourceFlow.edges?.length || 0
+      connectionCount: sourceFlow.edges?.length || 0,
     };
 
     // Add to registry
@@ -165,24 +165,35 @@ class FlowStorageServiceImpl implements FlowStorageService {
     // Copy flow data with new node IDs to avoid conflicts
     const duplicatedFlowData: FlowData = {
       ...sourceFlow,
-      nodes: sourceFlow.nodes?.map((node: any) => ({
-        ...node,
-        id: this.generateNodeId(),
-        data: { ...node.data, id: this.generateNodeId() }
-      })) || [],
-      edges: sourceFlow.edges?.map((edge: any, index: number) => ({
-        ...edge,
-        id: `duplicated-edge-${index}`,
-        source: (sourceFlow.nodes?.[sourceFlow.nodes.findIndex((n: any) => n.id === edge.source)] as any)?.id || edge.source,
-        target: (sourceFlow.nodes?.[sourceFlow.nodes.findIndex((n: any) => n.id === edge.target)] as any)?.id || edge.target
-      })) || []
+      nodes:
+        sourceFlow.nodes?.map((node: any) => ({
+          ...node,
+          id: this.generateNodeId(),
+          data: { ...node.data, id: this.generateNodeId() },
+        })) || [],
+      edges:
+        sourceFlow.edges?.map((edge: any, index: number) => ({
+          ...edge,
+          id: `duplicated-edge-${index}`,
+          source:
+            (
+              sourceFlow.nodes?.[
+                sourceFlow.nodes.findIndex((n: any) => n.id === edge.source)
+              ] as any
+            )?.id || edge.source,
+          target:
+            (
+              sourceFlow.nodes?.[
+                sourceFlow.nodes.findIndex((n: any) => n.id === edge.target)
+              ] as any
+            )?.id || edge.target,
+        })) || [],
     };
-    
+
     this.saveFlow(newId, duplicatedFlowData);
 
     return duplicatedFlow;
   }
-
 
   /**
    * Generate unique flow ID

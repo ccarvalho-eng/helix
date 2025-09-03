@@ -37,7 +37,7 @@ class WebSocketService {
         params: {},
         logger: (kind: string, msg: string, data: unknown) => {
           console.debug(`🔌📝 Phoenix WebSocket ${kind}:`, msg, data);
-        }
+        },
       });
 
       this.socket.onOpen(() => {
@@ -115,7 +115,8 @@ class WebSocketService {
 
       // Join the channel
       const joinResponse = await new Promise((resolve, reject) => {
-        this.channel?.join()
+        this.channel
+          ?.join()
           .receive('ok', resolve)
           .receive('error', reject)
           .receive('timeout', () => reject(new Error('Join timeout')));
@@ -150,8 +151,9 @@ class WebSocketService {
       return Promise.resolve(false);
     }
 
-    return new Promise((resolve) => {
-      this.channel?.push('flow_change', { changes })
+    return new Promise(resolve => {
+      this.channel
+        ?.push('flow_change', { changes })
         .receive('ok', () => {
           resolve(true);
         })
@@ -195,8 +197,9 @@ class WebSocketService {
       return false;
     }
 
-    return new Promise((resolve) => {
-      this.channel?.push('ping', {})
+    return new Promise(resolve => {
+      this.channel
+        ?.push('ping', {})
         .receive('ok', () => resolve(true))
         .receive('error', () => resolve(false))
         .receive('timeout', () => resolve(false));
@@ -215,7 +218,9 @@ class WebSocketService {
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
     this.reconnectAttempts++;
 
-    console.log(`🔌🔄 Attempting reconnection in ${delay}ms (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`);
+    console.log(
+      `🔌🔄 Attempting reconnection in ${delay}ms (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`
+    );
 
     setTimeout(() => {
       if (this.socket && !this.socket.isConnected()) {

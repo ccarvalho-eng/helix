@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Cpu, Plus, FolderOpen, Clock, Settings, Search, Filter, Edit, Copy, Trash2 } from 'lucide-react';
+import {
+  Cpu,
+  Plus,
+  FolderOpen,
+  Clock,
+  Settings,
+  Search,
+  Filter,
+  Edit,
+  Copy,
+  Trash2,
+} from 'lucide-react';
 import { ThemeToggle } from '../flow-builder/components/ThemeToggle';
 import { flowStorage } from '../../shared/services/flowStorage';
 import { FlowRegistryEntry } from '../../shared/types/flow';
@@ -85,7 +96,7 @@ export const HomePage: React.FC = () => {
   };
 
   // Filter flows based on search query
-  const filteredFlows = flows.filter(flow => 
+  const filteredFlows = flows.filter(flow =>
     flow.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -94,7 +105,7 @@ export const HomePage: React.FC = () => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
+
     if (days === 0) return 'Today';
     if (days === 1) return '1 day ago';
     if (days < 7) return `${days} days ago`;
@@ -162,7 +173,7 @@ export const HomePage: React.FC = () => {
                     placeholder='Search workflows...'
                     className='home-workflows__search-input'
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={e => setSearchQuery(e.target.value)}
                   />
                 </div>
                 <button className='home-workflows__filter-btn'>
@@ -173,24 +184,27 @@ export const HomePage: React.FC = () => {
             </div>
 
             <div className='home-workflows__grid'>
-              {filteredFlows.map((flow) => (
+              {filteredFlows.map(flow => (
                 <div key={flow.id} className='home-workflow-card'>
                   <div className='home-workflow-card__header'>
-                    <div className='home-workflow-card__info' onClick={() => handleOpenFlow(flow.id)}>
+                    <div
+                      className='home-workflow-card__info'
+                      onClick={() => handleOpenFlow(flow.id)}
+                    >
                       {editingFlowId === flow.id ? (
                         <div className='home-workflow-card__title-edit'>
                           <input
                             type='text'
                             value={editingTitle}
-                            onChange={(e) => setEditingTitle(e.target.value)}
+                            onChange={e => setEditingTitle(e.target.value)}
                             onBlur={handleSaveTitle}
-                            onKeyDown={(e) => {
+                            onKeyDown={e => {
                               if (e.key === 'Enter') handleSaveTitle();
                               if (e.key === 'Escape') handleCancelEdit();
                             }}
                             className='home-workflow-card__title-input'
                             autoFocus
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={e => e.stopPropagation()}
                           />
                         </div>
                       ) : (
@@ -206,13 +220,15 @@ export const HomePage: React.FC = () => {
                         className='home-workflow-card__gear'
                         type='button'
                         aria-label='Flow options'
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           const dropdown = e.currentTarget.nextElementSibling as HTMLElement;
                           // Close other dropdowns
-                          document.querySelectorAll('.home-workflow-card__dropdown.show').forEach(d => {
-                            if (d !== dropdown) d.classList.remove('show');
-                          });
+                          document
+                            .querySelectorAll('.home-workflow-card__dropdown.show')
+                            .forEach(d => {
+                              if (d !== dropdown) d.classList.remove('show');
+                            });
                           dropdown.classList.toggle('show');
                         }}
                       >
@@ -221,7 +237,7 @@ export const HomePage: React.FC = () => {
                       <div className='home-workflow-card__dropdown'>
                         <button
                           className='home-workflow-card__dropdown-item'
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             handleEditTitle(flow);
                             e.currentTarget.parentElement?.classList.remove('show');
@@ -232,7 +248,7 @@ export const HomePage: React.FC = () => {
                         </button>
                         <button
                           className='home-workflow-card__dropdown-item'
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             handleDuplicateFlow(flow.id);
                             e.currentTarget.parentElement?.classList.remove('show');
@@ -243,7 +259,7 @@ export const HomePage: React.FC = () => {
                         </button>
                         <button
                           className='home-workflow-card__dropdown-item home-workflow-card__dropdown-item--danger'
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             setShowDeleteConfirm(flow.id);
                             e.currentTarget.parentElement?.classList.remove('show');
@@ -258,13 +274,18 @@ export const HomePage: React.FC = () => {
 
                   <div className='home-workflow-card__body' onClick={() => handleOpenFlow(flow.id)}>
                     <p className='home-workflow-card__description'>
-                      AI workflow with {flow.nodeCount || 0} nodes and {flow.connectionCount || 0} connections
+                      AI workflow with {flow.nodeCount || 0} nodes and {flow.connectionCount || 0}{' '}
+                      connections
                     </p>
 
                     <div className='home-workflow-card__footer'>
                       <div className='home-workflow-card__stats'>
-                        <span className='home-workflow-card__stat'>{flow.nodeCount || 0} nodes</span>
-                        <span className='home-workflow-card__stat'>{flow.connectionCount || 0} connections</span>
+                        <span className='home-workflow-card__stat'>
+                          {flow.nodeCount || 0} nodes
+                        </span>
+                        <span className='home-workflow-card__stat'>
+                          {flow.connectionCount || 0} connections
+                        </span>
                         <span className='home-workflow-card__stat'>Active</span>
                       </div>
                       <div className='home-workflow-card__status home-workflow-card__status--active'></div>
@@ -286,7 +307,7 @@ export const HomePage: React.FC = () => {
             {/* Delete Confirmation Modal */}
             {showDeleteConfirm && (
               <div className='home-modal-backdrop' onClick={() => setShowDeleteConfirm(null)}>
-                <div className='home-modal' onClick={(e) => e.stopPropagation()}>
+                <div className='home-modal' onClick={e => e.stopPropagation()}>
                   <div className='home-modal__header'>
                     <h3 className='home-modal__title'>Delete Workflow</h3>
                     <button
@@ -297,7 +318,9 @@ export const HomePage: React.FC = () => {
                     </button>
                   </div>
                   <div className='home-modal__body'>
-                    <p>Are you sure you want to delete this workflow? This action cannot be undone.</p>
+                    <p>
+                      Are you sure you want to delete this workflow? This action cannot be undone.
+                    </p>
                   </div>
                   <div className='home-modal__footer'>
                     <button
@@ -319,7 +342,6 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
       </div>
-
     </div>
   );
 };

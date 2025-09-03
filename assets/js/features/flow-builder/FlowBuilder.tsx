@@ -16,11 +16,7 @@ import {
 
 import { AIFlowNode as OriginalAIFlowNode } from './types';
 import { NodeConfig } from '../../shared/types';
-import {
-  TemplateType,
-  getFeaturedTemplates,
-  getTemplatesByCategory,
-} from './templates';
+import { TemplateType, getFeaturedTemplates, getTemplatesByCategory } from './templates';
 import { Template } from './types';
 import { PropertiesPanel } from './components/properties';
 import { ErrorBoundary } from '../../shared/components/ui/ErrorBoundary';
@@ -405,7 +401,7 @@ const getFlowIdFromUrl = (): string | null => {
 function FlowBuilderInternal() {
   const { theme = 'light' } = useThemeContext() ?? { theme: 'light' };
   const flowId = getFlowIdFromUrl();
-  
+
   const {
     currentFlow,
     // isNewFlow,
@@ -426,7 +422,7 @@ function FlowBuilderInternal() {
     duplicateNode,
     initialViewport,
     onMoveEnd,
-    addTemplate
+    addTemplate,
   } = useFlowManager(flowId);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [isPropertiesOpen, setIsPropertiesOpen] = useState(false);
@@ -614,9 +610,9 @@ function FlowBuilderInternal() {
                 <input
                   type='text'
                   value={editingTitle}
-                  onChange={(e) => setEditingTitle(e.target.value)}
+                  onChange={e => setEditingTitle(e.target.value)}
                   onBlur={handleSaveTitle}
-                  onKeyDown={(e) => {
+                  onKeyDown={e => {
                     if (e.key === 'Enter') handleSaveTitle();
                     if (e.key === 'Escape') handleCancelEditingTitle();
                   }}
@@ -624,7 +620,7 @@ function FlowBuilderInternal() {
                   autoFocus
                 />
               ) : (
-                <h2 
+                <h2
                   className='flow-builder__flow-title'
                   onClick={handleStartEditingTitle}
                   title='Click to edit flow title'

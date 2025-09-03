@@ -32,13 +32,13 @@ export function useFlowManager(flowId: string | null) {
   const [currentFlow, setCurrentFlow] = useState<FlowRegistryEntry | null>(null);
   const [isNewFlow, setIsNewFlow] = useState(false);
   const [initialViewport, setInitialViewport] = useState({ x: 0, y: 0, zoom: 1 });
-  
+
   // Initialize with empty state, will be loaded in useEffect
   const [nodes, setNodes, onNodesChange] = useNodesState<AIFlowNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<AIFlowNode | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
-  
+
   // WebSocket state
   const [isConnected, setIsConnected] = useState(false);
   const [connectedClients, setConnectedClients] = useState(0);
@@ -50,11 +50,11 @@ export function useFlowManager(flowId: string | null) {
       // Load existing flow
       const registry = flowStorage.getFlowRegistry();
       const flowEntry = registry.flows.find(f => f.id === flowId);
-      
+
       if (flowEntry) {
         setCurrentFlow(flowEntry);
         setIsNewFlow(false);
-        
+
         const flowData = flowStorage.getFlow(flowId);
         if (flowData) {
           setNodes((flowData.nodes as Node<AIFlowNode>[]) || []);
@@ -90,9 +90,9 @@ export function useFlowManager(flowId: string | null) {
       onFlowUpdate: (data: FlowChangeData) => {
         // Prevent infinite loops when receiving our own changes
         if (isUpdatingFromRemote.current) return;
-        
+
         isUpdatingFromRemote.current = true;
-        
+
         try {
           const changes = data.changes as FlowData;
           if (changes.nodes) {
@@ -110,9 +110,9 @@ export function useFlowManager(flowId: string | null) {
           }, 100);
         }
       },
-      onClientJoined: (data) => setConnectedClients(data.client_count),
-      onClientLeft: (data) => setConnectedClients(data.client_count),
-      onError: (error) => console.error('🔌❌ WebSocket connection error:', error),
+      onClientJoined: data => setConnectedClients(data.client_count),
+      onClientLeft: data => setConnectedClients(data.client_count),
+      onError: error => console.error('🔌❌ WebSocket connection error:', error),
     });
 
     // Connect to WebSocket and join flow channel
@@ -120,7 +120,7 @@ export function useFlowManager(flowId: string | null) {
       if (!websocketService.isConnected()) {
         websocketService.connect();
       }
-      
+
       // Wait a moment for connection to establish
       setTimeout(async () => {
         const joined = await websocketService.joinFlow(currentFlow.id);
@@ -149,37 +149,45 @@ export function useFlowManager(flowId: string | null) {
         ...node,
         selected: undefined, // Remove selection state
         dragging: undefined, // Remove dragging state
-        data: node.data ? {
-          ...node.data,
-          selected: undefined,
-          dragging: undefined,
-        } : node.data
+        data: node.data
+          ? {
+              ...node.data,
+              selected: undefined,
+              dragging: undefined,
+            }
+          : node.data,
       })),
       edges: data.edges.map((edge: any) => ({
         ...edge,
         selected: undefined, // Remove selection state
         animated: undefined, // Remove animation state if it's UI-only
       })),
-      viewport: data.viewport
+      viewport: data.viewport,
     };
   }, []);
 
   // Auto-save flow data when nodes or edges change
   useEffect(() => {
-    if (currentFlow && reactFlowInstance && hasInitializedRef.current && !isUpdatingFromRemote.current) {
+    if (
+      currentFlow &&
+      reactFlowInstance &&
+      hasInitializedRef.current &&
+      !isUpdatingFromRemote.current
+    ) {
       const viewport = reactFlowInstance.getViewport();
       const flowData: FlowData = {
         nodes,
         edges,
-        viewport
+        viewport,
       };
-      
+
       // Check if data actually changed (exclude selection and UI-only changes)
       const prevData = prevFlowDataRef.current;
       const normalizedCurrent = normalizeDataForComparison(flowData);
       const normalizedPrevious = prevData ? normalizeDataForComparison(prevData) : null;
-      
-      const hasChanges = !normalizedPrevious || 
+
+      const hasChanges =
+        !normalizedPrevious ||
         JSON.stringify(normalizedPrevious.nodes) !== JSON.stringify(normalizedCurrent.nodes) ||
         JSON.stringify(normalizedPrevious.edges) !== JSON.stringify(normalizedCurrent.edges);
 
@@ -191,10 +199,10 @@ export function useFlowManager(flowId: string | null) {
       const timeoutId = setTimeout(() => {
         // Save to localStorage
         flowStorage.saveFlow(currentFlow.id, flowData);
-        
+
         // Update previous data reference
         prevFlowDataRef.current = JSON.parse(JSON.stringify(flowData));
-        
+
         // Broadcast changes to other clients (only if not updating from remote)
         if (!isUpdatingFromRemote.current && websocketService.isConnected()) {
           websocketService.sendFlowChange(flowData).catch(error => {
@@ -218,7 +226,7 @@ export function useFlowManager(flowId: string | null) {
           const initialFlowData = {
             nodes,
             edges,
-            viewport
+            viewport,
           };
           prevFlowDataRef.current = normalizeDataForComparison(initialFlowData);
         }
@@ -230,7 +238,7 @@ export function useFlowManager(flowId: string | null) {
     (newTitle: string) => {
       if (currentFlow && newTitle.trim()) {
         flowStorage.updateFlowTitle(currentFlow.id, newTitle.trim());
-        setCurrentFlow(prev => prev ? { ...prev, title: newTitle.trim() } : null);
+        setCurrentFlow(prev => (prev ? { ...prev, title: newTitle.trim() } : null));
       }
     },
     [currentFlow]
@@ -420,7 +428,7 @@ export function useFlowManager(flowId: string | null) {
     currentFlow,
     isNewFlow,
     updateFlowTitle,
-    
+
     // React Flow state
     nodes,
     edges,
@@ -432,20 +440,20 @@ export function useFlowManager(flowId: string | null) {
     onDragOver,
     onDrop,
     setReactFlowInstance,
-    
+
     // Node operations
     addNode,
     updateNode,
     deleteNode,
     duplicateNode,
-    
+
     // WebSocket status
     isConnected,
     connectedClients,
-    
+
     // Initial viewport
     initialViewport,
-    
+
     // Viewport change handler for onMoveEnd
     onMoveEnd: useCallback(() => {
       if (currentFlow && reactFlowInstance) {
@@ -453,13 +461,13 @@ export function useFlowManager(flowId: string | null) {
         const flowData: FlowData = {
           nodes,
           edges,
-          viewport
+          viewport,
         };
-        
+
         // Debounced save
         const timeoutId = setTimeout(() => {
           flowStorage.saveFlow(currentFlow.id, flowData);
-          
+
           // Update timestamp
           const registry = flowStorage.getFlowRegistry();
           const flowIndex = registry.flows.findIndex(f => f.id === currentFlow.id);
@@ -468,64 +476,67 @@ export function useFlowManager(flowId: string | null) {
             flowStorage.saveFlowRegistry(registry);
           }
         }, 300);
-        
+
         return () => clearTimeout(timeoutId);
       }
     }, [currentFlow, nodes, edges, reactFlowInstance]),
 
     // Add template functionality
-    addTemplate: useCallback((templateType: TemplateType = 'assassins-creed') => {
-      const template = getTemplate(templateType);
-      const { nodes: templateNodes, connections: templateConnections } = template;
+    addTemplate: useCallback(
+      (templateType: TemplateType = 'assassins-creed') => {
+        const template = getTemplate(templateType);
+        const { nodes: templateNodes, connections: templateConnections } = template;
 
-      // Create nodes from template
-      const newNodes = templateNodes.map(nodeTemplate => {
-        const defaults = nodeDefaults[nodeTemplate.type as keyof typeof nodeDefaults];
-        
-        const nodeData: AIFlowNode = {
-          id: nodeTemplate.id,
-          type: nodeTemplate.type,
-          x: nodeTemplate.x,
-          y: nodeTemplate.y,
-          width: defaults.width,
-          height: defaults.height,
-          label: nodeTemplate.label,
-          description: nodeTemplate.description,
-          config: nodeTemplate.config || {},
-          color: defaults.color,
-          borderColor: '#e5e7eb',
-          borderWidth: 1,
-          position: { x: nodeTemplate.x, y: nodeTemplate.y },
-          dimensions: { width: defaults.width, height: defaults.height },
-        };
+        // Create nodes from template
+        const newNodes = templateNodes.map(nodeTemplate => {
+          const defaults = nodeDefaults[nodeTemplate.type as keyof typeof nodeDefaults];
 
-        return {
-          id: nodeTemplate.id,
-          type: 'aiFlowNode' as const,
-          position: { x: nodeTemplate.x, y: nodeTemplate.y },
-          data: nodeData,
-          style: {
+          const nodeData: AIFlowNode = {
+            id: nodeTemplate.id,
+            type: nodeTemplate.type,
+            x: nodeTemplate.x,
+            y: nodeTemplate.y,
             width: defaults.width,
             height: defaults.height,
-          },
-        };
-      });
+            label: nodeTemplate.label,
+            description: nodeTemplate.description,
+            config: nodeTemplate.config || {},
+            color: defaults.color,
+            borderColor: '#e5e7eb',
+            borderWidth: 1,
+            position: { x: nodeTemplate.x, y: nodeTemplate.y },
+            dimensions: { width: defaults.width, height: defaults.height },
+          };
 
-      // Create edges from template connections
-      const newEdges = templateConnections.map((conn, index) => ({
-        id: `template-edge-${index}`,
-        source: conn.source,
-        target: conn.target,
-        sourceHandle: conn.sourceHandle,
-        targetHandle: conn.targetHandle,
-        type: 'default' as const,
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#9ca3af' },
-        style: { stroke: '#9ca3af', strokeWidth: 2 },
-      }));
+          return {
+            id: nodeTemplate.id,
+            type: 'aiFlowNode' as const,
+            position: { x: nodeTemplate.x, y: nodeTemplate.y },
+            data: nodeData,
+            style: {
+              width: defaults.width,
+              height: defaults.height,
+            },
+          };
+        });
 
-      // Add the new nodes and edges to the current flow
-      setNodes(prevNodes => [...prevNodes, ...newNodes]);
-      setEdges(prevEdges => [...prevEdges, ...newEdges]);
-    }, [setNodes, setEdges]),
+        // Create edges from template connections
+        const newEdges = templateConnections.map((conn, index) => ({
+          id: `template-edge-${index}`,
+          source: conn.source,
+          target: conn.target,
+          sourceHandle: conn.sourceHandle,
+          targetHandle: conn.targetHandle,
+          type: 'default' as const,
+          markerEnd: { type: MarkerType.ArrowClosed, color: '#9ca3af' },
+          style: { stroke: '#9ca3af', strokeWidth: 2 },
+        }));
+
+        // Add the new nodes and edges to the current flow
+        setNodes(prevNodes => [...prevNodes, ...newNodes]);
+        setEdges(prevEdges => [...prevEdges, ...newEdges]);
+      },
+      [setNodes, setEdges]
+    ),
   };
 }
