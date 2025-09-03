@@ -36,3 +36,7 @@ npm-debug.log
 /assets/node_modules/
 /node_modules/
 
+# Playwright test reports and results
+/test-results/
+/playwright-report/
+
