@@ -96,10 +96,10 @@ export function useFlowManager(flowId: string | null) {
         try {
           const changes = data.changes as FlowData;
           if (changes.nodes) {
-            setNodes(changes.nodes as any);
+            setNodes(changes.nodes as Node<AIFlowNode>[]);
           }
           if (changes.edges) {
-            setEdges(changes.edges as any);
+            setEdges(changes.edges as Edge[]);
           }
         } catch (error) {
           console.error('🔄❌ Failed to apply remote flow changes:', error);
@@ -145,23 +145,29 @@ export function useFlowManager(flowId: string | null) {
   // Function to normalize data for comparison (exclude selection and other UI-only state)
   const normalizeDataForComparison = useCallback((data: FlowData) => {
     return {
-      nodes: data.nodes.map((node: any) => ({
-        ...node,
-        selected: undefined, // Remove selection state
-        dragging: undefined, // Remove dragging state
-        data: node.data
-          ? {
-              ...node.data,
-              selected: undefined,
-              dragging: undefined,
-            }
-          : node.data,
-      })),
-      edges: data.edges.map((edge: any) => ({
-        ...edge,
-        selected: undefined, // Remove selection state
-        animated: undefined, // Remove animation state if it's UI-only
-      })),
+      nodes: data.nodes.map((node: unknown) => {
+        const typedNode = node as Node<AIFlowNode>;
+        return {
+          ...typedNode,
+          selected: undefined, // Remove selection state
+          dragging: undefined, // Remove dragging state
+          data: typedNode.data
+            ? {
+                ...typedNode.data,
+                selected: undefined,
+                dragging: undefined,
+              }
+            : typedNode.data,
+        };
+      }),
+      edges: data.edges.map((edge: unknown) => {
+        const typedEdge = edge as Edge;
+        return {
+          ...typedEdge,
+          selected: undefined, // Remove selection state
+          animated: undefined, // Remove animation state if it's UI-only
+        };
+      }),
       viewport: data.viewport,
     };
   }, []);

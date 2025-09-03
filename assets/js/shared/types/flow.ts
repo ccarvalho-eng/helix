@@ -11,6 +11,23 @@ export interface FlowRegistry {
   flows: FlowRegistryEntry[];
 }
 
+export interface StoredNode {
+  id: string;
+  type?: string;
+  position: { x: number; y: number };
+  data?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface StoredEdge {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle?: string;
+  targetHandle?: string;
+  [key: string]: unknown;
+}
+
 export interface FlowData {
   nodes: unknown[];
   edges: unknown[];

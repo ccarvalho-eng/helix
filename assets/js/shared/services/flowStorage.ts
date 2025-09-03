@@ -1,4 +1,11 @@
-import { FlowRegistry, FlowRegistryEntry, FlowData, FlowStorageService } from '../types/flow';
+import {
+  FlowRegistry,
+  FlowRegistryEntry,
+  FlowData,
+  FlowStorageService,
+  StoredNode,
+  StoredEdge,
+} from '../types/flow';
 
 const REGISTRY_KEY = 'flows-registry';
 const FLOW_KEY_PREFIX = 'flow-';
@@ -166,28 +173,34 @@ class FlowStorageServiceImpl implements FlowStorageService {
     const duplicatedFlowData: FlowData = {
       ...sourceFlow,
       nodes:
-        sourceFlow.nodes?.map((node: any) => ({
-          ...node,
-          id: this.generateNodeId(),
-          data: { ...node.data, id: this.generateNodeId() },
-        })) || [],
+        sourceFlow.nodes?.map(node => {
+          const typedNode = node as StoredNode;
+          return {
+            ...typedNode,
+            id: this.generateNodeId(),
+            data: { ...typedNode.data, id: this.generateNodeId() },
+          };
+        }) || [],
       edges:
-        sourceFlow.edges?.map((edge: any, index: number) => ({
-          ...edge,
-          id: `duplicated-edge-${index}`,
-          source:
-            (
-              sourceFlow.nodes?.[
-                sourceFlow.nodes.findIndex((n: any) => n.id === edge.source)
-              ] as any
-            )?.id || edge.source,
-          target:
-            (
-              sourceFlow.nodes?.[
-                sourceFlow.nodes.findIndex((n: any) => n.id === edge.target)
-              ] as any
-            )?.id || edge.target,
-        })) || [],
+        sourceFlow.edges?.map((edge, index: number) => {
+          const typedEdge = edge as StoredEdge;
+          return {
+            ...typedEdge,
+            id: `duplicated-edge-${index}`,
+            source:
+              (
+                sourceFlow.nodes?.[
+                  sourceFlow.nodes.findIndex(n => (n as StoredNode).id === typedEdge.source)
+                ] as StoredNode
+              )?.id || typedEdge.source,
+            target:
+              (
+                sourceFlow.nodes?.[
+                  sourceFlow.nodes.findIndex(n => (n as StoredNode).id === typedEdge.target)
+                ] as StoredNode
+              )?.id || typedEdge.target,
+          };
+        }) || [],
     };
 
     this.saveFlow(newId, duplicatedFlowData);
