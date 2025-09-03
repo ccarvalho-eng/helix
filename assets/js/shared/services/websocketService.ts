@@ -1,6 +1,4 @@
-// Phoenix Socket import - no TypeScript declarations available
-// @ts-expect-error - Phoenix Socket has no TypeScript declarations
-import { Socket } from 'phoenix';
+import { Socket, Channel } from 'phoenix';
 
 export interface FlowChangeData {
   changes: unknown;
@@ -22,8 +20,8 @@ export interface WebSocketCallbacks {
 }
 
 class WebSocketService {
-  private socket: any = null;
-  private channel: any = null;
+  private socket: Socket | null = null;
+  private channel: Channel | null = null;
   private currentFlowId: string | null = null;
   private callbacks: WebSocketCallbacks = {};
   private reconnectAttempts = 0;
@@ -37,7 +35,7 @@ class WebSocketService {
     try {
       this.socket = new Socket('/socket', {
         params: {},
-        logger: (kind: any, msg: any, data: any) => {
+        logger: (kind: string, msg: string, data: unknown) => {
           console.debug(`🔌📝 Phoenix WebSocket ${kind}:`, msg, data);
         }
       });
@@ -54,7 +52,7 @@ class WebSocketService {
         this.attemptReconnect();
       });
 
-      this.socket.onError((error: any) => {
+      this.socket.onError((error: unknown) => {
         console.error('🔌❌ WebSocket connection error:', error);
         this.callbacks.onError?.(error);
       });
@@ -117,7 +115,7 @@ class WebSocketService {
 
       // Join the channel
       const joinResponse = await new Promise((resolve, reject) => {
-        this.channel.join()
+        this.channel?.join()
           .receive('ok', resolve)
           .receive('error', reject)
           .receive('timeout', () => reject(new Error('Join timeout')));
@@ -153,7 +151,7 @@ class WebSocketService {
     }
 
     return new Promise((resolve) => {
-      this.channel.push('flow_change', { changes })
+      this.channel?.push('flow_change', { changes })
         .receive('ok', () => {
           resolve(true);
         })
@@ -198,7 +196,7 @@ class WebSocketService {
     }
 
     return new Promise((resolve) => {
-      this.channel.push('ping', {})
+      this.channel?.push('ping', {})
         .receive('ok', () => resolve(true))
         .receive('error', () => resolve(false))
         .receive('timeout', () => resolve(false));
