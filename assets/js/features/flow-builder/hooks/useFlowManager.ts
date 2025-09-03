@@ -13,6 +13,7 @@ import { AIFlowNode } from '../types';
 import { flowStorage } from '../../../shared/services/flowStorage';
 import { FlowRegistryEntry, FlowData } from '../../../shared/types/flow';
 import { websocketService, FlowChangeData } from '../../../shared/services/websocketService';
+import { getTemplate, TemplateType } from '../templates';
 
 const nodeDefaults = {
   agent: { width: 140, height: 80, color: '#f0f9ff', label: 'AI Agent' },
@@ -30,6 +31,7 @@ const nodeDefaults = {
 export function useFlowManager(flowId: string | null) {
   const [currentFlow, setCurrentFlow] = useState<FlowRegistryEntry | null>(null);
   const [isNewFlow, setIsNewFlow] = useState(false);
+  const [initialViewport, setInitialViewport] = useState({ x: 0, y: 0, zoom: 1 });
   
   // Initialize with empty state, will be loaded in useEffect
   const [nodes, setNodes, onNodesChange] = useNodesState<AIFlowNode>([]);
@@ -55,8 +57,11 @@ export function useFlowManager(flowId: string | null) {
         
         const flowData = flowStorage.getFlow(flowId);
         if (flowData) {
-          setNodes(flowData.nodes || []);
-          setEdges(flowData.edges || []);
+          setNodes((flowData.nodes as Node<AIFlowNode>[]) || []);
+          setEdges((flowData.edges as Edge[]) || []);
+          if (flowData.viewport) {
+            setInitialViewport(flowData.viewport);
+          }
         }
       } else {
         // Flow not found, redirect to home
@@ -97,7 +102,7 @@ export function useFlowManager(flowId: string | null) {
             setEdges(changes.edges as any);
           }
         } catch (error) {
-          console.error('Failed to apply remote flow changes:', error);
+          console.error('🔄❌ Failed to apply remote flow changes:', error);
         } finally {
           // Reset flag after a short delay to allow for React state updates
           setTimeout(() => {
@@ -107,7 +112,7 @@ export function useFlowManager(flowId: string | null) {
       },
       onClientJoined: (data) => setConnectedClients(data.client_count),
       onClientLeft: (data) => setConnectedClients(data.client_count),
-      onError: (error) => console.error('WebSocket error:', error),
+      onError: (error) => console.error('🔌❌ WebSocket connection error:', error),
     });
 
     // Connect to WebSocket and join flow channel
@@ -120,7 +125,7 @@ export function useFlowManager(flowId: string | null) {
       setTimeout(async () => {
         const joined = await websocketService.joinFlow(currentFlow.id);
         if (joined) {
-          console.log(`Joined WebSocket channel for flow: ${currentFlow.id}`);
+          console.log(`🔌✅ Joined WebSocket channel for flow: ${currentFlow.id}`);
         }
       }, 500);
     };
@@ -151,7 +156,7 @@ export function useFlowManager(flowId: string | null) {
         // Broadcast changes to other clients (only if not updating from remote)
         if (!isUpdatingFromRemote.current && websocketService.isConnected()) {
           websocketService.sendFlowChange(flowData).catch(error => {
-            console.error('Failed to broadcast flow changes:', error);
+            console.error('📡❌ Failed to broadcast flow changes:', error);
           });
         }
       }, 500);
@@ -378,6 +383,88 @@ export function useFlowManager(flowId: string | null) {
     connectedClients,
     
     // Initial viewport
-    initialViewport: { x: 0, y: 0, zoom: 1 },
+    initialViewport,
+    
+    // Viewport change handler for onMoveEnd
+    onMoveEnd: useCallback(() => {
+      if (currentFlow && reactFlowInstance) {
+        const viewport = reactFlowInstance.getViewport();
+        const flowData: FlowData = {
+          nodes,
+          edges,
+          viewport
+        };
+        
+        // Debounced save
+        const timeoutId = setTimeout(() => {
+          flowStorage.saveFlow(currentFlow.id, flowData);
+          
+          // Update timestamp
+          const registry = flowStorage.getFlowRegistry();
+          const flowIndex = registry.flows.findIndex(f => f.id === currentFlow.id);
+          if (flowIndex >= 0) {
+            registry.flows[flowIndex].lastModified = new Date().toISOString();
+            flowStorage.saveFlowRegistry(registry);
+          }
+        }, 300);
+        
+        return () => clearTimeout(timeoutId);
+      }
+    }, [currentFlow, nodes, edges, reactFlowInstance]),
+
+    // Add template functionality
+    addTemplate: useCallback((templateType: TemplateType = 'assassins-creed') => {
+      const template = getTemplate(templateType);
+      const { nodes: templateNodes, connections: templateConnections } = template;
+
+      // Create nodes from template
+      const newNodes = templateNodes.map(nodeTemplate => {
+        const defaults = nodeDefaults[nodeTemplate.type as keyof typeof nodeDefaults];
+        
+        const nodeData: AIFlowNode = {
+          id: nodeTemplate.id,
+          type: nodeTemplate.type,
+          x: nodeTemplate.x,
+          y: nodeTemplate.y,
+          width: defaults.width,
+          height: defaults.height,
+          label: nodeTemplate.label,
+          description: nodeTemplate.description,
+          config: nodeTemplate.config || {},
+          color: defaults.color,
+          borderColor: '#e5e7eb',
+          borderWidth: 1,
+          position: { x: nodeTemplate.x, y: nodeTemplate.y },
+          dimensions: { width: defaults.width, height: defaults.height },
+        };
+
+        return {
+          id: nodeTemplate.id,
+          type: 'aiFlowNode' as const,
+          position: { x: nodeTemplate.x, y: nodeTemplate.y },
+          data: nodeData,
+          style: {
+            width: defaults.width,
+            height: defaults.height,
+          },
+        };
+      });
+
+      // Create edges from template connections
+      const newEdges = templateConnections.map((conn, index) => ({
+        id: `template-edge-${index}`,
+        source: conn.source,
+        target: conn.target,
+        sourceHandle: conn.sourceHandle,
+        targetHandle: conn.targetHandle,
+        type: 'default' as const,
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#9ca3af' },
+        style: { stroke: '#9ca3af', strokeWidth: 2 },
+      }));
+
+      // Add the new nodes and edges to the current flow
+      setNodes(prevNodes => [...prevNodes, ...newNodes]);
+      setEdges(prevEdges => [...prevEdges, ...newEdges]);
+    }, [setNodes, setEdges]),
   };
 }

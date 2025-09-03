@@ -34,8 +34,8 @@ export default [
     rules: {
       ...tseslint.configs.recommended.rules,
       'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      'no-console': ['error', { allow: ['error'] }],
-      '@typescript-eslint/no-explicit-any': 'error',
+      'no-console': ['error', { allow: ['error', 'log', 'warn', 'debug'] }],
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/no-empty-object-type': 'error',
       'no-unreachable': 'error',

@@ -17,7 +17,6 @@ import {
 import { AIFlowNode as OriginalAIFlowNode } from './types';
 import { NodeConfig } from '../../shared/types';
 import {
-  getTemplate,
   TemplateType,
   getFeaturedTemplates,
   getTemplatesByCategory,
@@ -425,7 +424,9 @@ function FlowBuilderInternal() {
     updateNode,
     deleteNode,
     duplicateNode,
-    initialViewport
+    initialViewport,
+    onMoveEnd,
+    addTemplate
   } = useFlowManager(flowId);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [isPropertiesOpen, setIsPropertiesOpen] = useState(false);
@@ -492,7 +493,7 @@ function FlowBuilderInternal() {
       type: ReactFlowAINode['type'],
       customLabel?: string,
       customDescription?: string,
-      defaultConfig?: NodeConfig
+      _defaultConfig?: NodeConfig
     ) => {
       const nodeDefaults = {
         agent: { width: 140, height: 80, color: '#f0f9ff', label: 'AI Agent' },
@@ -517,27 +518,13 @@ function FlowBuilderInternal() {
         api: { width: 100, height: 60, color: '#fff7ed', label: 'API' },
       };
 
+      // Node creation is now handled by the hook - use addNode function
       const defaults = nodeDefaults[type];
-      const nodeData: ReactFlowAINode = {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      addNode(
         type,
-        position: { x: 0, y: 0 },
-        dimensions: { width: defaults.width, height: defaults.height },
-        label: customLabel || defaults.label,
-        description: customDescription || getNodeDescriptionByType(type),
-        config: defaultConfig || {},
-        x: 0,
-        y: 0,
-        width: defaults.width,
-        height: defaults.height,
-        color: defaults.color,
-        borderColor: '#e5e7eb',
-        borderWidth: 1,
-      };
-
-      // Node creation is now handled by the hook
-
-      addNode(type, customLabel, customDescription || getNodeDescriptionByType(type));
+        customLabel || defaults.label,
+        customDescription || getNodeDescriptionByType(type)
+      );
     },
     [addNode]
   );
@@ -565,77 +552,7 @@ function FlowBuilderInternal() {
 
   // Node duplication function is now managed by the hook
 
-  // Add template function using the new template system
-  const addTemplate = useCallback(
-    (templateType: TemplateType = 'assassins-creed') => {
-      const template = getTemplate(templateType);
-      const { nodes: templateNodes, connections: templateConnections } = template;
-
-      // Create nodes
-      templateNodes.map(nodeTemplate => {
-        const nodeDefaults = {
-          agent: { width: 140, height: 80, color: '#f0f9ff' },
-          sensor: { width: 120, height: 60, color: '#f0fdf4' },
-          skill: { width: 120, height: 60, color: '#fffbeb' },
-          decision: { width: 100, height: 80, color: '#fef2f2' },
-          input: { width: 100, height: 60, color: '#faf5ff' },
-          output: { width: 100, height: 60, color: '#f0fdfa' },
-          memory: { width: 120, height: 60, color: '#fdf2f8' },
-          loop: { width: 100, height: 60, color: '#faf5ff' },
-          transform: { width: 130, height: 60, color: '#f0fdfa' },
-          api: { width: 100, height: 60, color: '#fff7ed' },
-        };
-
-        const defaults = nodeDefaults[nodeTemplate.type];
-        const nodeData: ReactFlowAINode = {
-          id: nodeTemplate.id,
-          type: nodeTemplate.type,
-          position: { x: nodeTemplate.x, y: nodeTemplate.y },
-          dimensions: { width: defaults.width, height: defaults.height },
-          x: nodeTemplate.x,
-          y: nodeTemplate.y,
-          width: defaults.width,
-          height: defaults.height,
-          label: nodeTemplate.label,
-          description: nodeTemplate.description,
-          config: nodeTemplate.config || {},
-          color: defaults.color,
-          borderColor: '#e5e7eb',
-          borderWidth: 1,
-        };
-
-        const newNode: Node<ReactFlowAINode> = {
-          id: nodeData.id,
-          type: 'aiFlowNode',
-          position: { x: nodeTemplate.x, y: nodeTemplate.y },
-          data: nodeData,
-          style: {
-            width: defaults.width,
-            height: defaults.height,
-          },
-        };
-
-        return newNode;
-      });
-
-      // Create template connections/edges
-      templateConnections.map((conn, index) => ({
-        id: `template-edge-${index}`,
-        source: conn.source,
-        target: conn.target,
-        sourceHandle: conn.sourceHandle,
-        targetHandle: conn.targetHandle,
-        type: 'default',
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#9ca3af' },
-        style: { stroke: '#9ca3af', strokeWidth: 2 },
-      }));
-
-      // Add both nodes and edges
-      // Note: This functionality should be moved to the hook in a future update
-      console.error('Template addition needs to be refactored to use the new hook system');
-    },
-    []
-  );
+  // Template functionality is now handled by the useFlowManager hook
 
   // Auto-save is now managed by the hook
 
@@ -784,6 +701,7 @@ function FlowBuilderInternal() {
             onInit={setReactFlowInstance}
             onDrop={onDrop}
             onDragOver={onDragOver}
+            onMoveEnd={onMoveEnd}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             defaultViewport={initialViewport}

@@ -1,3 +1,5 @@
+// Phoenix Socket import - no TypeScript declarations available
+// @ts-expect-error - Phoenix Socket has no TypeScript declarations
 import { Socket } from 'phoenix';
 
 export interface FlowChangeData {
@@ -11,17 +13,17 @@ export interface ClientJoinedData {
 }
 
 export interface WebSocketCallbacks {
-  onFlowUpdate?: (data: FlowChangeData) => void;
-  onClientJoined?: (data: ClientJoinedData) => void;
-  onClientLeft?: (data: ClientJoinedData) => void;
+  onFlowUpdate?: (_data: FlowChangeData) => void;
+  onClientJoined?: (_data: ClientJoinedData) => void;
+  onClientLeft?: (_data: ClientJoinedData) => void;
   onConnect?: () => void;
   onDisconnect?: () => void;
-  onError?: (error: unknown) => void;
+  onError?: (_error: unknown) => void;
 }
 
 class WebSocketService {
-  private socket: Socket | null = null;
-  private channel: any = null;
+  private socket: unknown | null = null;
+  private channel: unknown = null;
   private currentFlowId: string | null = null;
   private callbacks: WebSocketCallbacks = {};
   private reconnectAttempts = 0;
@@ -35,32 +37,32 @@ class WebSocketService {
     try {
       this.socket = new Socket('/socket', {
         params: {},
-        logger: (kind, msg, data) => {
-          console.debug(`Phoenix WebSocket ${kind}:`, msg, data);
+        logger: (kind: unknown, msg: unknown, data: unknown) => {
+          console.debug(`🔌📝 Phoenix WebSocket ${kind}:`, msg, data);
         }
       });
 
       this.socket.onOpen(() => {
-        console.log('WebSocket connected');
+        console.log('🔌✅ WebSocket connected to Phoenix server');
         this.reconnectAttempts = 0;
         this.callbacks.onConnect?.();
       });
 
       this.socket.onClose(() => {
-        console.log('WebSocket disconnected');
+        console.log('🔌🔽 WebSocket disconnected from Phoenix server');
         this.callbacks.onDisconnect?.();
         this.attemptReconnect();
       });
 
-      this.socket.onError((error) => {
-        console.error('WebSocket error:', error);
+      this.socket.onError((error: unknown) => {
+        console.error('🔌❌ WebSocket connection error:', error);
         this.callbacks.onError?.(error);
       });
 
       this.socket.connect();
       return true;
     } catch (error) {
-      console.error('Failed to initialize WebSocket:', error);
+      console.error('🔌❌ Failed to initialize WebSocket connection:', error);
       return false;
     }
   }
@@ -88,7 +90,7 @@ class WebSocketService {
    */
   async joinFlow(flowId: string): Promise<boolean> {
     if (!this.socket) {
-      console.error('WebSocket not connected');
+      console.error('🔌⚠️ WebSocket not connected - cannot join flow');
       return false;
     }
 
@@ -122,10 +124,10 @@ class WebSocketService {
       });
 
       this.currentFlowId = flowId;
-      console.log(`Joined flow channel: ${flowId}`, joinResponse);
+      console.log(`🔌🎯 Joined flow channel: ${flowId}`, joinResponse);
       return true;
     } catch (error) {
-      console.error(`Failed to join flow channel ${flowId}:`, error);
+      console.error(`🔌❌ Failed to join flow channel ${flowId}:`, error);
       return false;
     }
   }
@@ -146,7 +148,7 @@ class WebSocketService {
    */
   sendFlowChange(changes: unknown): Promise<boolean> {
     if (!this.channel) {
-      console.warn('No active channel to send flow changes');
+      console.warn('🔌⚠️ No active channel - cannot send flow changes');
       return Promise.resolve(false);
     }
 
@@ -156,11 +158,11 @@ class WebSocketService {
           resolve(true);
         })
         .receive('error', (error: unknown) => {
-          console.error('Failed to send flow changes:', error);
+          console.error('📡❌ Failed to send flow changes:', error);
           resolve(false);
         })
         .receive('timeout', () => {
-          console.error('Flow change send timeout');
+          console.error('📡⏰ Flow change send timeout - server not responding');
           resolve(false);
         });
     });
@@ -208,14 +210,14 @@ class WebSocketService {
    */
   private attemptReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached');
+      console.error('🔌🚫 Max reconnection attempts reached - giving up');
       return;
     }
 
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
     this.reconnectAttempts++;
 
-    console.log(`Attempting reconnection in ${delay}ms (attempt ${this.reconnectAttempts})`);
+    console.log(`🔌🔄 Attempting reconnection in ${delay}ms (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`);
 
     setTimeout(() => {
       if (this.socket && !this.socket.isConnected()) {

@@ -1,6 +1,6 @@
 defmodule HelixWeb.FlowController do
   use HelixWeb, :controller
-  
+
   alias Helix.FlowSessionManager
 
   def index(conn, _params) do
@@ -12,9 +12,7 @@ defmodule HelixWeb.FlowController do
     # The frontend will handle loading the specific flow or creating a new one
     render(conn, :index, layout: {HelixWeb.Layouts, :flow})
   end
-  
-  # API Endpoints
-  
+
   @doc """
   POST /api/flows/:id/sync
   Broadcast flow changes to connected clients
@@ -22,23 +20,23 @@ defmodule HelixWeb.FlowController do
   def sync(conn, %{"id" => flow_id} = params) do
     # Extract flow changes from request body
     changes = Map.get(params, "changes", %{})
-    
+
     # Broadcast changes to all connected clients
     FlowSessionManager.broadcast_flow_change(flow_id, changes)
-    
+
     # Return success response
     conn
     |> put_status(:ok)
     |> json(%{success: true, message: "Flow changes broadcasted"})
   end
-  
+
   @doc """
   GET /api/flows/:id/status
   Get the current status of a flow session
   """
   def status(conn, %{"id" => flow_id}) do
     flow_status = FlowSessionManager.get_flow_status(flow_id)
-    
+
     conn
     |> put_status(:ok)
     |> json(flow_status)

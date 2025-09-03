@@ -23,7 +23,7 @@ class FlowStorageServiceImpl implements FlowStorageService {
   /**
    * Save the flow registry to localStorage
    */
-  private saveFlowRegistry(registry: FlowRegistry): void {
+  saveFlowRegistry(registry: FlowRegistry): void {
     try {
       localStorage.setItem(REGISTRY_KEY, JSON.stringify(registry));
     } catch (error) {
@@ -166,16 +166,16 @@ class FlowStorageServiceImpl implements FlowStorageService {
     // Copy flow data with new node IDs to avoid conflicts
     const duplicatedFlowData: FlowData = {
       ...sourceFlow,
-      nodes: sourceFlow.nodes?.map(node => ({
+      nodes: sourceFlow.nodes?.map((node: any) => ({
         ...node,
         id: this.generateNodeId(),
         data: { ...node.data, id: this.generateNodeId() }
       })) || [],
-      edges: sourceFlow.edges?.map((edge, index) => ({
+      edges: sourceFlow.edges?.map((edge: any, index: number) => ({
         ...edge,
         id: `duplicated-edge-${index}`,
-        source: sourceFlow.nodes?.[sourceFlow.nodes.findIndex(n => n.id === edge.source)]?.id || edge.source,
-        target: sourceFlow.nodes?.[sourceFlow.nodes.findIndex(n => n.id === edge.target)]?.id || edge.target
+        source: (sourceFlow.nodes?.[sourceFlow.nodes.findIndex((n: any) => n.id === edge.source)] as any)?.id || edge.source,
+        target: (sourceFlow.nodes?.[sourceFlow.nodes.findIndex((n: any) => n.id === edge.target)] as any)?.id || edge.target
       })) || []
     };
     
