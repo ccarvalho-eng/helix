@@ -138,9 +138,13 @@ export function useFlowManager(flowId: string | null) {
     };
   }, [currentFlow, setNodes, setEdges]);
 
+  // Track previous state to detect actual changes
+  const prevFlowDataRef = useRef<FlowData | null>(null);
+  const hasInitializedRef = useRef(false);
+
   // Auto-save flow data when nodes or edges change
   useEffect(() => {
-    if (currentFlow && reactFlowInstance) {
+    if (currentFlow && reactFlowInstance && hasInitializedRef.current && !isUpdatingFromRemote.current) {
       const viewport = reactFlowInstance.getViewport();
       const flowData: FlowData = {
         nodes,
@@ -148,10 +152,26 @@ export function useFlowManager(flowId: string | null) {
         viewport
       };
       
+      // Check if data actually changed
+      const prevData = prevFlowDataRef.current;
+      const hasChanges = !prevData || 
+        JSON.stringify(prevData.nodes) !== JSON.stringify(flowData.nodes) ||
+        JSON.stringify(prevData.edges) !== JSON.stringify(flowData.edges) ||
+        Math.abs(prevData.viewport.x - flowData.viewport.x) > 1 ||
+        Math.abs(prevData.viewport.y - flowData.viewport.y) > 1 ||
+        Math.abs(prevData.viewport.zoom - flowData.viewport.zoom) > 0.01;
+
+      if (!hasChanges) {
+        return; // No actual changes, skip save and broadcast
+      }
+
       // Debounce the save and broadcast operations
       const timeoutId = setTimeout(() => {
         // Save to localStorage
         flowStorage.saveFlow(currentFlow.id, flowData);
+        
+        // Update previous data reference
+        prevFlowDataRef.current = JSON.parse(JSON.stringify(flowData));
         
         // Broadcast changes to other clients (only if not updating from remote)
         if (!isUpdatingFromRemote.current && websocketService.isConnected()) {
@@ -164,6 +184,24 @@ export function useFlowManager(flowId: string | null) {
       return () => clearTimeout(timeoutId);
     }
   }, [nodes, edges, currentFlow, reactFlowInstance]);
+
+  // Mark as initialized after first load
+  useEffect(() => {
+    if (currentFlow && nodes.length >= 0 && edges.length >= 0) {
+      if (!hasInitializedRef.current) {
+        hasInitializedRef.current = true;
+        // Set initial reference data
+        if (reactFlowInstance) {
+          const viewport = reactFlowInstance.getViewport();
+          prevFlowDataRef.current = {
+            nodes,
+            edges,
+            viewport
+          };
+        }
+      }
+    }
+  }, [currentFlow, nodes, edges, reactFlowInstance]);
 
   const updateFlowTitle = useCallback(
     (newTitle: string) => {
