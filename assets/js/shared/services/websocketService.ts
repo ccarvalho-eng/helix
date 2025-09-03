@@ -22,8 +22,8 @@ export interface WebSocketCallbacks {
 }
 
 class WebSocketService {
-  private socket: unknown | null = null;
-  private channel: unknown = null;
+  private socket: any = null;
+  private channel: any = null;
   private currentFlowId: string | null = null;
   private callbacks: WebSocketCallbacks = {};
   private reconnectAttempts = 0;
@@ -37,7 +37,7 @@ class WebSocketService {
     try {
       this.socket = new Socket('/socket', {
         params: {},
-        logger: (kind: unknown, msg: unknown, data: unknown) => {
+        logger: (kind: any, msg: any, data: any) => {
           console.debug(`🔌📝 Phoenix WebSocket ${kind}:`, msg, data);
         }
       });
@@ -54,7 +54,7 @@ class WebSocketService {
         this.attemptReconnect();
       });
 
-      this.socket.onError((error: unknown) => {
+      this.socket.onError((error: any) => {
         console.error('🔌❌ WebSocket connection error:', error);
         this.callbacks.onError?.(error);
       });
