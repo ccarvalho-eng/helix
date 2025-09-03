@@ -179,24 +179,9 @@ export function useFlowManager(flowId: string | null) {
       const normalizedCurrent = normalizeDataForComparison(flowData);
       const normalizedPrevious = prevData ? normalizeDataForComparison(prevData) : null;
       
-      const nodesDiff = !normalizedPrevious || JSON.stringify(normalizedPrevious.nodes) !== JSON.stringify(normalizedCurrent.nodes);
-      const edgesDiff = !normalizedPrevious || JSON.stringify(normalizedPrevious.edges) !== JSON.stringify(normalizedCurrent.edges);
-      const xDiff = !normalizedPrevious || Math.abs(normalizedPrevious.viewport.x - normalizedCurrent.viewport.x) > 1;
-      const yDiff = !normalizedPrevious || Math.abs(normalizedPrevious.viewport.y - normalizedCurrent.viewport.y) > 1;
-      const zoomDiff = !normalizedPrevious || Math.abs(normalizedPrevious.viewport.zoom - normalizedCurrent.viewport.zoom) > 0.05;
-      
-      const hasChanges = nodesDiff || edgesDiff || xDiff || yDiff || zoomDiff;
-      
-      // Debug logging to understand what's triggering updates
-      if (hasChanges && normalizedPrevious) {
-        console.log('🔄 Flow update triggered:', {
-          nodes: nodesDiff,
-          edges: edgesDiff,
-          viewportX: xDiff ? { prev: normalizedPrevious.viewport.x, curr: normalizedCurrent.viewport.x, diff: Math.abs(normalizedPrevious.viewport.x - normalizedCurrent.viewport.x) } : false,
-          viewportY: yDiff ? { prev: normalizedPrevious.viewport.y, curr: normalizedCurrent.viewport.y, diff: Math.abs(normalizedPrevious.viewport.y - normalizedCurrent.viewport.y) } : false,
-          viewportZoom: zoomDiff ? { prev: normalizedPrevious.viewport.zoom, curr: normalizedCurrent.viewport.zoom, diff: Math.abs(normalizedPrevious.viewport.zoom - normalizedCurrent.viewport.zoom) } : false,
-        });
-      }
+      const hasChanges = !normalizedPrevious || 
+        JSON.stringify(normalizedPrevious.nodes) !== JSON.stringify(normalizedCurrent.nodes) ||
+        JSON.stringify(normalizedPrevious.edges) !== JSON.stringify(normalizedCurrent.edges);
 
       if (!hasChanges) {
         return; // No actual changes, skip save and broadcast
