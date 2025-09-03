@@ -11,9 +11,8 @@ export const HomePage: React.FC = () => {
   const [editingTitle, setEditingTitle] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
-  // Load flows on component mount and migrate if needed
+  // Load flows on component mount
   useEffect(() => {
-    flowStorage.migrateFromLegacyStorage();
     loadFlows();
   }, []);
 

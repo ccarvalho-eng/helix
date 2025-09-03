@@ -2,7 +2,6 @@ import { FlowRegistry, FlowRegistryEntry, FlowData, FlowStorageService } from '.
 
 const REGISTRY_KEY = 'flows-registry';
 const FLOW_KEY_PREFIX = 'flow-';
-const LEGACY_STORAGE_KEY = 'react-flow-ai-flow-builder-state';
 
 class FlowStorageServiceImpl implements FlowStorageService {
   /**
@@ -184,38 +183,6 @@ class FlowStorageServiceImpl implements FlowStorageService {
     return duplicatedFlow;
   }
 
-  /**
-   * Migrate from legacy single-flow storage to multi-flow storage
-   */
-  migrateFromLegacyStorage(): void {
-    try {
-      const legacyData = localStorage.getItem(LEGACY_STORAGE_KEY);
-      if (!legacyData) return;
-
-      const registry = this.getFlowRegistry();
-      
-      // If we already have flows, don't migrate
-      if (registry.flows.length > 0) return;
-
-      const parsed = JSON.parse(legacyData);
-      if (parsed.nodes || parsed.edges) {
-        console.error('Migrating legacy flow data to new multi-flow system...');
-        
-        const migratedFlow = this.createFlow('My First Flow');
-        this.saveFlow(migratedFlow.id, {
-          nodes: parsed.nodes || [],
-          edges: parsed.edges || [],
-          viewport: parsed.viewport || { x: 0, y: 0, zoom: 1 }
-        });
-
-        // Remove legacy data
-        localStorage.removeItem(LEGACY_STORAGE_KEY);
-        console.error('Migration completed successfully');
-      }
-    } catch (error) {
-      console.error('Failed to migrate legacy flow data:', error);
-    }
-  }
 
   /**
    * Generate unique flow ID

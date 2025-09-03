@@ -25,5 +25,4 @@ export interface FlowStorageService {
   updateFlowTitle(_id: string, _title: string): void;
   deleteFlow(_id: string): void;
   duplicateFlow(_id: string): FlowRegistryEntry;
-  migrateFromLegacyStorage(): void;
 }
