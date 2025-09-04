@@ -175,8 +175,33 @@ body:has(.flow-builder) {
   transition: color 0.2s ease;
 }
 
+/* Connecting state indicator */
+.flow-builder__stat--connecting {
+  color: var(--flow-builder-accent);
+  font-weight: 500;
+}
+
+.flow-builder__stat-icon--pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Pulse animation for connecting indicator */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 /* Dark theme - Green icons for stats */
 [data-theme="dark"] .flow-builder__stat-icon {
+  color: var(--theme-syntax-green);
+}
+
+/* Dark theme connecting state */
+[data-theme="dark"] .flow-builder__stat--connecting {
   color: var(--theme-syntax-green);
 }
 

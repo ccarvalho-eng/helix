@@ -159,6 +159,7 @@ function ReactFlowNodePalette({
   onAddTemplate: _onAddTemplate,
   onOpenTemplatesModal,
   onTemplateClick,
+  isFlowReady,
 }: {
   onAddNode: (
     _type: ReactFlowAINode['type'],
@@ -169,6 +170,7 @@ function ReactFlowNodePalette({
   onAddTemplate: (_templateType: TemplateType) => void;
   onOpenTemplatesModal: () => void;
   onTemplateClick: (_template: Template) => void;
+  isFlowReady: boolean;
 }) {
   const { theme = 'light' } = useThemeContext() ?? { theme: 'light' };
   const nodeDefinitions = [
@@ -297,12 +299,15 @@ function ReactFlowNodePalette({
                 {nodes.map(nodeDefinition => (
                   <div
                     key={nodeDefinition.type}
-                    className='node-palette__node'
+                    className={`node-palette__node ${!isFlowReady ? 'node-palette__node--disabled' : ''}`}
                     data-node-type={nodeDefinition.type}
                     data-testid={`node-palette-${nodeDefinition.type}`}
-                    draggable
-                    onDragStart={e => handleDragStart(e, nodeDefinition.type)}
-                    onClick={() => onAddNode(nodeDefinition.type)}
+                    draggable={isFlowReady}
+                    onDragStart={
+                      isFlowReady ? e => handleDragStart(e, nodeDefinition.type) : undefined
+                    }
+                    onClick={isFlowReady ? () => onAddNode(nodeDefinition.type) : undefined}
+                    title={isFlowReady ? undefined : 'Connecting to flow...'}
                   >
                     <div className='node-palette__node-icon'>
                       <nodeDefinition.icon size={16} color={nodeDefinition.color} />
@@ -425,6 +430,8 @@ function FlowBuilderInternal() {
     initialViewport,
     onMoveEnd,
     addTemplate,
+    isFlowReady,
+    isConnected,
   } = useFlowManager(flowId);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [isPropertiesOpen, setIsPropertiesOpen] = useState(false);
@@ -493,6 +500,11 @@ function FlowBuilderInternal() {
       customDescription?: string,
       _defaultConfig?: NodeConfig
     ) => {
+      // Prevent interactions if flow is not ready
+      if (!isFlowReady) {
+        console.warn('🔌⏳ Flow not ready yet - ignoring node addition request');
+        return;
+      }
       const nodeDefaults = {
         agent: { width: 140, height: 80, color: '#f0f9ff', label: 'AI Agent' },
         sensor: { width: 120, height: 60, color: '#f0fdf4', label: 'Sensor' },
@@ -524,7 +536,7 @@ function FlowBuilderInternal() {
         customDescription || getNodeDescriptionByType(type)
       );
     },
-    [addNode]
+    [addNode, isFlowReady]
   );
 
   // Connection handling is now managed by the hook
@@ -644,6 +656,24 @@ function FlowBuilderInternal() {
               <Zap size={14} className='flow-builder__stat-icon' />
               {edges.length} connections
             </span>
+            {!isFlowReady && (
+              <span className='flow-builder__stat flow-builder__stat--connecting'>
+                <Circle
+                  size={14}
+                  className='flow-builder__stat-icon flow-builder__stat-icon--pulse'
+                />
+                Connecting...
+              </span>
+            )}
+            {isFlowReady && isConnected && (
+              <span className='flow-builder__stat flow-builder__stat--connected'>
+                <Circle
+                  size={14}
+                  className='flow-builder__stat-icon flow-builder__stat-icon--connected'
+                />
+                Live
+              </span>
+            )}
           </div>
           <ThemeToggle />
           {/* Mobile burgers */}
@@ -684,6 +714,7 @@ function FlowBuilderInternal() {
             onAddTemplate={addTemplate}
             onOpenTemplatesModal={() => setIsTemplatesModalOpen(true)}
             onTemplateClick={template => addTemplate(template.id as TemplateType)}
+            isFlowReady={isFlowReady}
           />
         </div>
 

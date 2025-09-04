@@ -42,6 +42,7 @@ export function useFlowManager(flowId: string | null) {
   // WebSocket state
   const [isConnected, setIsConnected] = useState(false);
   const [connectedClients, setConnectedClients] = useState(0);
+  const [isFlowReady, setIsFlowReady] = useState(false);
   const isUpdatingFromRemote = useRef(false);
 
   // Load or create flow on mount
@@ -63,6 +64,8 @@ export function useFlowManager(flowId: string | null) {
             setInitialViewport(flowData.viewport);
           }
         }
+        // Flow data is ready, but WebSocket connection will be handled separately
+        setIsFlowReady(true);
       } else {
         // Flow not found, redirect to home
         window.location.href = '/';
@@ -74,6 +77,7 @@ export function useFlowManager(flowId: string | null) {
       setIsNewFlow(true);
       setNodes([]);
       setEdges([]);
+      setIsFlowReady(true); // New flows are ready immediately
       // Update URL to include the new flow ID
       window.history.replaceState(null, '', `/flow/${newFlow.id}`);
     }
@@ -117,17 +121,40 @@ export function useFlowManager(flowId: string | null) {
 
     // Connect to WebSocket and join flow channel
     const connectAndJoin = async () => {
+      setIsFlowReady(false);
+
       if (!websocketService.isConnected()) {
         websocketService.connect();
+
+        // Wait for connection to establish with a proper timeout
+        const connectionTimeout = 10000; // 10 seconds
+        const checkInterval = 100; // Check every 100ms
+        let elapsed = 0;
+
+        while (!websocketService.isConnected() && elapsed < connectionTimeout) {
+          await new Promise(resolve => setTimeout(resolve, checkInterval));
+          elapsed += checkInterval;
+        }
+
+        if (!websocketService.isConnected()) {
+          console.error(
+            '🔌⏰ WebSocket connection timeout - proceeding without real-time features'
+          );
+          setIsFlowReady(true);
+          return;
+        }
       }
 
-      // Wait a moment for connection to establish
-      setTimeout(async () => {
+      try {
         const joined = await websocketService.joinFlow(currentFlow.id);
         if (joined) {
           console.log(`🔌✅ Joined WebSocket channel for flow: ${currentFlow.id}`);
         }
-      }, 500);
+      } catch (error) {
+        console.error('🔌❌ Failed to join flow channel:', error);
+      } finally {
+        setIsFlowReady(true);
+      }
     };
 
     connectAndJoin();
@@ -456,6 +483,7 @@ export function useFlowManager(flowId: string | null) {
     // WebSocket status
     isConnected,
     connectedClients,
+    isFlowReady,
 
     // Initial viewport
     initialViewport,
