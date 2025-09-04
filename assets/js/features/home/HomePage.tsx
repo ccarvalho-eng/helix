@@ -185,12 +185,13 @@ export const HomePage: React.FC = () => {
 
             <div className='home-workflows__grid'>
               {filteredFlows.map(flow => (
-                <div key={flow.id} className='home-workflow-card'>
+                <div
+                  key={flow.id}
+                  className='home-workflow-card'
+                  onClick={() => handleOpenFlow(flow.id)}
+                >
                   <div className='home-workflow-card__header'>
-                    <div
-                      className='home-workflow-card__info'
-                      onClick={() => handleOpenFlow(flow.id)}
-                    >
+                    <div className='home-workflow-card__info'>
                       {editingFlowId === flow.id ? (
                         <div className='home-workflow-card__title-edit'>
                           <input
@@ -272,7 +273,7 @@ export const HomePage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className='home-workflow-card__body' onClick={() => handleOpenFlow(flow.id)}>
+                  <div className='home-workflow-card__body'>
                     <p className='home-workflow-card__description'>
                       AI workflow with {flow.nodeCount || 0} nodes and {flow.connectionCount || 0}{' '}
                       connections

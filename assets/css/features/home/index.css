@@ -701,7 +701,7 @@
 .home-workflow-card__title-input {
 	width: 100%;
 	background: var(--home-card-bg);
-	border: 1px solid var(--home-accent);
+	border: 1px solid var(--home-text-primary);
 	border-radius: 0.25rem;
 	padding: 0.25rem 0.5rem;
 	font-size: 1rem;
@@ -712,6 +712,16 @@
 }
 
 .home-workflow-card__title-input:focus {
+	border-color: var(--home-text-primary);
+	box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.1);
+}
+
+/* Dark theme - use green accent */
+[data-theme="dark"] .home-workflow-card__title-input {
+	border-color: var(--home-accent);
+}
+
+[data-theme="dark"] .home-workflow-card__title-input:focus {
 	border-color: var(--home-accent);
 	box-shadow: 0 0 0 2px rgba(152, 195, 121, 0.2);
 }
