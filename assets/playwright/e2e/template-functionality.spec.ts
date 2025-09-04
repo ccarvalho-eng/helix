@@ -246,7 +246,6 @@ test.describe("Template Functionality", () => {
 						)
 						.first();
 					if (await labelInput.isVisible()) {
-						const originalValue = await labelInput.inputValue();
 						await labelInput.fill("Modified Template Node");
 						await labelInput.press("Enter");
 						await page.waitForTimeout(500);
