@@ -217,7 +217,6 @@ test.describe('Flow Persistence and Data Integrity', () => {
 
       // Add content
       const agentNode = page.locator('[data-node-type="agent"]').first();
-      const canvas = page.locator('.react-flow__pane');
       if (await agentNode.isVisible()) {
         await agentNode.click();
         await page.waitForTimeout(1000);
@@ -247,7 +246,6 @@ test.describe('Flow Persistence and Data Integrity', () => {
 
       // Add content
       const agentNode = page.locator('[data-node-type="agent"]').first();
-      const canvas = page.locator('.react-flow__pane');
       if (await agentNode.isVisible()) {
         await agentNode.click();
         await page.waitForTimeout(1000);
