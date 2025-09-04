@@ -97,6 +97,7 @@ test.describe('WebSocket and Real-time Collaboration', () => {
       );
       
       // Should attempt to reconnect or maintain connection
+      expect(reconnectionMessages.length).toBeGreaterThan(0);
       expect(consoleMessages.length).toBeGreaterThan(0);
     });
   });
