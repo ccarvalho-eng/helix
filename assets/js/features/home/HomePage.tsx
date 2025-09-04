@@ -54,6 +54,11 @@ export const HomePage: React.FC = () => {
     window.location.href = `/flow/${newFlow.id}`;
   };
 
+  const handleBrowseTemplates = () => {
+    const newFlow = flowStorage.createFlow('Untitled Flow');
+    window.location.href = `/flow/${newFlow.id}?templates=true`;
+  };
+
   const handleEditTitle = (flow: FlowRegistryEntry) => {
     setEditingFlowId(flow.id);
     setEditingTitle(flow.title);
@@ -173,13 +178,13 @@ export const HomePage: React.FC = () => {
               </div>
             </button>
 
-            <div className='home-quick-action'>
+            <button className='home-quick-action' onClick={handleBrowseTemplates}>
               <FolderOpen className='home-quick-action__icon' />
               <div className='home-quick-action__content'>
                 <h3 className='home-quick-action__title'>Browse Templates</h3>
                 <p className='home-quick-action__desc'>Choose from pre-built workflow templates</p>
               </div>
-            </div>
+            </button>
           </div>
 
           {/* Workflow Management Section */}

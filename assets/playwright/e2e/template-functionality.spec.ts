@@ -1,6 +1,61 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Template Functionality", () => {
+	test.describe("Browse Templates from Home", () => {
+		test("should open templates modal when Browse Templates is clicked from home page", async ({ page }) => {
+			await page.goto("/");
+			
+			// Click Browse Templates button
+			const browseTemplatesButton = page.locator('button:has-text("Browse Templates"), .home-quick-action:has-text("Browse Templates")');
+			await expect(browseTemplatesButton).toBeVisible();
+			await browseTemplatesButton.click();
+			
+			// Should navigate to flow builder and open templates modal
+			await page.waitForLoadState("networkidle");
+			await page.waitForTimeout(1500); // Wait for flow builder to initialize and modal to open
+			
+			// Should be on a flow page
+			expect(page.url()).toMatch(/\/flow\/[a-zA-Z0-9-]+/);
+			
+			// Templates modal should be visible
+			const templatesModal = page.locator('.flow-builder__modal-backdrop, .flow-builder__modal:has-text("All Templates")');
+			await expect(templatesModal.first()).toBeVisible({ timeout: 5000 });
+			
+			// Should show template options
+			const templateCards = page.locator('.flow-builder__template-card');
+			const cardCount = await templateCards.count();
+			expect(cardCount).toBeGreaterThan(0);
+		});
+		
+		test("should allow selecting a template from Browse Templates flow", async ({ page }) => {
+			await page.goto("/");
+			
+			// Click Browse Templates
+			const browseTemplatesButton = page.locator('button:has-text("Browse Templates"), .home-quick-action:has-text("Browse Templates")');
+			await browseTemplatesButton.click();
+			
+			await page.waitForLoadState("networkidle");
+			await page.waitForTimeout(1500);
+			
+			// Look for a specific template and click it  
+			const cyberSecurityTemplate = page.locator('.flow-builder__template-card:has-text("Cyber")');
+			
+			if (await cyberSecurityTemplate.first().isVisible()) {
+				await cyberSecurityTemplate.first().click();
+				await page.waitForTimeout(2000);
+				
+				// Should have added nodes from template
+				const nodes = page.locator(".react-flow__node");
+				const nodeCount = await nodes.count();
+				expect(nodeCount).toBeGreaterThan(0);
+				
+				// Templates modal should close
+				const templatesModal = page.locator('.flow-builder__modal-backdrop');
+				await expect(templatesModal.first()).not.toBeVisible({ timeout: 5000 });
+			}
+		});
+	});
+	
 	test.beforeEach(async ({ page }) => {
 		await page.goto("/");
 		// Create a new flow for each test

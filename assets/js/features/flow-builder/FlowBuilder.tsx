@@ -440,6 +440,17 @@ function FlowBuilderInternal() {
   const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
   const [activeTemplateTab, setActiveTemplateTab] = useState<'technology' | 'gaming'>('technology');
   const [isCanvasLocked, setIsCanvasLocked] = useState(false);
+
+  // Check URL parameters on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('templates') === 'true') {
+      setIsTemplatesModalOpen(true);
+      // Clean up URL without affecting navigation
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editingTitle, setEditingTitle] = useState('');
 
