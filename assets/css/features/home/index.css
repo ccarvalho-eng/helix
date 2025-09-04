@@ -636,6 +636,93 @@
 	line-height: 1.4;
 }
 
+/* Search enhancements */
+.home-workflows__search-indicator {
+	font-style: italic;
+	opacity: 0.8;
+}
+
+/* Search empty state */
+.home-search-empty {
+	grid-column: 1 / -1;
+	text-align: center;
+	padding: 3rem 2rem;
+	background: var(--home-card-bg);
+	border: 1px solid var(--home-border);
+	border-radius: 0.75rem;
+	margin-bottom: 1.5rem;
+}
+
+.home-search-empty__icon {
+	width: 3rem;
+	height: 3rem;
+	color: var(--home-text-muted);
+	margin: 0 auto 1rem;
+	opacity: 0.6;
+}
+
+.home-search-empty__title {
+	font-size: 1.25rem;
+	font-weight: 600;
+	color: var(--home-text-primary);
+	margin: 0 0 0.75rem 0;
+}
+
+.home-search-empty__text {
+	font-size: 0.9rem;
+	color: var(--home-text-secondary);
+	margin: 0 0 1rem 0;
+	line-height: 1.5;
+}
+
+.home-search-empty__suggestions {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 1.5rem 0;
+	font-size: 0.85rem;
+	color: var(--home-text-muted);
+	line-height: 1.6;
+}
+
+.home-search-empty__suggestions li {
+	margin-bottom: 0.25rem;
+}
+
+.home-search-empty__suggestions li:before {
+	content: "•";
+	color: var(--home-accent);
+	margin-right: 0.5rem;
+}
+
+[data-theme="dark"] .home-search-empty__suggestions li:before {
+	color: var(--home-accent);
+}
+
+.home-search-empty__clear {
+	background: var(--home-button-bg);
+	color: var(--home-button-text);
+	border: none;
+	border-radius: 0.375rem;
+	padding: 0.5rem 1rem;
+	font-size: 0.875rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+
+.home-search-empty__clear:hover {
+	background: var(--home-button-hover);
+}
+
+[data-theme="dark"] .home-search-empty__clear {
+	background: var(--home-accent);
+	color: var(--home-bg);
+}
+
+[data-theme="dark"] .home-search-empty__clear:hover {
+	background: var(--home-accent-hover);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
 	.home-header__content {
@@ -690,6 +777,22 @@
 	.home-workflows__grid {
 		grid-template-columns: 1fr;
 		gap: 1rem;
+	}
+
+	.home-search-empty {
+		padding: 2rem 1.5rem;
+	}
+
+	.home-search-empty__title {
+		font-size: 1.125rem;
+	}
+
+	.home-search-empty__text {
+		font-size: 0.85rem;
+	}
+
+	.home-search-empty__suggestions {
+		font-size: 0.8rem;
 	}
 }
 
