@@ -125,7 +125,6 @@ test.describe('Template Functionality', () => {
       await page.waitForTimeout(500);
       
       const existingNode = page.locator('.react-flow__node').first();
-      const existingBounds = await existingNode.boundingBox();
       
       // Add template
       const templateButton = page.locator('button:has-text("Assassin"), button:has-text("Template")').first();
