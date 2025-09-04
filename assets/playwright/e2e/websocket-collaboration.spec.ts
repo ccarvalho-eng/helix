@@ -251,12 +251,6 @@ test.describe('WebSocket and Real-time Collaboration', () => {
       }
 
       // Check for save-related WebSocket messages
-      const saveMessages = consoleMessages.filter(msg => 
-        msg.includes('flow_change') || 
-        msg.includes('📡') ||
-        msg.includes('send') ||
-        msg.toLowerCase().includes('save')
-      );
       
       // Should have some indication of data being sent to server
       expect(consoleMessages.length).toBeGreaterThan(0);
