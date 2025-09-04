@@ -96,7 +96,7 @@ defmodule HelixWeb.FlowChannelTest do
 
       # Client 2 joins
       {:ok, socket2} = connect(UserSocket, %{}, connect_info: %{})
-      {:ok, _reply2, socket2} = subscribe_and_join(socket2, FlowChannel, "flow:#{flow_id}")
+      {:ok, _reply2, _socket2} = subscribe_and_join(socket2, FlowChannel, "flow:#{flow_id}")
 
       # Clear any join broadcasts
       assert_broadcast("client_joined", %{client_count: 1})
@@ -298,7 +298,7 @@ defmodule HelixWeb.FlowChannelTest do
       # Join channel
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
       # Send flow change through channel
-      ref = push(socket, "flow_change", %{"changes" => changes})
+      _ref = push(socket, "flow_change", %{"changes" => changes})
       # Should receive PubSub message
       assert_receive {:flow_change, ^changes}
     end

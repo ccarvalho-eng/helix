@@ -298,6 +298,8 @@ function ReactFlowNodePalette({
                   <div
                     key={nodeDefinition.type}
                     className='node-palette__node'
+                    data-node-type={nodeDefinition.type}
+                    data-testid={`node-palette-${nodeDefinition.type}`}
                     draggable
                     onDragStart={e => handleDragStart(e, nodeDefinition.type)}
                     onClick={() => onAddNode(nodeDefinition.type)}
@@ -753,6 +755,7 @@ function FlowBuilderInternal() {
         {/* Properties Panel */}
         <div
           className={`properties-panel ${isPropertiesOpen ? 'drawer drawer--right drawer--open' : 'drawer drawer--right'}`}
+          data-testid='properties-panel'
         >
           <PropertiesPanel
             selectedNode={selectedNode}
