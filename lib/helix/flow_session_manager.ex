@@ -192,8 +192,12 @@ defmodule Helix.FlowSessionManager do
 
         {:noreply, %{state | sessions: new_sessions}}
     end
+  end
 
+  @impl true
+  def handle_info(:cleanup_inactive_sessions, state) do
     now = System.system_time(:second)
+    # 30 minutes threshold
     inactive_threshold = now - 30 * 60
 
     {inactive_flows, active_sessions} =
@@ -212,6 +216,7 @@ defmodule Helix.FlowSessionManager do
 
     new_sessions = Map.new(active_sessions)
 
+    # Efficiently find clients to remove
     inactive_ids_set =
       inactive_flows
       |> Enum.map(fn {flow_id, _} -> flow_id end)
@@ -222,8 +227,6 @@ defmodule Helix.FlowSessionManager do
       |> Enum.reject(fn {_client_id, flow_id} -> MapSet.member?(inactive_ids_set, flow_id) end)
       |> Map.new()
 
-    schedule_cleanup()
-    {:noreply, %{state | sessions: new_sessions, client_flows: new_client_flows}}
     # Schedule next cleanup
     schedule_cleanup()
 
