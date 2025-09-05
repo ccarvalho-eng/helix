@@ -18,6 +18,8 @@ export default [
         NodeJS: "readonly",
         React: "readonly",
         KeyboardEvent: "readonly",
+        queueMicrotask: "readonly",
+        crypto: "readonly",
       },
       parserOptions: {
         ecmaVersion: 2020,
