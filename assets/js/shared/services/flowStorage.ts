@@ -229,12 +229,12 @@ class FlowStorageServiceImpl implements FlowStorageService {
     if (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) {
       return window.crypto.randomUUID();
     }
-    
+
     // Try crypto.getRandomValues() fallback
     if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
       return this.uuidV4Fallback();
     }
-    
+
     // Final fallback for test environments or older browsers
     return this.pseudoUUID();
   }
@@ -243,11 +243,11 @@ class FlowStorageServiceImpl implements FlowStorageService {
    * UUID v4 implementation using crypto.getRandomValues()
    */
   private uuidV4Fallback(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       const array = new Uint8Array(1);
       window.crypto.getRandomValues(array);
       const r = array[0] % 16;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
   }
@@ -256,9 +256,9 @@ class FlowStorageServiceImpl implements FlowStorageService {
    * Pseudo-UUID for environments without crypto API
    */
   private pseudoUUID(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
   }
