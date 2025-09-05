@@ -320,10 +320,10 @@ export function useFlowManager(flowId: string | null) {
       const baseId = `${source}:${sourceHandle || ''}->${target}:${targetHandle || ''}`;
       const uniqueId = `${baseId}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-      setEdges((eds) => {
+      setEdges(eds => {
         // Prevent duplicates for same endpoints/handles
         const exists = eds.some(
-          (e) =>
+          e =>
             e.source === source &&
             e.target === target &&
             (e as any).sourceHandle === sourceHandle &&

@@ -171,31 +171,29 @@ class FlowStorageServiceImpl implements FlowStorageService {
 
     // Build old->new ID mapping first
     const idMap = new Map<string, string>();
-    
+
     // Create duplicated nodes with new IDs
-    const duplicatedNodes: StoredNode[] = 
-      (sourceFlow.nodes || []).map((node) => {
-        const typedNode = node as StoredNode;
-        const newId = this.generateNodeId();
-        idMap.set(typedNode.id, newId);
-        return {
-          ...typedNode,
-          id: newId,
-          data: { ...typedNode.data, id: newId },
-        };
-      });
+    const duplicatedNodes: StoredNode[] = (sourceFlow.nodes || []).map(node => {
+      const typedNode = node as StoredNode;
+      const newId = this.generateNodeId();
+      idMap.set(typedNode.id, newId);
+      return {
+        ...typedNode,
+        id: newId,
+        data: { ...typedNode.data, id: newId },
+      };
+    });
 
     // Create duplicated edges using the ID mapping
-    const duplicatedEdges: StoredEdge[] = 
-      (sourceFlow.edges || []).map((edge, index) => {
-        const typedEdge = edge as StoredEdge;
-        return {
-          ...typedEdge,
-          id: `duplicated-edge-${index}`,
-          source: idMap.get(typedEdge.source) || typedEdge.source,
-          target: idMap.get(typedEdge.target) || typedEdge.target,
-        };
-      });
+    const duplicatedEdges: StoredEdge[] = (sourceFlow.edges || []).map((edge, index) => {
+      const typedEdge = edge as StoredEdge;
+      return {
+        ...typedEdge,
+        id: `duplicated-edge-${index}`,
+        source: idMap.get(typedEdge.source) || typedEdge.source,
+        target: idMap.get(typedEdge.target) || typedEdge.target,
+      };
+    });
 
     // Copy flow data with properly remapped nodes and edges
     const duplicatedFlowData: FlowData = {
