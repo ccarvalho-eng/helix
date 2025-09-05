@@ -206,11 +206,9 @@ test.describe("Flow Builder Interactions", () => {
 				'.flow-node__handle--right'
 			];
 
-			let handlesFound = false;
 			for (const selector of handleSelectors) {
 				const outputHandle = firstNode.locator(selector).first();
 				if (await outputHandle.count() > 0) {
-					handlesFound = true;
 					break;
 				}
 			}
