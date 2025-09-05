@@ -278,13 +278,11 @@ test.describe("Flow Builder Interactions", () => {
 				".react-flow__controls button",
 			];
 
-			let buttonFound = false;
 			for (const selector of fitViewSelectors) {
 				const button = page.locator(selector).first();
 				if ((await button.count()) > 0 && (await button.isEnabled())) {
 					await button.click();
 					await page.waitForTimeout(500);
-					buttonFound = true;
 					break;
 				}
 			}
