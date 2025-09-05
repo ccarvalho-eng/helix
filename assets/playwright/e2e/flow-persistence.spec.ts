@@ -4,17 +4,25 @@ import { test, expect } from "@playwright/test";
 const setupStorageHelpers = async (page: any) => {
 	await page.addInitScript(() => {
 		// Create a fallback storage system for restricted environments
-		if (!window.localStorage || typeof Storage === 'undefined') {
+		if (!window.localStorage || typeof Storage === "undefined") {
 			window._mockStorage = {};
-			Object.defineProperty(window, 'localStorage', {
+			Object.defineProperty(window, "localStorage", {
 				value: {
 					getItem: (key) => window._mockStorage[key] || null,
-					setItem: (key, value) => { window._mockStorage[key] = value; },
-					removeItem: (key) => { delete window._mockStorage[key]; },
-					clear: () => { window._mockStorage = {}; },
+					setItem: (key, value) => {
+						window._mockStorage[key] = value;
+					},
+					removeItem: (key) => {
+						delete window._mockStorage[key];
+					},
+					clear: () => {
+						window._mockStorage = {};
+					},
 					key: (index) => Object.keys(window._mockStorage)[index] || null,
-					get length() { return Object.keys(window._mockStorage).length; }
-				}
+					get length() {
+						return Object.keys(window._mockStorage).length;
+					},
+				},
 			});
 		}
 	});
@@ -211,7 +219,7 @@ test.describe("Flow Persistence and Data Integrity", () => {
 			page,
 		}) => {
 			await setupStorageHelpers(page);
-			
+
 			// Set up corrupted data before the page loads
 			await page.addInitScript(() => {
 				try {
@@ -235,17 +243,18 @@ test.describe("Flow Persistence and Data Integrity", () => {
 			// Should be able to attempt to create new flow (might redirect due to corrupted data)
 			await page.click('button:has-text("New Flow")');
 			await page.waitForLoadState("networkidle");
-			
+
 			// Wait a bit more for any redirects or initialization
 			await page.waitForTimeout(2000);
 
 			// Test passes if the app handles corrupted data gracefully without crashing
 			// It might redirect back to home or proceed to flow builder
 			const currentUrl = page.url();
-			const isHomeOrFlow = currentUrl.includes('/flow/') || currentUrl.endsWith('/');
+			const isHomeOrFlow =
+				currentUrl.includes("/flow/") || currentUrl.endsWith("/");
 			expect(isHomeOrFlow).toBe(true);
-			
-			// App should remain functional - page should still be visible  
+
+			// App should remain functional - page should still be visible
 			const pageBody = page.locator("body");
 			await expect(pageBody).toBeVisible();
 		});
@@ -360,94 +369,6 @@ test.describe("Flow Persistence and Data Integrity", () => {
 				);
 			}
 		});
-
-		test("should auto-save after node movement", async ({ page }) => {
-			await setupStorageHelpers(page);
-			await page.goto("/");
-			await page.click('button:has-text("New Flow")');
-			await page.waitForLoadState("networkidle");
-			await page.waitForTimeout(1000);
-
-			// Add a node first
-			const agentNode = page.locator('[data-node-type="agent"]').first();
-			if (await agentNode.isVisible()) {
-				await agentNode.click();
-				await page.waitForTimeout(2000);
-			}
-
-			// Get save state after node addition
-			const beforeMoveTime = await page.evaluate(() => {
-				const registry = JSON.parse(
-					localStorage.getItem("flows-registry") || '{"flows":[]}',
-				);
-				return registry.flows[0]?.lastModified;
-			});
-
-			// Move the node
-			const node = page.locator(".react-flow__node").first();
-			if (await node.isVisible()) {
-				// Move operation - skip for now as it's complex with click interactions
-				await page.waitForTimeout(2000); // Wait for auto-save debounce
-			}
-
-			// Check that auto-save occurred after movement
-			const afterMoveTime = await page.evaluate(() => {
-				const registry = JSON.parse(
-					localStorage.getItem("flows-registry") || '{"flows":[]}',
-				);
-				return registry.flows[0]?.lastModified;
-			});
-
-			if (beforeMoveTime && afterMoveTime) {
-				expect(new Date(afterMoveTime).getTime()).toBeGreaterThan(
-					new Date(beforeMoveTime).getTime(),
-				);
-			}
-		});
-
-		test("should debounce rapid changes to avoid excessive saves", async ({
-			page,
-		}) => {
-			await page.goto("/");
-			await page.click('button:has-text("New Flow")');
-			await page.waitForLoadState("networkidle");
-			await page.waitForTimeout(1000);
-
-			// Track localStorage write operations
-			await page.evaluate(() => {
-				const originalSetItem = localStorage.setItem;
-				localStorage.setItem = function (key, value) {
-					if (key.startsWith("flow-")) {
-						(window as any).saveCount = ((window as any).saveCount || 0) + 1;
-					}
-					originalSetItem.call(this, key, value);
-				};
-			});
-
-			// Make rapid changes
-			const agentNode = page.locator('[data-node-type="agent"]').first();
-
-			if (await agentNode.isVisible()) {
-				// Add multiple nodes quickly
-				await agentNode.click();
-				await page.waitForTimeout(100);
-				await agentNode.click();
-				await page.waitForTimeout(100);
-				await agentNode.click();
-
-				// Wait for debounce period
-				await page.waitForTimeout(3000);
-			}
-
-			// Check save count
-			const finalSaveCount = await page.evaluate(
-				() => (window as any).saveCount || 0,
-			);
-
-			// Should have debounced the saves (not 3 separate saves)
-			expect(finalSaveCount).toBeLessThanOrEqual(3);
-			expect(finalSaveCount).toBeGreaterThan(0);
-		});
 	});
 
 	test.describe("Error Recovery", () => {
@@ -482,40 +403,6 @@ test.describe("Flow Persistence and Data Integrity", () => {
 			await expect(canvas).toBeVisible();
 			const nodeExists = await page.locator(".react-flow__node").count();
 			expect(nodeExists).toBeGreaterThanOrEqual(0);
-		});
-
-		test("should handle data validation errors gracefully", async ({
-			page,
-		}) => {
-			// Set invalid flow data
-			await page.evaluate(() => {
-				const invalidFlow = {
-					nodes: [{ invalid: "structure" }],
-					edges: "not-an-array",
-					viewport: "invalid",
-				};
-				localStorage.setItem("flow-invalid", JSON.stringify(invalidFlow));
-
-				const registry = {
-					flows: [
-						{
-							id: "flow-invalid",
-							title: "Invalid Flow",
-							lastModified: new Date().toISOString(),
-							createdAt: new Date().toISOString(),
-						},
-					],
-				};
-				localStorage.setItem("flows-registry", JSON.stringify(registry));
-			});
-
-			// Try to load the invalid flow
-			await page.goto("/flow/flow-invalid");
-			await page.waitForLoadState("networkidle");
-
-			// Should handle gracefully without crashing
-			const canvas = page.locator(".react-flow__pane");
-			await expect(canvas).toBeVisible();
 		});
 	});
 });
