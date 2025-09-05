@@ -108,10 +108,6 @@ defmodule HelixWeb.FlowChannel do
     if flow_id && client_id do
       case FlowSessionManager.leave_flow(flow_id, client_id) do
         {:ok, remaining_clients} ->
-          Logger.info(
-            "Client #{client_id} left flow #{flow_id}. Remaining clients: #{remaining_clients}"
-          )
-
           # Broadcast that a client left using broadcast_from
           # This may fail if the channel is already terminating or never properly joined
           try do
