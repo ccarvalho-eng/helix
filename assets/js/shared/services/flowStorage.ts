@@ -185,11 +185,11 @@ class FlowStorageServiceImpl implements FlowStorageService {
     });
 
     // Create duplicated edges using the ID mapping
-    const duplicatedEdges: StoredEdge[] = (sourceFlow.edges || []).map((edge, index) => {
+    const duplicatedEdges: StoredEdge[] = (sourceFlow.edges || []).map(edge => {
       const typedEdge = edge as StoredEdge;
       return {
         ...typedEdge,
-        id: `duplicated-edge-${index}`,
+        id: window.crypto.randomUUID(),
         source: idMap.get(typedEdge.source) || typedEdge.source,
         target: idMap.get(typedEdge.target) || typedEdge.target,
       };
@@ -208,17 +208,17 @@ class FlowStorageServiceImpl implements FlowStorageService {
   }
 
   /**
-   * Generate unique flow ID
+   * Generate unique flow ID using UUID v4
    */
   private generateFlowId(): string {
-    return `flow-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `flow-${window.crypto.randomUUID()}`;
   }
 
   /**
-   * Generate unique node ID
+   * Generate unique node ID using UUID v4
    */
   private generateNodeId(): string {
-    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    return window.crypto.randomUUID();
   }
 }
 

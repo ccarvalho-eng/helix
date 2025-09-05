@@ -165,21 +165,42 @@ defmodule Helix.FlowSessionManager do
     case Map.get(state.sessions, flow_id) do
       nil ->
         # No active session, nothing to broadcast
+        Logger.warning("Attempted to broadcast changes to non-existent flow session: #{flow_id}")
         {:noreply, state}
 
       session ->
-        # Update last activity
-        updated_session = %{session | last_activity: System.system_time(:second)}
-        new_sessions = Map.put(state.sessions, flow_id, updated_session)
+        # Validate changes structure
+        case validate_flow_changes(changes) do
+          {:ok, validated_changes} ->
+            # Update last activity atomically
+            updated_session = %{session | last_activity: System.system_time(:second)}
+            new_sessions = Map.put(state.sessions, flow_id, updated_session)
 
-        # Broadcast to all clients via Phoenix PubSub
-        Phoenix.PubSub.broadcast(Helix.PubSub, "flow:#{flow_id}", {:flow_change, changes})
+            # Add change metadata for tracking
+            change_payload =
+              Map.put(validated_changes, :__metadata, %{
+                timestamp: System.system_time(:millisecond),
+                session_id: flow_id,
+                client_count: MapSet.size(session.clients)
+              })
 
-        Logger.debug(
-          "Broadcasted flow changes for #{flow_id} to #{MapSet.size(session.clients)} clients"
-        )
+            # Broadcast to all clients via Phoenix PubSub
+            Phoenix.PubSub.broadcast(
+              Helix.PubSub,
+              "flow:#{flow_id}",
+              {:flow_change, change_payload}
+            )
 
-        {:noreply, %{state | sessions: new_sessions}}
+            Logger.debug(
+              "Broadcasted validated flow changes for #{flow_id} to #{MapSet.size(session.clients)} clients"
+            )
+
+            {:noreply, %{state | sessions: new_sessions}}
+
+          {:error, reason} ->
+            Logger.error("Invalid flow changes for #{flow_id}: #{inspect(reason)}")
+            {:noreply, state}
+        end
     end
   end
 
@@ -225,4 +246,153 @@ defmodule Helix.FlowSessionManager do
     # Clean up every 10 minutes
     Process.send_after(__MODULE__, :cleanup_inactive_sessions, 10 * 60 * 1000)
   end
+
+  defp validate_flow_changes(changes) when is_map(changes) do
+    with :ok <- validate_nodes_field(changes),
+         :ok <- validate_edges_field(changes),
+         :ok <- validate_viewport_field(changes) do
+      {:ok, changes}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  rescue
+    _ -> {:error, "invalid changes structure"}
+  end
+
+  defp validate_flow_changes(_), do: {:error, "changes must be an object"}
+
+  defp validate_nodes_field(changes) do
+    case Map.get(changes, "nodes") do
+      nil -> :ok
+      nodes when is_list(nodes) -> validate_nodes_list(nodes)
+      _ -> {:error, "nodes must be a list"}
+    end
+  end
+
+  defp validate_edges_field(changes) do
+    case Map.get(changes, "edges") do
+      nil -> :ok
+      edges when is_list(edges) -> validate_edges_list(edges)
+      _ -> {:error, "edges must be a list"}
+    end
+  end
+
+  defp validate_viewport_field(changes) do
+    case Map.get(changes, "viewport") do
+      nil -> :ok
+      viewport when is_map(viewport) -> validate_viewport_map(viewport)
+      _ -> {:error, "viewport must be an object"}
+    end
+  end
+
+  defp validate_nodes_list(nodes) do
+    Enum.each(nodes, &validate_node/1)
+    :ok
+  catch
+    :throw, {:error, reason} -> {:error, reason}
+  end
+
+  defp validate_edges_list(edges) do
+    Enum.each(edges, &validate_edge/1)
+    :ok
+  catch
+    :throw, {:error, reason} -> {:error, reason}
+  end
+
+  defp validate_viewport_map(viewport) do
+    validate_viewport(viewport)
+    :ok
+  catch
+    :throw, {:error, reason} -> {:error, reason}
+  end
+
+  defp validate_node(node) when is_map(node) do
+    with :ok <- validate_node_id(node),
+         :ok <- validate_node_position(node) do
+      node
+    else
+      {:error, reason} -> throw({:error, reason})
+    end
+  end
+
+  defp validate_node(_), do: throw({:error, "node must be an object"})
+
+  defp validate_node_id(node) do
+    id = Map.get(node, "id")
+
+    if is_binary(id) and String.length(id) > 0 do
+      :ok
+    else
+      {:error, "node id must be a non-empty string"}
+    end
+  end
+
+  defp validate_node_position(node) do
+    case Map.get(node, "position") do
+      nil -> :ok
+      position when is_map(position) -> validate_position_coordinates(position)
+      _ -> {:error, "node position must be an object"}
+    end
+  end
+
+  defp validate_position_coordinates(position) do
+    x = Map.get(position, "x")
+    y = Map.get(position, "y")
+
+    if (x != nil and not is_number(x)) or (y != nil and not is_number(y)) do
+      {:error, "node position must have numeric x and y coordinates"}
+    else
+      :ok
+    end
+  end
+
+  defp validate_edge(edge) when is_map(edge) do
+    # Validate required edge fields
+    id = Map.get(edge, "id")
+    source = Map.get(edge, "source")
+    target = Map.get(edge, "target")
+
+    unless is_binary(id) and String.length(id) > 0 do
+      throw({:error, "edge id must be a non-empty string"})
+    end
+
+    unless is_binary(source) and String.length(source) > 0 do
+      throw({:error, "edge source must be a non-empty string"})
+    end
+
+    unless is_binary(target) and String.length(target) > 0 do
+      throw({:error, "edge target must be a non-empty string"})
+    end
+
+    # Return original edge (validation passed)
+    edge
+  end
+
+  defp validate_edge(_), do: throw({:error, "edge must be an object"})
+
+  defp validate_viewport(viewport) when is_map(viewport) do
+    x = Map.get(viewport, "x")
+    y = Map.get(viewport, "y")
+    zoom = Map.get(viewport, "zoom")
+
+    unless is_number(x) do
+      throw({:error, "viewport x must be a number"})
+    end
+
+    unless is_number(y) do
+      throw({:error, "viewport y must be a number"})
+    end
+
+    unless is_number(zoom) and zoom > 0 do
+      throw({:error, "viewport zoom must be a positive number"})
+    end
+
+    %{
+      "x" => x,
+      "y" => y,
+      "zoom" => zoom
+    }
+  end
+
+  defp validate_viewport(_), do: throw({:error, "viewport must be an object"})
 end

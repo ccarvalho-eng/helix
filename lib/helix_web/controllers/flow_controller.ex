@@ -18,16 +18,33 @@ defmodule HelixWeb.FlowController do
   Broadcast flow changes to connected clients
   """
   def sync(conn, %{"id" => flow_id} = params) do
-    # Extract flow changes from request body
-    changes = Map.get(params, "changes", %{})
+    # Validate flow_id format
+    case validate_flow_id(flow_id) do
+      {:ok, validated_flow_id} ->
+        # Extract and validate flow changes from request body
+        changes = Map.get(params, "changes", %{})
 
-    # Broadcast changes to all connected clients
-    FlowSessionManager.broadcast_flow_change(flow_id, changes)
+        case validate_sync_params(changes) do
+          {:ok, validated_changes} ->
+            # Broadcast changes to all connected clients
+            FlowSessionManager.broadcast_flow_change(validated_flow_id, validated_changes)
 
-    # Return success response
-    conn
-    |> put_status(:ok)
-    |> json(%{success: true, message: "Flow changes broadcasted"})
+            # Return success response
+            conn
+            |> put_status(:ok)
+            |> json(%{success: true, message: "Flow changes broadcasted"})
+
+          {:error, reason} ->
+            conn
+            |> put_status(:bad_request)
+            |> json(%{error: "Invalid changes format: #{reason}"})
+        end
+
+      {:error, reason} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Invalid flow ID: #{reason}"})
+    end
   end
 
   @doc """
@@ -35,10 +52,57 @@ defmodule HelixWeb.FlowController do
   Get the current status of a flow session
   """
   def status(conn, %{"id" => flow_id}) do
-    flow_status = FlowSessionManager.get_flow_status(flow_id)
+    case validate_flow_id(flow_id) do
+      {:ok, validated_flow_id} ->
+        flow_status = FlowSessionManager.get_flow_status(validated_flow_id)
 
-    conn
-    |> put_status(:ok)
-    |> json(flow_status)
+        conn
+        |> put_status(:ok)
+        |> json(flow_status)
+
+      {:error, reason} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Invalid flow ID: #{reason}"})
+    end
   end
+
+  # Private validation functions
+
+  defp validate_flow_id(flow_id) when is_binary(flow_id) do
+    trimmed_id = String.trim(flow_id)
+
+    cond do
+      String.length(trimmed_id) == 0 ->
+        {:error, "flow ID cannot be empty"}
+
+      String.length(trimmed_id) > 255 ->
+        {:error, "flow ID too long"}
+
+      not String.match?(trimmed_id, ~r/^[a-zA-Z0-9\-_.<>#%\s]+$/) ->
+        {:error, "flow ID contains invalid characters"}
+
+      true ->
+        {:ok, trimmed_id}
+    end
+  end
+
+  defp validate_flow_id(_), do: {:error, "flow ID must be a string"}
+
+  defp validate_sync_params(changes) when is_map(changes) do
+    # Basic size check to prevent abuse
+    json_size = changes |> Jason.encode!() |> byte_size()
+
+    # 1MB limit
+    if json_size > 1_000_000 do
+      {:error, "changes payload too large"}
+    else
+      {:ok, changes}
+    end
+  rescue
+    Jason.EncodeError ->
+      {:error, "changes must be valid JSON"}
+  end
+
+  defp validate_sync_params(_), do: {:error, "changes must be an object"}
 end

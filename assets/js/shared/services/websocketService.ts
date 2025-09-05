@@ -25,8 +25,11 @@ class WebSocketService {
   private currentFlowId: string | null = null;
   private callbacks: WebSocketCallbacks = {};
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
+  private maxReconnectAttempts = 10;
   private reconnectDelay = 1000; // Start with 1 second
+  private maxReconnectDelay = 30000; // Max 30 seconds
+  private reconnectTimer: number | null = null;
+  private connectionLost = false;
 
   /**
    * Initialize WebSocket connection
@@ -43,11 +46,27 @@ class WebSocketService {
       this.socket.onOpen(() => {
         console.log('🔌✅ WebSocket connected to Phoenix server');
         this.reconnectAttempts = 0;
+        this.connectionLost = false;
+
+        // Clear any pending reconnection timers
+        if (this.reconnectTimer) {
+          clearTimeout(this.reconnectTimer);
+          this.reconnectTimer = null;
+        }
+
+        // Automatically rejoin flow channel if we had one before disconnect
+        if (this.currentFlowId && this.connectionLost) {
+          console.log(`🔌🔄 Automatically rejoining flow channel: ${this.currentFlowId}`);
+          // Use setTimeout to ensure the connection is fully established
+          setTimeout(() => this.rejoinCurrentFlow(), 100);
+        }
+
         this.callbacks.onConnect?.();
       });
 
       this.socket.onClose(() => {
         console.log('🔌🔽 WebSocket disconnected from Phoenix server');
+        this.connectionLost = true;
         this.callbacks.onDisconnect?.();
         this.attemptReconnect();
       });
@@ -207,7 +226,7 @@ class WebSocketService {
   }
 
   /**
-   * Attempt to reconnect with exponential backoff
+   * Attempt to reconnect with exponential backoff and capped delay
    */
   private attemptReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
@@ -215,18 +234,49 @@ class WebSocketService {
       return;
     }
 
-    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
+    // Clear any existing timer
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+    }
+
+    const delay = Math.min(
+      this.reconnectDelay * Math.pow(2, this.reconnectAttempts),
+      this.maxReconnectDelay
+    );
     this.reconnectAttempts++;
 
     console.log(
-      `🔌🔄 Attempting reconnection in ${delay}ms (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`
+      `🔌🔄 Attempting reconnection in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`
     );
 
-    setTimeout(() => {
+    this.reconnectTimer = setTimeout(() => {
       if (this.socket && !this.socket.isConnected()) {
         this.socket.connect();
       }
-    }, delay);
+    }, delay) as unknown as number;
+  }
+
+  /**
+   * Rejoin the current flow channel after reconnection
+   */
+  private async rejoinCurrentFlow() {
+    if (!this.currentFlowId || !this.socket?.isConnected()) {
+      return;
+    }
+
+    try {
+      // Reset channel to force a new join
+      this.channel = null;
+      const success = await this.joinFlow(this.currentFlowId);
+
+      if (success) {
+        console.log(`🔌✅ Successfully rejoined flow channel: ${this.currentFlowId}`);
+      } else {
+        console.error(`🔌❌ Failed to rejoin flow channel: ${this.currentFlowId}`);
+      }
+    } catch (error) {
+      console.error(`🔌❌ Error rejoining flow channel: ${this.currentFlowId}`, error);
+    }
   }
 }
 
