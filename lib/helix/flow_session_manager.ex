@@ -192,38 +192,36 @@ defmodule Helix.FlowSessionManager do
 
         {:noreply, %{state | sessions: new_sessions}}
     end
-  end
+      now = System.system_time(:second)
+      inactive_threshold = now - 30 * 60
 
-  @impl true
-  def handle_info(:cleanup_inactive_sessions, state) do
-    now = System.system_time(:second)
-    # Remove sessions inactive for more than 30 minutes
-    inactive_threshold = now - 30 * 60
+      {inactive_flows, active_sessions} =
+        state.sessions
+        |> Enum.split_with(fn {_flow_id, session} ->
+          session.last_activity < inactive_threshold
+        end)
 
-    {inactive_flows, active_sessions} =
-      state.sessions
-      |> Enum.split_with(fn {_flow_id, session} ->
-        session.last_activity < inactive_threshold
-      end)
+      if inactive_flows != [] do
+        inactive_flow_ids = Enum.map(inactive_flows, fn {flow_id, _} -> flow_id end)
+        Logger.info(
+          "Cleaned up #{length(inactive_flows)} inactive flow sessions: #{inspect(inactive_flow_ids)}"
+        )
+      end
 
-    if length(inactive_flows) > 0 do
-      inactive_flow_ids = Enum.map(inactive_flows, fn {flow_id, _} -> flow_id end)
+      new_sessions = Map.new(active_sessions)
 
-      Logger.info(
-        "Cleaned up #{length(inactive_flows)} inactive flow sessions: #{inspect(inactive_flow_ids)}"
-      )
-    end
+      inactive_ids_set =
+        inactive_flows
+        |> Enum.map(fn {flow_id, _} -> flow_id end)
+        |> MapSet.new()
 
-    # Remove inactive sessions and update client_flows
-    new_sessions = Map.new(active_sessions)
+      new_client_flows =
+        state.client_flows
+        |> Enum.reject(fn {_client_id, flow_id} -> MapSet.member?(inactive_ids_set, flow_id) end)
+        |> Map.new()
 
-    new_client_flows =
-      state.client_flows
-      |> Enum.reject(fn {_client_id, flow_id} ->
-        Enum.any?(inactive_flows, fn {inactive_flow_id, _} -> inactive_flow_id == flow_id end)
-      end)
-      |> Map.new()
-
+      schedule_cleanup()
+      {:noreply, %{state | sessions: new_sessions, client_flows: new_client_flows}}
     # Schedule next cleanup
     schedule_cleanup()
 
