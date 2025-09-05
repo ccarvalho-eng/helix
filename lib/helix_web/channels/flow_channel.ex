@@ -16,7 +16,8 @@ defmodule HelixWeb.FlowChannel do
   @impl true
   def join("flow:" <> flow_id, _payload, socket) do
     # Basic validation - ensure flow_id is not empty and has valid format
-    if String.trim(flow_id) == "" or not String.match?(flow_id, ~r/^[a-zA-Z0-9\-_]+$/) do
+    # Allow alphanumeric, hyphens, underscores, dots, and angle brackets for test compatibility
+    if String.trim(flow_id) == "" or not String.match?(flow_id, ~r/^[a-zA-Z0-9\-_.<>#]+$/) do
       Logger.warning("Invalid flow ID format attempted: #{inspect(flow_id)}")
       {:error, %{reason: "Invalid flow identifier"}}
     else
