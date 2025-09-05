@@ -226,5 +226,4 @@ defmodule Helix.FlowSessionManager do
     # Clean up every 10 minutes
     Process.send_after(__MODULE__, :cleanup_inactive_sessions, 10 * 60 * 1000)
   end
-
 end

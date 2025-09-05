@@ -39,5 +39,4 @@ defmodule HelixWeb.FlowController do
     |> put_status(:ok)
     |> json(flow_status)
   end
-
 end
