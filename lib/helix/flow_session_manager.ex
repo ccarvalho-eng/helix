@@ -73,21 +73,25 @@ defmodule Helix.FlowSessionManager do
   def handle_call({:join_flow, flow_id, client_id}, _from, state) do
     now = System.system_time(:second)
 
-    # Update client_flows mapping
-    new_client_flows = Map.put(state.client_flows, client_id, flow_id)
+    safe_client_id =
+      case client_id do
+        id when is_binary(id) and byte_size(String.trim(id)) > 0 -> id
+        _ -> "anon:" <> Base.encode32(:crypto.strong_rand_bytes(8), padding: false)
+      end
 
-    # Update or create session
+    new_client_flows = Map.put(state.client_flows, safe_client_id, flow_id)
+
     session = Map.get(state.sessions, flow_id, %{clients: MapSet.new(), last_activity: now})
 
     updated_session = %{
-      clients: MapSet.put(session.clients, client_id),
+      clients: MapSet.put(session.clients, safe_client_id),
       last_activity: now
     }
 
     new_sessions = Map.put(state.sessions, flow_id, updated_session)
     client_count = MapSet.size(updated_session.clients)
 
-    Logger.info("Client #{client_id} joined flow #{flow_id}. Active clients: #{client_count}")
+    Logger.info("Client #{safe_client_id} joined flow #{flow_id}. Active clients: #{client_count}")
 
     {:reply, {:ok, client_count},
      %{state | sessions: new_sessions, client_flows: new_client_flows}}
