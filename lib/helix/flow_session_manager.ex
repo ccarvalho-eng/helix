@@ -75,8 +75,12 @@ defmodule Helix.FlowSessionManager do
 
     safe_client_id =
       case client_id do
-        id when is_binary(id) and byte_size(String.trim(id)) > 0 -> id
-        _ -> "anon:" <> Base.encode32(:crypto.strong_rand_bytes(8), padding: false)
+        id when is_binary(id) ->
+          trimmed = String.trim(id)
+          if byte_size(trimmed) > 0, do: id, else: generate_anonymous_id()
+
+        _ ->
+          generate_anonymous_id()
       end
 
     new_client_flows = Map.put(state.client_flows, safe_client_id, flow_id)
@@ -91,7 +95,9 @@ defmodule Helix.FlowSessionManager do
     new_sessions = Map.put(state.sessions, flow_id, updated_session)
     client_count = MapSet.size(updated_session.clients)
 
-    Logger.info("Client #{safe_client_id} joined flow #{flow_id}. Active clients: #{client_count}")
+    Logger.info(
+      "Client #{safe_client_id} joined flow #{flow_id}. Active clients: #{client_count}"
+    )
 
     {:reply, {:ok, client_count},
      %{state | sessions: new_sessions, client_flows: new_client_flows}}
@@ -229,5 +235,9 @@ defmodule Helix.FlowSessionManager do
   defp schedule_cleanup do
     # Clean up every 10 minutes
     Process.send_after(__MODULE__, :cleanup_inactive_sessions, 10 * 60 * 1000)
+  end
+
+  defp generate_anonymous_id do
+    "anon:" <> Base.encode32(:crypto.strong_rand_bytes(8), padding: false)
   end
 end
