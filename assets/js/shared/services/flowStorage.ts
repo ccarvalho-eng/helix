@@ -211,7 +211,7 @@ class FlowStorageServiceImpl implements FlowStorageService {
    * Generate unique flow ID using UUID v4 with fallback
    */
   private generateFlowId(): string {
-    return `flow-${this.generateUUID()}`;
+    return this.generateUUID();
   }
 
   /**
