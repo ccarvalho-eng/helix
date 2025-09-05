@@ -109,9 +109,21 @@ export function useFlowManager(flowId: string | null) {
           console.error('🔄❌ Failed to apply remote flow changes:', error);
         } finally {
           // Reset flag after a short delay to allow for React state updates
-          setTimeout(() => {
-            isUpdatingFromRemote.current = false;
-          }, 100);
+          try {
+            const changes = data.changes as FlowData;
+            if (changes.nodes) {
+              setNodes(changes.nodes as Node<AIFlowNode>[]);
+            }
+            if (changes.edges) {
+              setEdges(changes.edges as Edge[]);
+            }
+          } catch (error) {
+            console.error('🔄❌ Failed to apply remote flow changes:', error);
+          } finally {
+            queueMicrotask(() => {
+              isUpdatingFromRemote.current = false;
+            });
+          }
         }
       },
       onClientJoined: data => setConnectedClients(data.client_count),
