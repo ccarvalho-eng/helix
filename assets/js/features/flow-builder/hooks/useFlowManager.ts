@@ -332,8 +332,11 @@ export function useFlowManager(flowId: string | null) {
         if (exists) return eds;
 
         const edge: Edge = {
-          ...connection,
           id: uniqueId,
+          source,
+          target,
+          sourceHandle,
+          targetHandle,
           type: 'default',
           markerEnd: {
             type: MarkerType.ArrowClosed,
