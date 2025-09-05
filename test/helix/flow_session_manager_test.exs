@@ -155,8 +155,10 @@ defmodule Helix.FlowSessionManagerTest do
       FlowSessionManager.join_flow(flow_id, client_id)
       FlowSessionManager.broadcast_flow_change(flow_id, changes)
 
-      # Verify broadcast was sent
-      assert_receive {:flow_change, ^changes}, 1000
+      # Verify broadcast was sent (now includes metadata)
+      assert_receive {:flow_change, payload}, 1000
+      assert Map.drop(payload, [:__metadata]) == changes
+      assert Map.has_key?(payload, :__metadata)
     end
 
     test "does not broadcast to inactive flow session" do

@@ -370,7 +370,7 @@ defmodule Helix.FlowSessionManager do
 
   defp validate_edge(_), do: throw({:error, "edge must be an object"})
 
-  defp validate_viewport(viewport) when is_map(viewport) do
+  defp validate_viewport(viewport) do
     x = Map.get(viewport, "x")
     y = Map.get(viewport, "y")
     zoom = Map.get(viewport, "zoom")
@@ -393,6 +393,4 @@ defmodule Helix.FlowSessionManager do
       "zoom" => zoom
     }
   end
-
-  defp validate_viewport(_), do: throw({:error, "viewport must be an object"})
 end
