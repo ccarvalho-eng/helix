@@ -231,7 +231,7 @@ class FlowStorageServiceImpl implements FlowStorageService {
     }
 
     // Try crypto.getRandomValues() fallback
-    if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+    if (typeof window !== 'undefined' && window.crypto && typeof window.crypto.getRandomValues === 'function') {
       return this.uuidV4Fallback();
     }
 
