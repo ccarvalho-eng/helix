@@ -169,38 +169,39 @@ class FlowStorageServiceImpl implements FlowStorageService {
     registry.flows.push(duplicatedFlow);
     this.saveFlowRegistry(registry);
 
-    // Copy flow data with new node IDs to avoid conflicts
+    // Build old->new ID mapping first
+    const idMap = new Map<string, string>();
+    
+    // Create duplicated nodes with new IDs
+    const duplicatedNodes: StoredNode[] = 
+      (sourceFlow.nodes || []).map((node) => {
+        const typedNode = node as StoredNode;
+        const newId = this.generateNodeId();
+        idMap.set(typedNode.id, newId);
+        return {
+          ...typedNode,
+          id: newId,
+          data: { ...typedNode.data, id: newId },
+        };
+      });
+
+    // Create duplicated edges using the ID mapping
+    const duplicatedEdges: StoredEdge[] = 
+      (sourceFlow.edges || []).map((edge, index) => {
+        const typedEdge = edge as StoredEdge;
+        return {
+          ...typedEdge,
+          id: `duplicated-edge-${index}`,
+          source: idMap.get(typedEdge.source) || typedEdge.source,
+          target: idMap.get(typedEdge.target) || typedEdge.target,
+        };
+      });
+
+    // Copy flow data with properly remapped nodes and edges
     const duplicatedFlowData: FlowData = {
       ...sourceFlow,
-      nodes:
-        sourceFlow.nodes?.map(node => {
-          const typedNode = node as StoredNode;
-          return {
-            ...typedNode,
-            id: this.generateNodeId(),
-            data: { ...typedNode.data, id: this.generateNodeId() },
-          };
-        }) || [],
-      edges:
-        sourceFlow.edges?.map((edge, index: number) => {
-          const typedEdge = edge as StoredEdge;
-          return {
-            ...typedEdge,
-            id: `duplicated-edge-${index}`,
-            source:
-              (
-                sourceFlow.nodes?.[
-                  sourceFlow.nodes.findIndex(n => (n as StoredNode).id === typedEdge.source)
-                ] as StoredNode
-              )?.id || typedEdge.source,
-            target:
-              (
-                sourceFlow.nodes?.[
-                  sourceFlow.nodes.findIndex(n => (n as StoredNode).id === typedEdge.target)
-                ] as StoredNode
-              )?.id || typedEdge.target,
-          };
-        }) || [],
+      nodes: duplicatedNodes,
+      edges: duplicatedEdges,
     };
 
     this.saveFlow(newId, duplicatedFlowData);

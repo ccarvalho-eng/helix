@@ -59,10 +59,7 @@ jobs:
       - name: Build assets
         run: mix assets.build
 
-      - name: Run tests
-        run: mix test --cover
-
-      - name: Generate coverage report
+      - name: Run tests with coverage
         run: mix coveralls.json
 
       - name: Upload coverage to Codecov

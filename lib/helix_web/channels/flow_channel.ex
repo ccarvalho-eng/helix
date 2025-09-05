@@ -15,30 +15,36 @@ defmodule HelixWeb.FlowChannel do
 
   @impl true
   def join("flow:" <> flow_id, _payload, socket) do
-    # Generate a unique client ID for this connection
-    client_id = generate_client_id()
+    # Basic validation - ensure flow_id is not empty and has valid format
+    if String.trim(flow_id) == "" or not String.match?(flow_id, ~r/^[a-zA-Z0-9\-_]+$/) do
+      Logger.warning("Invalid flow ID format attempted: #{inspect(flow_id)}")
+      {:error, %{reason: "Invalid flow identifier"}}
+    else
+      # Generate a unique client ID for this connection
+      client_id = generate_client_id()
 
-    # Join the flow session
-    case FlowSessionManager.join_flow(flow_id, client_id) do
-      {:ok, client_count} ->
-        # Store client info in socket assigns
-        socket =
-          socket
-          |> assign(:flow_id, flow_id)
-          |> assign(:client_id, client_id)
+      # Join the flow session
+      case FlowSessionManager.join_flow(flow_id, client_id) do
+        {:ok, client_count} ->
+          # Store client info in socket assigns
+          socket =
+            socket
+            |> assign(:flow_id, flow_id)
+            |> assign(:client_id, client_id)
 
-        Logger.info(
-          "Client #{client_id} joined flow channel #{flow_id}. Total clients: #{client_count}"
-        )
+          Logger.info(
+            "Client #{client_id} joined flow channel #{flow_id}. Total clients: #{client_count}"
+          )
 
-        # Send join confirmation with current client count
-        send(self(), {:after_join, client_count})
+          # Send join confirmation with current client count
+          send(self(), {:after_join, client_count})
 
-        {:ok, socket}
+          {:ok, socket}
 
-      {:error, reason} ->
-        Logger.error("Failed to join flow #{flow_id}: #{inspect(reason)}")
-        {:error, %{reason: "Failed to join flow session"}}
+        {:error, reason} ->
+          Logger.error("Failed to join flow #{flow_id}: #{inspect(reason)}")
+          {:error, %{reason: "Failed to join flow session"}}
+      end
     end
   end
 

@@ -135,9 +135,9 @@ jobs:
           
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Browser Results" >> $GITHUB_STEP_SUMMARY
-          echo "- **Chromium:** ${{ needs.e2e-tests.outputs.chromium-result || 'Unknown' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Firefox:** ${{ needs.e2e-tests.outputs.firefox-result || 'Unknown' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **WebKit:** ${{ needs.e2e-tests.outputs.webkit-result || 'Unknown' }}" >> $GITHUB_STEP_SUMMARY
+          echo "Check the individual job results in the workflow run for detailed browser-specific results." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tested Browsers:** Chromium, Firefox, WebKit" >> $GITHUB_STEP_SUMMARY
 
       # Optional: Send notification to Slack/Discord/email if tests fail
       # - name: Notify on failure

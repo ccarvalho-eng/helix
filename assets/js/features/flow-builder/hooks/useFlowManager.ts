@@ -314,26 +314,40 @@ export function useFlowManager(flowId: string | null) {
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      if (!connection.source || !connection.target) return;
+      const { source, target, sourceHandle, targetHandle } = connection;
+      if (!source || !target) return;
 
-      const edge: Edge = {
-        ...connection,
-        source: connection.source,
-        target: connection.target,
-        id: `${connection.source}-${connection.target}`,
-        type: 'default',
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          width: 20,
-          height: 20,
-          color: '#9ca3af',
-        },
-        style: {
-          stroke: '#9ca3af',
-          strokeWidth: 2,
-        },
-      };
-      setEdges(eds => addEdge(edge, eds));
+      const baseId = `${source}:${sourceHandle || ''}->${target}:${targetHandle || ''}`;
+      const uniqueId = `${baseId}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+
+      setEdges((eds) => {
+        // Prevent duplicates for same endpoints/handles
+        const exists = eds.some(
+          (e) =>
+            e.source === source &&
+            e.target === target &&
+            (e as any).sourceHandle === sourceHandle &&
+            (e as any).targetHandle === targetHandle
+        );
+        if (exists) return eds;
+
+        const edge: Edge = {
+          ...connection,
+          id: uniqueId,
+          type: 'default',
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 20,
+            height: 20,
+            color: '#9ca3af',
+          },
+          style: {
+            stroke: '#9ca3af',
+            strokeWidth: 2,
+          },
+        };
+        return addEdge(edge, eds);
+      });
     },
     [setEdges]
   );
