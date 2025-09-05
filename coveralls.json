@@ -17,7 +17,12 @@
     "lib/helix/application.ex",
     "lib/helix/mailer.ex",
     "lib/helix/repo.ex",
-    "lib/helix_web/controllers/error_json.ex"
+    "lib/helix_web/controllers/error_json.ex",
+    "lib/helix_web/controllers/error_html.ex",
+    "lib/helix_web/components/core_components.ex",
+    "lib/helix_web/components/layouts.ex",
+    "lib/helix_web/controllers/page_controller.ex",
+    "lib/helix_web/controllers/page_html.ex"
   ],
   "custom_skip_files": [
     "_build/",

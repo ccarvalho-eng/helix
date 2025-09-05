@@ -14,7 +14,8 @@ defmodule Helix.MixProject do
       listeners: [Phoenix.CodeReloader],
       excoveralls: [
         "coveralls.json": [export: "cov"],
-        "coveralls.html": [export: "html"]
+        "coveralls.html": [export: "html"],
+        minimum_coverage: 75
       ],
       preferred_cli_env: [
         coveralls: :test,
