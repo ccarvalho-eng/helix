@@ -46,7 +46,6 @@ class WebSocketService {
       this.socket.onOpen(() => {
         console.log('🔌✅ WebSocket connected to Phoenix server');
         this.reconnectAttempts = 0;
-        this.connectionLost = false;
 
         // Clear any pending reconnection timers
         if (this.reconnectTimer) {
@@ -61,6 +60,8 @@ class WebSocketService {
           setTimeout(() => this.rejoinCurrentFlow(), 100);
         }
 
+        // Reset connectionLost after potential rejoin to avoid interference
+        this.connectionLost = false;
         this.callbacks.onConnect?.();
       });
 

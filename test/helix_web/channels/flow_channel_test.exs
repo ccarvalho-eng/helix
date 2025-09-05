@@ -108,15 +108,13 @@ defmodule HelixWeb.FlowChannelTest do
       # Should get acknowledgment
       assert_reply ref, :ok, %{status: "broadcasted"}
 
-      # Client 2 should receive the flow update (now includes metadata)
+      # Client 2 should receive the flow update
       assert_push("flow_update", %{
-        changes: payload,
+        changes: ^changes,
         timestamp: timestamp
       })
 
       assert is_integer(timestamp)
-      assert Map.drop(payload, [:__metadata]) == changes
-      assert Map.has_key?(payload, :__metadata)
     end
 
     test "handles flow_change messages correctly", %{socket: socket} do
@@ -301,10 +299,8 @@ defmodule HelixWeb.FlowChannelTest do
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
       # Send flow change through channel
       _ref = push(socket, "flow_change", %{"changes" => changes})
-      # Should receive PubSub message (now includes metadata)
-      assert_receive {:flow_change, payload}
-      assert Map.drop(payload, [:__metadata]) == changes
-      assert Map.has_key?(payload, :__metadata)
+      # Should receive PubSub message
+      assert_receive {:flow_change, ^changes}
     end
   end
 

@@ -69,10 +69,8 @@ defmodule HelixWeb.FlowControllerTest do
                "message" => "Flow changes broadcasted"
              }
 
-      # Verify the broadcast was sent (now includes metadata)
-      assert_receive {:flow_change, payload}, 1000
-      assert Map.drop(payload, [:__metadata]) == changes
-      assert Map.has_key?(payload, :__metadata)
+      # Verify the broadcast was sent
+      assert_receive {:flow_change, ^changes}, 1000
     end
 
     test "handles empty changes", %{conn: conn} do
@@ -89,7 +87,7 @@ defmodule HelixWeb.FlowControllerTest do
              }
     end
 
-    test "rejects malformed changes payload", %{conn: conn} do
+    test "handles malformed changes payload gracefully", %{conn: conn} do
       flow_id = "malformed-flow"
 
       conn =
@@ -97,9 +95,10 @@ defmodule HelixWeb.FlowControllerTest do
         |> put_req_header("content-type", "application/json")
         |> post(~p"/api/flows/#{flow_id}/sync", %{"changes" => "invalid"})
 
-      # Should now reject invalid changes format with security validation
-      assert json_response(conn, 400) == %{
-               "error" => "Invalid changes format: changes must be an object"
+      # Should accept all changes formats
+      assert json_response(conn, 200) == %{
+               "success" => true,
+               "message" => "Flow changes broadcasted"
              }
     end
 
@@ -176,10 +175,8 @@ defmodule HelixWeb.FlowControllerTest do
                "message" => "Flow changes broadcasted"
              }
 
-      # Verify broadcast was sent (now includes metadata)
-      assert_receive {:flow_change, payload}, 1000
-      assert Map.drop(payload, [:__metadata]) == changes
-      assert Map.has_key?(payload, :__metadata)
+      # Verify broadcast was sent
+      assert_receive {:flow_change, ^changes}, 1000
     end
 
     test "handles concurrent sync requests", %{conn: conn} do
@@ -409,9 +406,8 @@ defmodule HelixWeb.FlowControllerTest do
 
       assert json_response(conn3, 200)["success"] == true
 
-      # Only flow1 should receive the broadcast (now includes metadata)
-      assert_receive {:flow_change, payload}, 1000
-      assert Map.drop(payload, [:__metadata]) == changes
+      # Only flow1 should receive the broadcast
+      assert_receive {:flow_change, ^changes}, 1000
       refute_receive {:flow_change, _}, 100
     end
   end

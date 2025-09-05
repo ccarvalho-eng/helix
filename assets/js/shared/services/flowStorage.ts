@@ -189,7 +189,7 @@ class FlowStorageServiceImpl implements FlowStorageService {
       const typedEdge = edge as StoredEdge;
       return {
         ...typedEdge,
-        id: window.crypto.randomUUID(),
+        id: this.generateUUID(),
         source: idMap.get(typedEdge.source) || typedEdge.source,
         target: idMap.get(typedEdge.target) || typedEdge.target,
       };
@@ -208,17 +208,59 @@ class FlowStorageServiceImpl implements FlowStorageService {
   }
 
   /**
-   * Generate unique flow ID using UUID v4
+   * Generate unique flow ID using UUID v4 with fallback
    */
   private generateFlowId(): string {
-    return `flow-${window.crypto.randomUUID()}`;
+    return `flow-${this.generateUUID()}`;
   }
 
   /**
-   * Generate unique node ID using UUID v4
+   * Generate unique node ID using UUID v4 with fallback
    */
   private generateNodeId(): string {
-    return window.crypto.randomUUID();
+    return this.generateUUID();
+  }
+
+  /**
+   * Generate UUID v4 with fallback for cross-environment support
+   */
+  private generateUUID(): string {
+    // Try native crypto.randomUUID() first
+    if (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) {
+      return window.crypto.randomUUID();
+    }
+    
+    // Try crypto.getRandomValues() fallback
+    if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+      return this.uuidV4Fallback();
+    }
+    
+    // Final fallback for test environments or older browsers
+    return this.pseudoUUID();
+  }
+
+  /**
+   * UUID v4 implementation using crypto.getRandomValues()
+   */
+  private uuidV4Fallback(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const array = new Uint8Array(1);
+      window.crypto.getRandomValues(array);
+      const r = array[0] % 16;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  /**
+   * Pseudo-UUID for environments without crypto API
+   */
+  private pseudoUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
   }
 }
 
