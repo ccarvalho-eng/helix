@@ -192,36 +192,38 @@ defmodule Helix.FlowSessionManager do
 
         {:noreply, %{state | sessions: new_sessions}}
     end
-      now = System.system_time(:second)
-      inactive_threshold = now - 30 * 60
 
-      {inactive_flows, active_sessions} =
-        state.sessions
-        |> Enum.split_with(fn {_flow_id, session} ->
-          session.last_activity < inactive_threshold
-        end)
+    now = System.system_time(:second)
+    inactive_threshold = now - 30 * 60
 
-      if inactive_flows != [] do
-        inactive_flow_ids = Enum.map(inactive_flows, fn {flow_id, _} -> flow_id end)
-        Logger.info(
-          "Cleaned up #{length(inactive_flows)} inactive flow sessions: #{inspect(inactive_flow_ids)}"
-        )
-      end
+    {inactive_flows, active_sessions} =
+      state.sessions
+      |> Enum.split_with(fn {_flow_id, session} ->
+        session.last_activity < inactive_threshold
+      end)
 
-      new_sessions = Map.new(active_sessions)
+    if inactive_flows != [] do
+      inactive_flow_ids = Enum.map(inactive_flows, fn {flow_id, _} -> flow_id end)
 
-      inactive_ids_set =
-        inactive_flows
-        |> Enum.map(fn {flow_id, _} -> flow_id end)
-        |> MapSet.new()
+      Logger.info(
+        "Cleaned up #{length(inactive_flows)} inactive flow sessions: #{inspect(inactive_flow_ids)}"
+      )
+    end
 
-      new_client_flows =
-        state.client_flows
-        |> Enum.reject(fn {_client_id, flow_id} -> MapSet.member?(inactive_ids_set, flow_id) end)
-        |> Map.new()
+    new_sessions = Map.new(active_sessions)
 
-      schedule_cleanup()
-      {:noreply, %{state | sessions: new_sessions, client_flows: new_client_flows}}
+    inactive_ids_set =
+      inactive_flows
+      |> Enum.map(fn {flow_id, _} -> flow_id end)
+      |> MapSet.new()
+
+    new_client_flows =
+      state.client_flows
+      |> Enum.reject(fn {_client_id, flow_id} -> MapSet.member?(inactive_ids_set, flow_id) end)
+      |> Map.new()
+
+    schedule_cleanup()
+    {:noreply, %{state | sessions: new_sessions, client_flows: new_client_flows}}
     # Schedule next cleanup
     schedule_cleanup()
 
