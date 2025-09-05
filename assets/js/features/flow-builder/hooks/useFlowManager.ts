@@ -280,8 +280,9 @@ export function useFlowManager(flowId: string | null) {
   const addNode = useCallback(
     (type: AIFlowNode['type'], customLabel?: string, customDescription?: string) => {
       const defaults = nodeDefaults[type];
+      const newId = crypto?.randomUUID ? crypto.randomUUID() : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
       const nodeData: AIFlowNode = {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        id: newId,
         type,
         position: { x: 0, y: 0 },
         dimensions: { width: defaults.width, height: defaults.height },
