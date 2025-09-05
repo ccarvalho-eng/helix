@@ -191,8 +191,6 @@ test.describe("Flow Builder Interactions", () => {
 			await sensorNode.click();
 			await page.waitForTimeout(500);
 
-			const initialEdgeCount = await page.locator(".react-flow__edge").count();
-
 			// Verify nodes were added successfully
 			const firstNode = page.locator(".react-flow__node").first();
 			const secondNode = page.locator(".react-flow__node").last();
