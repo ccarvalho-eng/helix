@@ -57,16 +57,8 @@ defmodule Helix.FlowSessionManager do
 
   @impl true
   def init(_) do
-    # Schedule periodic cleanup
-    schedule_cleanup()
-
-    {:ok,
-     %{
-       # flow_id => %{clients: MapSet, last_activity: timestamp}
-       sessions: %{},
-       # client_id => flow_id (for cleanup tracking)
-       client_flows: %{}
-     }}
+    # Schedule initial cleanup
+    {:ok, %{sessions: %{}, client_flows: %{}, cleanup_timer: nil} |> schedule_cleanup()}
   end
 
   @impl true
@@ -228,16 +220,28 @@ defmodule Helix.FlowSessionManager do
       |> Map.new()
 
     # Schedule next cleanup
-    schedule_cleanup()
+    new_state = %{state | sessions: new_sessions, client_flows: new_client_flows}
 
-    {:noreply, %{state | sessions: new_sessions, client_flows: new_client_flows}}
+    {:noreply, schedule_cleanup(new_state)}
+  end
+
+  @impl true
+  def terminate(_reason, state) do
+    # Ensure the timer is canceled when the GenServer terminates
+    if state.cleanup_timer, do: Process.cancel_timer(state.cleanup_timer)
+    :ok
   end
 
   # Private functions
 
-  defp schedule_cleanup do
+  defp schedule_cleanup(state) do
+    # If there's an existing timer, cancel it
+    if state.cleanup_timer, do: Process.cancel_timer(state.cleanup_timer)
+
     # Clean up every 10 minutes
-    Process.send_after(__MODULE__, :cleanup_inactive_sessions, 10 * 60 * 1000)
+    timer = Process.send_after(__MODULE__, :cleanup_inactive_sessions, 10 * 60 * 1000)
+
+    %{state | cleanup_timer: timer}
   end
 
   defp generate_anonymous_id do
