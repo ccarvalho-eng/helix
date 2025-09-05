@@ -323,10 +323,13 @@ test.describe("Multi-Flow Management System", () => {
 			// Search for non-existent flow
 			await page.fill(".home-workflows__search-input", "NonExistent");
 
-			// Should show no workflow cards, only empty card
+			// Should show no workflow cards, and empty card should be hidden during search with no results
 			const workflowCards = page.locator(".home-workflow-card");
 			await expect(workflowCards).toHaveCount(0);
-			await expect(page.locator(".home-empty-card")).toBeVisible();
+			
+			// The "Create New Workflow" card is hidden when filtering with no results
+			const emptyCard = page.locator(".home-empty-card");
+			await expect(emptyCard).toBeHidden();
 		});
 	});
 
