@@ -326,8 +326,8 @@ export function useFlowManager(flowId: string | null) {
           e =>
             e.source === source &&
             e.target === target &&
-            (e as any).sourceHandle === sourceHandle &&
-            (e as any).targetHandle === targetHandle
+            e.sourceHandle === sourceHandle &&
+            e.targetHandle === targetHandle
         );
         if (exists) return eds;
 
