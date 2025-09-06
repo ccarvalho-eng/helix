@@ -60,12 +60,22 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps ${{ matrix.browser }}
 
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+
       - name: Setup test database
         run: |
           mix ecto.create
           mix ecto.migrate
         env:
           MIX_ENV: e2e
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: postgres
 
       - name: Compile application
         run: mix compile
