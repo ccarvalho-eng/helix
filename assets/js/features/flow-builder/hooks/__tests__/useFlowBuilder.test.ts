@@ -24,8 +24,8 @@ describe('useFlowBuilder', () => {
     localStorage.getItem = jest.fn().mockReturnValue(null);
 
     // Setup default mock implementations
-    const mockNodes: any[] = [];
-    const mockEdges: any[] = [];
+    const mockNodes: unknown[] = [];
+    const mockEdges: unknown[] = [];
     const mockSetNodes = jest.fn();
     const mockSetEdges = jest.fn();
     const mockOnNodesChange = jest.fn();
