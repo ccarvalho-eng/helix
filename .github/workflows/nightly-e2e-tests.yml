@@ -1,15 +1,15 @@
-name: Nightly E2E Integration Tests
+name: Nightly E2E Tests
 
 on:
   schedule:
     # Run at 2 AM UTC every night
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
   workflow_dispatch: # Allow manual triggering
     inputs:
       test_pattern:
-        description: 'Test pattern to run (optional)'
+        description: "Test pattern to run (optional)"
         required: false
-        default: ''
+        default: ""
 
 jobs:
   e2e-tests:
@@ -28,26 +28,24 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'assets/package-lock.json'
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
 
       - name: Setup Elixir
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: '1.15'
-          otp-version: '26'
+          elixir-version: "1.17"
+          otp-version: "27"
 
       - name: Install Elixir dependencies
         run: mix deps.get
 
       - name: Install Node.js dependencies
         run: npm ci
-        working-directory: assets
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps ${{ matrix.browser }}
-        working-directory: assets
 
       - name: Setup test database
         run: |
@@ -60,8 +58,7 @@ jobs:
         run: mix compile
 
       - name: Build assets
-        run: npm run build
-        working-directory: assets
+        run: mix assets.build
 
       - name: Start Phoenix server in background
         run: |
@@ -80,7 +77,6 @@ jobs:
           else
             npx playwright test --project=${{ matrix.browser }}
           fi
-        working-directory: assets
         env:
           CI: true
 
@@ -98,8 +94,8 @@ jobs:
         with:
           name: e2e-test-results-${{ matrix.browser }}
           path: |
-            assets/test-results/
-            assets/playwright-report/
+            test-results/
+            playwright-report/
           retention-days: 7
 
       - name: Upload test videos on failure
@@ -107,7 +103,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-test-videos-${{ matrix.browser }}
-          path: assets/test-results/**/video.webm
+          path: test-results/**/video.webm
           retention-days: 3
 
   notify-results:
@@ -126,13 +122,13 @@ jobs:
           echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [[ "${{ needs.e2e-tests.result }}" == "success" ]]; then
             echo "✅ **Status:** All E2E tests passed across all browsers!" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ **Status:** Some E2E tests failed. Check the individual job results for details." >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Browser Results" >> $GITHUB_STEP_SUMMARY
           echo "Check the individual job results in the workflow run for detailed browser-specific results." >> $GITHUB_STEP_SUMMARY

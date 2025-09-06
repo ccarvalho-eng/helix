@@ -19,7 +19,7 @@ jest.mock('phoenix', () => ({
   })),
 }));
 
-describe('WebSocketService - Basic Tests', () => {
+describe('websocketService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -31,5 +31,14 @@ describe('WebSocketService - Basic Tests', () => {
   it('should check connection status', () => {
     const isConnected = websocketService.isConnected();
     expect(typeof isConnected).toBe('boolean');
+    expect(isConnected).toBe(false);
+  });
+
+  it('should return consistent boolean values', () => {
+    const result1 = websocketService.isConnected();
+    const result2 = websocketService.isConnected();
+    expect(result1).toBe(result2);
+    expect(typeof result1).toBe('boolean');
+    expect(typeof result2).toBe('boolean');
   });
 });

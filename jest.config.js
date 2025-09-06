@@ -19,14 +19,12 @@ export default {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  // TODO: Increase these coverage thresholds as we add more tests
-  // Current low thresholds are temporary to allow tests to pass while building coverage
   coverageThreshold: {
     global: {
-      branches: 0.4,
-      functions: 1,
-      lines: 2,
-      statements: 2
+      branches: 8,
+      functions: 10,
+      lines: 12,
+      statements: 12
     }
   },
   transform: {
