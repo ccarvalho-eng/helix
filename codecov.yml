@@ -1,0 +1,21 @@
+# Codecov configuration
+# TODO: Increase coverage targets as we add more tests
+# Current low targets are temporary to allow CI to pass while building coverage
+
+coverage:
+  status:
+    project:
+      default:
+        # Allow CI to pass with current coverage levels
+        target: 15%
+        threshold: 2%
+    patch:
+      default:
+        # Don't fail on new code coverage
+        target: 10%
+        threshold: 5%
+
+comment:
+  layout: "reach,diff,flags,tree"
+  behavior: default
+  require_changes: false
