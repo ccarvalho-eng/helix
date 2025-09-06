@@ -13,6 +13,17 @@ jest.mock('reactflow', () => ({
   addEdge: jest.fn((edge, edges) => [...edges, edge]),
   MarkerType: {
     ArrowClosed: 'arrowclosed',
+    Arrow: 'arrow',
+  },
+  Position: {
+    Top: 'top',
+    Right: 'right',
+    Bottom: 'bottom',
+    Left: 'left',
+  },
+  ConnectionMode: {
+    Strict: 'strict',
+    Loose: 'loose',
   },
 }));
 
