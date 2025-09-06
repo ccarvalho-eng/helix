@@ -44,7 +44,7 @@ class WebSocketService {
       });
 
       this.socket.onOpen(() => {
-        console.log('🔌✅ WebSocket connected to Phoenix server');
+        // WebSocket connected successfully
         this.reconnectAttempts = 0;
 
         // Clear any pending reconnection timers
@@ -55,7 +55,7 @@ class WebSocketService {
 
         // Automatically rejoin flow channel if we had one before disconnect
         if (this.currentFlowId && this.connectionLost) {
-          console.log(`🔌🔄 Automatically rejoining flow channel: ${this.currentFlowId}`);
+          // Automatically rejoining flow channel
           // Use setTimeout to ensure the connection is fully established
           setTimeout(() => this.rejoinCurrentFlow(), 100);
         }
@@ -66,7 +66,7 @@ class WebSocketService {
       });
 
       this.socket.onClose(() => {
-        console.log('🔌🔽 WebSocket disconnected from Phoenix server');
+        // WebSocket disconnected
         this.connectionLost = true;
         this.callbacks.onDisconnect?.();
         this.attemptReconnect();
@@ -134,7 +134,7 @@ class WebSocketService {
       });
 
       // Join the channel
-      const joinResponse = await new Promise((resolve, reject) => {
+      const _joinResponse = await new Promise((resolve, reject) => {
         this.channel
           ?.join()
           .receive('ok', resolve)
@@ -143,7 +143,7 @@ class WebSocketService {
       });
 
       this.currentFlowId = flowId;
-      console.log(`🔌🎯 Joined flow channel: ${flowId}`, joinResponse);
+      // Successfully joined flow channel
       return true;
     } catch (error) {
       console.error(`🔌❌ Failed to join flow channel ${flowId}:`, error);
@@ -167,7 +167,7 @@ class WebSocketService {
    */
   sendFlowChange(changes: unknown): Promise<boolean> {
     if (!this.channel) {
-      console.warn('🔌⚠️ No active channel - cannot send flow changes');
+      // No active channel - cannot send flow changes
       return Promise.resolve(false);
     }
 
@@ -246,9 +246,7 @@ class WebSocketService {
     );
     this.reconnectAttempts++;
 
-    console.log(
-      `🔌🔄 Attempting reconnection in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`
-    );
+    // Attempting reconnection with exponential backoff
 
     this.reconnectTimer = setTimeout(() => {
       if (this.socket && !this.socket.isConnected()) {
@@ -271,9 +269,9 @@ class WebSocketService {
       const success = await this.joinFlow(this.currentFlowId);
 
       if (success) {
-        console.log(`🔌✅ Successfully rejoined flow channel: ${this.currentFlowId}`);
+        // Successfully rejoined flow channel
       } else {
-        console.error(`🔌❌ Failed to rejoin flow channel: ${this.currentFlowId}`);
+        console.error(`Failed to rejoin flow channel: ${this.currentFlowId}`);
       }
     } catch (error) {
       console.error(`🔌❌ Error rejoining flow channel: ${this.currentFlowId}`, error);

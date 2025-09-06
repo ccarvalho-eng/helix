@@ -411,7 +411,6 @@ function FlowBuilderInternal() {
 
   const {
     currentFlow,
-    // isNewFlow,
     updateFlowTitle,
     nodes,
     edges,
@@ -427,6 +426,7 @@ function FlowBuilderInternal() {
     updateNode,
     deleteNode,
     duplicateNode,
+    unlinkEdge,
     initialViewport,
     onMoveEnd,
     addTemplate,
@@ -513,7 +513,7 @@ function FlowBuilderInternal() {
     ) => {
       // Prevent interactions if flow is not ready
       if (!isFlowReady) {
-        console.warn('🔌⏳ Flow not ready yet - ignoring node addition request');
+        // Flow not ready yet - ignoring node addition request
         return;
       }
       const nodeDefaults = {
@@ -811,9 +811,8 @@ function FlowBuilderInternal() {
               target: e.target,
             }))}
             onOpenNodeModal={nodeId => setModalNodeId(nodeId)}
-            onUnlinkEdge={(_sourceId, _targetId) => {
-              // This functionality should be moved to the hook
-              console.error('Edge unlinking needs to be refactored to use the new hook system');
+            onUnlinkEdge={(sourceId, targetId) => {
+              unlinkEdge(sourceId, targetId);
             }}
           />
         </div>

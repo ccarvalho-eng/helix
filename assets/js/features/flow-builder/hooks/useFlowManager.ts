@@ -160,10 +160,10 @@ export function useFlowManager(flowId: string | null) {
       try {
         const joined = await websocketService.joinFlow(currentFlow.id);
         if (joined) {
-          console.log(`🔌✅ Joined WebSocket channel for flow: ${currentFlow.id}`);
+          // Successfully joined WebSocket channel
         }
       } catch (error) {
-        console.error('🔌❌ Failed to join flow channel:', error);
+        console.error('Failed to join flow channel:', error);
       } finally {
         setIsFlowReady(true);
       }
@@ -461,6 +461,13 @@ export function useFlowManager(flowId: string | null) {
     [setNodes, setEdges, selectedNode]
   );
 
+  const unlinkEdge = useCallback(
+    (sourceId: string, targetId: string) => {
+      setEdges(eds => eds.filter(edge => !(edge.source === sourceId && edge.target === targetId)));
+    },
+    [setEdges]
+  );
+
   const duplicateNode = useCallback(
     (nodeId: string) => {
       setNodes(nds => {
@@ -511,6 +518,7 @@ export function useFlowManager(flowId: string | null) {
     updateNode,
     deleteNode,
     duplicateNode,
+    unlinkEdge,
 
     // WebSocket status
     isConnected,

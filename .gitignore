@@ -40,3 +40,6 @@ npm-debug.log
 /test-results/
 /playwright-report/
 
+# Dialyzer PLT files (generated build artifacts)
+/priv/plts/
+

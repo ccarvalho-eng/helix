@@ -155,10 +155,6 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  # NOTE: E2E tests have been moved to nightly-e2e-tests.yml
-  # This keeps the main CI pipeline fast and reliable while still testing integration scenarios
-  # E2E tests run nightly at 2 AM UTC and can be triggered manually if needed
-
   unused-deps:
     name: Check Unused Dependencies
     runs-on: ubuntu-latest

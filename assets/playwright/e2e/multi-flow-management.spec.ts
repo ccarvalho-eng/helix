@@ -18,7 +18,7 @@ test.describe('Multi-Flow Management System', () => {
       await page.click('button:has-text("New Flow")');
 
       // Should navigate to flow builder with new flow ID
-      await expect(page).toHaveURL(/\/flow\/flow-\d+-\w+/);
+      await expect(page).toHaveURL(/\/flow\/[a-f0-9-]+/);
       await page.waitForLoadState('networkidle');
 
       // Should show flow builder interface
@@ -34,7 +34,7 @@ test.describe('Multi-Flow Management System', () => {
       await page.click('.home-empty-card');
 
       // Should navigate to flow builder
-      await expect(page).toHaveURL(/\/flow\/flow-\d+-\w+/);
+      await expect(page).toHaveURL(/\/flow\/[a-f0-9-]+/);
       await page.waitForLoadState('networkidle');
 
       // Should show flow builder with default title
@@ -352,7 +352,7 @@ test.describe('Multi-Flow Management System', () => {
       await page.waitForLoadState('networkidle');
 
       // URL should be updated with new flow ID
-      await expect(page).toHaveURL(/\/flow\/flow-\d+-\w+/);
+      await expect(page).toHaveURL(/\/flow\/[a-f0-9-]+/);
     });
   });
 
