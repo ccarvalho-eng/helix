@@ -11,6 +11,10 @@ jest.mock('reactflow', () => ({
   useNodesState: jest.fn(() => [[], jest.fn(), jest.fn()]),
   useEdgesState: jest.fn(() => [[], jest.fn(), jest.fn()]),
   addEdge: jest.fn((edge, edges) => [...edges, edge]),
+  useReactFlow: jest.fn(() => ({
+    project: jest.fn(({ x, y }) => ({ x, y })),
+  })),
+  ReactFlowProvider: ({ children }: { children: React.ReactNode }) => children,
   MarkerType: {
     ArrowClosed: 'arrowclosed',
     Arrow: 'arrow',
