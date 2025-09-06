@@ -1,0 +1,34 @@
+/** @type {import('jest').Config} */
+export default {
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/assets/js/test-setup.ts'],
+  testMatch: [
+    '<rootDir>/assets/js/**/__tests__/**/*.(ts|tsx)',
+    '<rootDir>/assets/js/**/*.(test|spec).(ts|tsx)'
+  ],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/assets/js/$1'
+  },
+  collectCoverageFrom: [
+    'assets/js/**/*.(ts|tsx)',
+    '!assets/js/**/*.d.ts',
+    '!assets/js/test-setup.ts',
+    '!assets/js/**/__tests__/**/*',
+    '!assets/js/**/*.stories.*'
+  ],
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'lcov', 'html'],
+  transform: {
+    '^.+\\.(ts|tsx)$': 'babel-jest'
+  },
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(reactflow)/)'
+  ],
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  globals: {
+    'ts-jest': {
+      useESM: true
+    }
+  }
+};

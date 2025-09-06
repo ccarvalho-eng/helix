@@ -142,8 +142,8 @@ jobs:
       - name: Run ESLint
         run: npx eslint assets/js --ext .js,.ts,.tsx --max-warnings 0
 
-      - name: Run unit tests
-        run: echo "No frontend unit tests yet" && exit 0
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
 
       - name: Upload frontend coverage
         uses: codecov/codecov-action@v5

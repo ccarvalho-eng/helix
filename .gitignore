@@ -43,3 +43,6 @@ npm-debug.log
 # Dialyzer PLT files (generated build artifacts)
 /priv/plts/
 
+# Frontend test coverage reports
+/coverage/
+

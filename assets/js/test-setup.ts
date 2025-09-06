@@ -1,0 +1,33 @@
+import '@testing-library/jest-dom';
+
+// Mock localStorage
+const localStorageMock = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+};
+global.localStorage = localStorageMock as any;
+
+// Mock WebSocket
+global.WebSocket = jest.fn(() => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  send: jest.fn(),
+  close: jest.fn(),
+  readyState: WebSocket.CONNECTING,
+})) as any;
+
+// Mock crypto for UUID generation
+global.crypto = {
+  randomUUID: jest.fn(() => 'mock-uuid-1234'),
+} as any;
+
+// Reset mocks before each test
+beforeEach(() => {
+  jest.clearAllMocks();
+  localStorageMock.getItem.mockClear();
+  localStorageMock.setItem.mockClear();
+  localStorageMock.removeItem.mockClear();
+  localStorageMock.clear.mockClear();
+});

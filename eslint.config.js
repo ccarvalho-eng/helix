@@ -20,6 +20,16 @@ export default [
         KeyboardEvent: "readonly",
         queueMicrotask: "readonly",
         crypto: "readonly",
+        // Jest globals
+        describe: "readonly",
+        it: "readonly",
+        test: "readonly",
+        expect: "readonly",
+        jest: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
       },
       parserOptions: {
         ecmaVersion: 2020,
