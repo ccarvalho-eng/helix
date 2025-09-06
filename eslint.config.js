@@ -30,6 +30,8 @@ export default [
         afterEach: "readonly",
         beforeAll: "readonly",
         afterAll: "readonly",
+        // Node.js globals
+        global: "readonly",
       },
       parserOptions: {
         ecmaVersion: 2020,

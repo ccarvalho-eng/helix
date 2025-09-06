@@ -7,7 +7,7 @@ const localStorageMock = {
   removeItem: jest.fn(),
   clear: jest.fn(),
 };
-global.localStorage = localStorageMock as any;
+global.localStorage = localStorageMock as unknown as Storage;
 
 // Mock WebSocket
 global.WebSocket = jest.fn(() => ({
@@ -16,12 +16,12 @@ global.WebSocket = jest.fn(() => ({
   send: jest.fn(),
   close: jest.fn(),
   readyState: WebSocket.CONNECTING,
-})) as any;
+})) as unknown as typeof WebSocket;
 
 // Mock crypto for UUID generation
 global.crypto = {
   randomUUID: jest.fn(() => 'mock-uuid-1234'),
-} as any;
+} as unknown as Crypto;
 
 // Reset mocks before each test
 beforeEach(() => {
