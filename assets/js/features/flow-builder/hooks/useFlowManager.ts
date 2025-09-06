@@ -14,6 +14,7 @@ import { flowStorage } from '../../../shared/services/flowStorage';
 import { FlowRegistryEntry, FlowData } from '../../../shared/types/flow';
 import { websocketService, FlowChangeData } from '../../../shared/services/websocketService';
 import { getTemplate, TemplateType } from '../templates';
+import { generateId } from '../../../shared/utils';
 
 const nodeDefaults = {
   agent: { width: 140, height: 80, color: '#f0f9ff', label: 'AI Agent' },
@@ -44,6 +45,7 @@ export function useFlowManager(flowId: string | null) {
   const [connectedClients, setConnectedClients] = useState(0);
   const [isFlowReady, setIsFlowReady] = useState(false);
   const isUpdatingFromRemote = useRef(false);
+  const remoteUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load or create flow on mount
   useEffect(() => {
@@ -95,6 +97,11 @@ export function useFlowManager(flowId: string | null) {
         // Prevent infinite loops when receiving our own changes
         if (isUpdatingFromRemote.current) return;
 
+        // Clear any existing timeout to prevent premature flag reset
+        if (remoteUpdateTimeoutRef.current) {
+          clearTimeout(remoteUpdateTimeoutRef.current);
+        }
+
         isUpdatingFromRemote.current = true;
 
         try {
@@ -107,24 +114,14 @@ export function useFlowManager(flowId: string | null) {
           }
         } catch (error) {
           console.error('🔄❌ Failed to apply remote flow changes:', error);
-        } finally {
-          // Reset flag after a short delay to allow for React state updates
-          try {
-            const changes = data.changes as FlowData;
-            if (changes.nodes) {
-              setNodes(changes.nodes as Node<AIFlowNode>[]);
-            }
-            if (changes.edges) {
-              setEdges(changes.edges as Edge[]);
-            }
-          } catch (error) {
-            console.error('🔄❌ Failed to apply remote flow changes:', error);
-          } finally {
-            queueMicrotask(() => {
-              isUpdatingFromRemote.current = false;
-            });
-          }
         }
+
+        // Reset flag after a sufficient delay to ensure React state updates complete
+        // and auto-save debounce has time to check the flag
+        remoteUpdateTimeoutRef.current = setTimeout(() => {
+          isUpdatingFromRemote.current = false;
+          remoteUpdateTimeoutRef.current = null;
+        }, 1000); // Longer than auto-save debounce (500ms)
       },
       onClientJoined: data => setConnectedClients(data.client_count),
       onClientLeft: data => setConnectedClients(data.client_count),
@@ -174,6 +171,13 @@ export function useFlowManager(flowId: string | null) {
     // Cleanup on unmount or flow change
     return () => {
       websocketService.leaveFlow();
+      // Clear remote update timeout
+      if (remoteUpdateTimeoutRef.current) {
+        clearTimeout(remoteUpdateTimeoutRef.current);
+        remoteUpdateTimeoutRef.current = null;
+      }
+      // Reset remote update flag
+      isUpdatingFromRemote.current = false;
     };
   }, [currentFlow, setNodes, setEdges]);
 
@@ -292,9 +296,7 @@ export function useFlowManager(flowId: string | null) {
   const addNode = useCallback(
     (type: AIFlowNode['type'], customLabel?: string, customDescription?: string) => {
       const defaults = nodeDefaults[type];
-      const newId = crypto?.randomUUID
-        ? crypto.randomUUID()
-        : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+      const newId = generateId();
       const nodeData: AIFlowNode = {
         id: newId,
         type,
@@ -332,8 +334,7 @@ export function useFlowManager(flowId: string | null) {
       const { source, target, sourceHandle, targetHandle } = connection;
       if (!source || !target) return;
 
-      const baseId = `${source}:${sourceHandle || ''}->${target}:${targetHandle || ''}`;
-      const uniqueId = `${baseId}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+      const uniqueId = generateId();
 
       setEdges(eds => {
         // Prevent duplicates for same endpoints/handles
@@ -392,7 +393,7 @@ export function useFlowManager(flowId: string | null) {
 
       const defaults = nodeDefaults[type];
       const nodeData: AIFlowNode = {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        id: generateId(),
         type,
         position: { x: position.x, y: position.y },
         dimensions: { width: defaults.width, height: defaults.height },
@@ -474,7 +475,7 @@ export function useFlowManager(flowId: string | null) {
         const nodeToDuplicate = nds.find(node => node.id === nodeId);
         if (!nodeToDuplicate) return nds;
 
-        const newNodeId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+        const newNodeId = generateId();
         const duplicatedNode: Node<AIFlowNode> = {
           ...nodeToDuplicate,
           id: newNodeId,
