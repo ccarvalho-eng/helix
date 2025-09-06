@@ -1,15 +1,15 @@
-name: Nightly E2E Integration Tests
+name: Nightly E2E Tests
 
 on:
   schedule:
     # Run at 2 AM UTC every night
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
   workflow_dispatch: # Allow manual triggering
     inputs:
       test_pattern:
-        description: 'Test pattern to run (optional)'
+        description: "Test pattern to run (optional)"
         required: false
-        default: ''
+        default: ""
 
 jobs:
   e2e-tests:
@@ -28,15 +28,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'assets/package-lock.json'
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "assets/package-lock.json"
 
       - name: Setup Elixir
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: '1.15'
-          otp-version: '26'
+          elixir-version: "1.15"
+          otp-version: "26"
 
       - name: Install Elixir dependencies
         run: mix deps.get
@@ -126,13 +126,13 @@ jobs:
           echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [[ "${{ needs.e2e-tests.result }}" == "success" ]]; then
             echo "✅ **Status:** All E2E tests passed across all browsers!" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ **Status:** Some E2E tests failed. Check the individual job results for details." >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Browser Results" >> $GITHUB_STEP_SUMMARY
           echo "Check the individual job results in the workflow run for detailed browser-specific results." >> $GITHUB_STEP_SUMMARY
