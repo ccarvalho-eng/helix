@@ -5,7 +5,7 @@ jest.mock('phoenix', () => ({
   Socket: jest.fn(() => ({
     connect: jest.fn(),
     disconnect: jest.fn(),
-    isConnected: jest.fn(() => false),
+    isConnected: jest.fn(),
     onOpen: jest.fn(),
     onClose: jest.fn(),
     onError: jest.fn(),
@@ -19,7 +19,7 @@ jest.mock('phoenix', () => ({
   })),
 }));
 
-describe('WebSocketService - Basic Tests', () => {
+describe('websocketService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
