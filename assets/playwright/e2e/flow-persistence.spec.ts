@@ -295,28 +295,34 @@ test.describe('Flow Persistence and Data Integrity', () => {
       await page.goto('/');
       await page.click('button:has-text("New Flow")');
       await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
+
+      // Add content - wait for agent nodes to be available and click one
+      await page.waitForSelector('[data-node-type="agent"]', { timeout: 5000 });
+      const agentNode = page.locator('[data-node-type="agent"]').first();
+      await agentNode.click();
       await page.waitForTimeout(1000);
 
-      // Add content
-      const agentNode = page.locator('[data-node-type="agent"]').first();
-      if (await agentNode.isVisible()) {
-        await agentNode.click();
-        await page.waitForTimeout(1000);
-      }
-
+      // Wait for node to be rendered
+      await page.waitForSelector('.react-flow__node', { timeout: 5000 });
       const flowUrl = page.url();
       const nodeCountBefore = await page.locator('.react-flow__node').count();
+      
+      // Ensure we have at least one node before proceeding
+      expect(nodeCountBefore).toBeGreaterThan(0);
 
       // Navigate to home
       await page.goto('/');
       await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
 
       // Navigate back to flow
       await page.goto(flowUrl);
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000);
 
-      // Verify content is restored
+      // Wait for nodes to be restored and verify content
+      await page.waitForSelector('.react-flow__node', { timeout: 10000 });
       const nodeCountAfter = await page.locator('.react-flow__node').count();
       expect(nodeCountAfter).toBe(nodeCountBefore);
     });
