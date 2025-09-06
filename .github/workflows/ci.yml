@@ -59,10 +59,7 @@ jobs:
       - name: Build assets
         run: mix assets.build
 
-      - name: Run tests
-        run: mix test --cover
-
-      - name: Generate coverage report
+      - name: Run tests with coverage
         run: mix coveralls.json
 
       - name: Upload coverage to Codecov
@@ -145,8 +142,8 @@ jobs:
       - name: Run ESLint
         run: npx eslint assets/js --ext .js,.ts,.tsx --max-warnings 0
 
-      - name: Run unit tests
-        run: echo "No frontend unit tests yet" && exit 0
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
 
       - name: Upload frontend coverage
         uses: codecov/codecov-action@v5
@@ -157,77 +154,6 @@ jobs:
           fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  e2e:
-    name: E2E Tests
-    runs-on: ubuntu-latest
-
-    env:
-      MIX_ENV: e2e
-      POSTGRES_USERNAME: postgres
-      POSTGRES_PASSWORD: postgres
-
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: helix_e2e
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Setup Elixir
-        uses: ./.github/actions/setup-elixir
-        with:
-          elixir-version: ${{ env.ELIXIR_VERSION }}
-          otp-version: ${{ env.OTP_VERSION }}
-
-      - name: Setup Node.js
-        uses: ./.github/actions/setup-node
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Install wait-on
-        run: npm install -g wait-on
-
-      - name: Compile and build assets
-        run: |
-          mix compile
-          mix assets.build
-
-      - name: Set up database
-        run: |
-          mix ecto.create
-          mix ecto.migrate
-
-      - name: Start Phoenix and Run E2E tests
-        run: |
-          mix phx.server &
-          npx wait-on http://127.0.0.1:4000 --timeout 120000
-          npm run test:e2e
-
-      - name: Upload Playwright Report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 30
 
   unused-deps:
     name: Check Unused Dependencies

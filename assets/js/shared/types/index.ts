@@ -52,3 +52,6 @@ export interface Connection {
   sourceHandle: string;
   targetHandle: string;
 }
+
+// Re-export flow types
+export * from './flow';

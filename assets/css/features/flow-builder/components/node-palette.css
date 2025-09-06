@@ -86,6 +86,17 @@
   cursor: grabbing;
 }
 
+.node-palette__node--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.node-palette__node--disabled:hover {
+  border-color: var(--flow-builder-border);
+  background: var(--flow-builder-bg);
+}
+
 /* Dark theme - Use node color on hover */
 [data-theme="dark"] .node-palette__node:hover {
   border-color: var(--node-color, var(--theme-syntax-green));

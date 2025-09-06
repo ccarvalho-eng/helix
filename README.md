@@ -2,6 +2,7 @@
 
 [![GitHub release](https://img.shields.io/github/v/release/ccarvalho-eng/helix)](https://github.com/ccarvalho-eng/helix/releases)
 [![CI](https://github.com/ccarvalho-eng/helix/workflows/CI/badge.svg)](https://github.com/ccarvalho-eng/helix/actions/workflows/ci.yml)
+[![E2E Tests](https://github.com/ccarvalho-eng/helix/actions/workflows/nightly-e2e-tests.yml/badge.svg)](https://github.com/ccarvalho-eng/helix/actions/workflows/nightly-e2e-tests.yml)
 [![Security Scan](https://github.com/ccarvalho-eng/helix/workflows/Security%20Scan/badge.svg)](https://github.com/ccarvalho-eng/helix/actions/workflows/security.yml)
 [![codecov](https://codecov.io/gh/ccarvalho-eng/helix/branch/main/graph/badge.svg)](https://codecov.io/gh/ccarvalho-eng/helix)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)

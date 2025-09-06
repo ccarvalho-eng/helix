@@ -36,3 +36,13 @@ npm-debug.log
 /assets/node_modules/
 /node_modules/
 
+# Playwright test reports and results
+/test-results/
+/playwright-report/
+
+# Dialyzer PLT files (generated build artifacts)
+/priv/plts/
+
+# Frontend test coverage reports
+/coverage/
+

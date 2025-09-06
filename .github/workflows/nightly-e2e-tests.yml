@@ -1,0 +1,146 @@
+name: Nightly E2E Integration Tests
+
+on:
+  schedule:
+    # Run at 2 AM UTC every night
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual triggering
+    inputs:
+      test_pattern:
+        description: 'Test pattern to run (optional)'
+        required: false
+        default: ''
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+      fail-fast: false # Continue with other browsers even if one fails
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'assets/package-lock.json'
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.15'
+          otp-version: '26'
+
+      - name: Install Elixir dependencies
+        run: mix deps.get
+
+      - name: Install Node.js dependencies
+        run: npm ci
+        working-directory: assets
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+        working-directory: assets
+
+      - name: Setup test database
+        run: |
+          mix ecto.create
+          mix ecto.migrate
+        env:
+          MIX_ENV: test
+
+      - name: Compile application
+        run: mix compile
+
+      - name: Build assets
+        run: npm run build
+        working-directory: assets
+
+      - name: Start Phoenix server in background
+        run: |
+          mix phx.server &
+          echo $! > phoenix.pid
+          # Wait for server to be ready
+          timeout 30 bash -c 'until curl -f http://localhost:4000/; do sleep 1; done'
+        env:
+          MIX_ENV: test
+          PORT: 4000
+
+      - name: Run E2E tests
+        run: |
+          if [ -n "${{ github.event.inputs.test_pattern }}" ]; then
+            npx playwright test --project=${{ matrix.browser }} --grep="${{ github.event.inputs.test_pattern }}"
+          else
+            npx playwright test --project=${{ matrix.browser }}
+          fi
+        working-directory: assets
+        env:
+          CI: true
+
+      - name: Stop Phoenix server
+        if: always()
+        run: |
+          if [ -f phoenix.pid ]; then
+            kill $(cat phoenix.pid) || true
+            rm phoenix.pid
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results-${{ matrix.browser }}
+          path: |
+            assets/test-results/
+            assets/playwright-report/
+          retention-days: 7
+
+      - name: Upload test videos on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-videos-${{ matrix.browser }}
+          path: assets/test-results/**/video.webm
+          retention-days: 3
+
+  notify-results:
+    runs-on: ubuntu-latest
+    needs: [e2e-tests]
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create test summary
+        run: |
+          echo "# Nightly E2E Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.e2e-tests.result }}" == "success" ]]; then
+            echo "✅ **Status:** All E2E tests passed across all browsers!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Status:** Some E2E tests failed. Check the individual job results for details." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Browser Results" >> $GITHUB_STEP_SUMMARY
+          echo "Check the individual job results in the workflow run for detailed browser-specific results." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tested Browsers:** Chromium, Firefox, WebKit" >> $GITHUB_STEP_SUMMARY
+
+      # Optional: Send notification to Slack/Discord/email if tests fail
+      # - name: Notify on failure
+      #   if: needs.e2e-tests.result == 'failure'
+      #   run: |
+      #     echo "E2E tests failed. Consider sending notification here."

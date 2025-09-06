@@ -14,6 +14,8 @@ defmodule Helix.Application do
       {Phoenix.PubSub, name: Helix.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: Helix.Finch},
+      # Start the Flow Session Manager
+      Helix.FlowSessionManager,
       # Start a worker by calling: Helix.Worker.start_link(arg)
       # {Helix.Worker, arg},
       # Start to serve requests, typically the last entry
