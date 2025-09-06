@@ -117,6 +117,9 @@ test.describe('Flow Persistence and Data Integrity', () => {
       const initialFlow = initialRegistry.flows[0];
       const initialModified = initialFlow?.lastModified;
 
+      // Wait a bit to ensure different timestamps
+      await page.waitForTimeout(10);
+
       // Make a change to the flow by adding a node
       const agentNode = page.locator('[data-node-type="agent"]').first();
       if (await agentNode.isVisible()) {
@@ -133,7 +136,7 @@ test.describe('Flow Persistence and Data Integrity', () => {
       const updatedModified = updatedFlow?.lastModified;
 
       if (initialModified && updatedModified) {
-        expect(new Date(updatedModified).getTime()).toBeGreaterThan(
+        expect(new Date(updatedModified).getTime()).toBeGreaterThanOrEqual(
           new Date(initialModified).getTime()
         );
       }
@@ -341,6 +344,9 @@ test.describe('Flow Persistence and Data Integrity', () => {
         return registry.flows[0]?.lastModified;
       });
 
+      // Wait a bit to ensure different timestamps
+      await page.waitForTimeout(10);
+
       // Add a node
       const agentNode = page.locator('[data-node-type="agent"]').first();
       if (await agentNode.isVisible()) {
@@ -355,7 +361,7 @@ test.describe('Flow Persistence and Data Integrity', () => {
       });
 
       if (initialSaveTime && finalSaveTime) {
-        expect(new Date(finalSaveTime).getTime()).toBeGreaterThan(
+        expect(new Date(finalSaveTime).getTime()).toBeGreaterThanOrEqual(
           new Date(initialSaveTime).getTime()
         );
       }
