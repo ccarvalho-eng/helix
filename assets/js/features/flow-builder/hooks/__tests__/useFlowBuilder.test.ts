@@ -27,7 +27,7 @@ jest.mock('reactflow', () => ({
   },
   ConnectionMode: {
     Strict: 'strict',
-    Loose: 'loose',
+    const mockReactFlow = jest.mocked(require('reactflow'), { shallow: false });
   },
 }));
 
