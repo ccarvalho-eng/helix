@@ -249,13 +249,16 @@ describe('flowStorage', () => {
       expect(duplicatedData!.edges).toHaveLength(1);
 
       // Node IDs should be different
-      const firstNode = duplicatedData!.nodes[0];
-      const secondNode = duplicatedData!.nodes[1];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const firstNode = duplicatedData!.nodes[0] as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const secondNode = duplicatedData!.nodes[1] as any;
       expect(firstNode.id).not.toBe('original-node-1');
       expect(secondNode.id).not.toBe('original-node-2');
 
       // Edge should reference new node IDs
-      const edge = duplicatedData!.edges[0];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const edge = duplicatedData!.edges[0] as any;
       expect(edge.source).toBe(firstNode.id);
       expect(edge.target).toBe(secondNode.id);
 
