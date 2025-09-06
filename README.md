@@ -4,15 +4,15 @@
 
 **Visual AI Agent Workflow Designer**
 
-_Plan, design, and visualize complex AI agent workflows with intuitive drag-and-drop interface_
+*Plan, design, and visualize complex multi-agent workflows with a clean drag-and-drop interface.*
 
 [![GitHub release](https://img.shields.io/github/v/release/ccarvalho-eng/helix?style=for-the-badge)](https://github.com/ccarvalho-eng/helix/releases)
-[![CI](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/ci.yml?style=for-the-badge&logo=github-actions)](https://github.com/ccarvalho-eng/helix/actions/workflows/ci.yml)
-[![E2E Tests](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/nightly-e2e-tests.yml?style=for-the-badge&logo=playwright&label=E2E)](https://github.com/ccarvalho-eng/helix/actions/workflows/nightly-e2e-tests.yml)
-[![codecov](https://img.shields.io/codecov/c/github/ccarvalho-eng/helix?style=for-the-badge&logo=codecov)](https://codecov.io/gh/ccarvalho-eng/helix)
+[![CI](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/ci.yml?style=for-the-badge\&logo=github-actions)](https://github.com/ccarvalho-eng/helix/actions/workflows/ci.yml)
+[![E2E Tests](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/nightly-e2e-tests.yml?style=for-the-badge\&logo=playwright\&label=E2E)](https://github.com/ccarvalho-eng/helix/actions/workflows/nightly-e2e-tests.yml)
+[![codecov](https://img.shields.io/codecov/c/github/ccarvalho-eng/helix?style=for-the-badge\&logo=codecov)](https://codecov.io/gh/ccarvalho-eng/helix)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge)](https://www.apache.org/licenses/LICENSE-2.0)
 
-[Features](#-features) • [Getting Started](#-getting-started) • [Tech Stack](#-tech-stack) • [Contributing](#-contributing)
+[Features](#-features) • [Getting Started](#-getting-started) • [Architecture](#-architecture) • [Contributing](#-contributing)
 
 ---
 
@@ -20,235 +20,131 @@ _Plan, design, and visualize complex AI agent workflows with intuitive drag-and-
 
 ## 🎯 Overview
 
-Helix is a modern visual workflow designer specifically built for planning AI agent interactions and multi-agent systems. Design complex workflows with an intuitive node-based interface, complete with real-time collaboration features and pre-built templates.
+Helix is a **visual workflow designer for AI agents and multi-agent systems**.
+Build complex workflows through an intuitive node editor with collaboration, templates, and real-time updates.
 
-> **Note**: Helix is currently a planning and design tool. Workflows are visual representations and not executable at this time.
+> **Note**: Workflows are for **planning & design only** — not executable yet.
+
+---
 
 ## ✨ Features
 
-### 🎨 **Visual Workflow Design**
+* **Visual Workflow Design**
+  Drag-and-drop interface with customizable nodes, connections, minimap, and properties panel.
+* **Collaboration**
+  Real-time multi-user editing via Phoenix Channels with conflict resolution.
+* **Modern UI/UX**
+  Light/dark themes, responsive design, Tailwind styling, robust error boundaries.
+* **Workflow Management**
+  Save, load, duplicate flows, with metadata and local persistence.
 
-- Drag-and-drop node-based interface powered by React Flow
-- Customizable node types for different AI agent roles
-- Visual connections showing agent interactions and data flow
-- Intuitive properties panels for node configuration
-- Minimap navigation and zoom controls
-
-### 🤝 **Real-Time Collaboration**
-
-- Multiple users can edit workflows simultaneously
-- Phoenix Channels for real-time WebSocket communication
-- Automatic conflict resolution for concurrent edits
-- Session management with unique client IDs
-
-### 🌗 **Modern UI/UX**
-
-- Dark and light theme support with smooth transitions
-- Responsive design for desktop and tablet devices
-- Professional styling with Tailwind CSS
-- Error boundaries for robust error handling
-
-### 💾 **Workflow Management**
-
-- Create, save, and load workflow configurations
-- Flow duplication with proper ID remapping
-- Local storage persistence
-- Flow metadata tracking (creation date, modification time, node/edge counts)
+---
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### Requirements
 
-- **Elixir** 1.17+
-- **Erlang/OTP** 26+
-- **Node.js** 18+
-- **PostgreSQL** 14+
+* Elixir **1.17+**
+* Erlang/OTP **26+**
+* Node.js **18+**
+* PostgreSQL **14+**
 
 ### Installation
 
-1. **Clone the repository**
+```bash
+# Clone
+git clone https://github.com/ccarvalho-eng/helix.git
+cd helix
 
-   ```bash
-   git clone https://github.com/ccarvalho-eng/helix.git
-   cd helix
-   ```
+# Setup
+mix setup
 
-2. **Install dependencies**
+# Start
+mix phx.server
+```
 
-   ```bash
-   mix setup
-   ```
+Open: [http://localhost:4000](http://localhost:4000)
 
-3. **Start the development server**
-
-   ```bash
-   mix phx.server
-   ```
-
-4. **Open your browser**
-
-   Navigate to [`http://localhost:4000`](http://localhost:4000)
-
-### Development Commands
+### Development
 
 ```bash
-# Run tests
+# Tests
 mix test
 npm test
 
-# Code quality checks
+# Code quality
 mix credo --strict
 npm run lint
 npm run typecheck
 
-# End-to-end tests
+# E2E tests
 npm run test:e2e
 
-# Format code
+# Formatting
 mix format
 npm run prettier
 ```
 
+---
+
 ## 🛠 Tech Stack
 
-### Backend
+**Backend:** Phoenix · Elixir · PostgreSQL · Phoenix Channels
+**Frontend:** React (19+) · TypeScript · React Flow · Tailwind CSS · Lucide Icons
+**Testing:** ExUnit · Jest · Playwright · Credo · ESLint
 
-- **[Phoenix Framework](https://phoenixframework.org/)** - Web framework
-- **[Elixir](https://elixir-lang.org/)** - Functional programming language
-- **[PostgreSQL](https://postgresql.org/)** - Database
-- **[Phoenix Channels](https://hexdocs.pm/phoenix/channels.html)** - Real-time WebSocket communication
-
-### Frontend
-
-- **[React](https://react.dev/)** - UI framework (v19.1+)
-- **[TypeScript](https://typescriptlang.org/)** - Type safety
-- **[React Flow](https://reactflow.dev/)** - Node-based UI components
-- **[Tailwind CSS](https://tailwindcss.com/)** - Styling
-- **[Lucide Icons](https://lucide.dev/)** - Icon library
-
-### Testing & Quality
-
-- **[ExUnit](https://hexdocs.pm/ex_unit/)** - Elixir testing
-- **[Jest](https://jestjs.io/)** - JavaScript testing
-- **[Playwright](https://playwright.dev/)** - E2E testing
-- **[Credo](https://hex.pm/packages/credo)** - Code analysis
-- **[ESLint](https://eslint.org/)** - JavaScript linting
+---
 
 ## 🏗 Architecture
 
-### System Overview
+### High-Level
 
 ```mermaid
-%%{init: {'theme':'dark'}}%%
 graph TB
-    subgraph "Client Side"
-        UA[User A Browser]
-        UB[User B Browser]
-        FEA[React Frontend<br/>React Flow + TypeScript]
-        FEB[React Frontend<br/>React Flow + TypeScript]
-        LSA[Local Storage<br/>Flow Data]
-        LSB[Local Storage<br/>Flow Data]
-
-        UA --> FEA
-        UB --> FEB
-        FEA --> LSA
-        FEB --> LSB
+    subgraph Client
+        U1[User A] --> FE1[React + React Flow]
+        U2[User B] --> FE2[React + React Flow]
+        FE1 --> LS1[Local Storage]
+        FE2 --> LS2[Local Storage]
     end
-
-    subgraph "Network Layer"
-        WSA[WebSocket Connection A]
-        WSB[WebSocket Connection B]
-
-        FEA -.->|flow_change events| WSA
-        FEB -.->|flow_change events| WSB
-        WSA -.->|flow_update events| FEA
-        WSB -.->|flow_update events| FEB
-    end
-
-    subgraph "Phoenix Server"
-        FC[FlowChannel<br/>Phoenix Channel]
-        FSM[FlowSessionManager<br/>GenServer State]
-        API[REST API<br/>Flow CRUD]
-
-        WSA --> FC
-        WSB --> FC
-        FC <--> FSM
-        FC --> API
-    end
-
-    subgraph "Data Layer"
-        PG[(PostgreSQL<br/>Database)]
-        API --> PG
+    subgraph Server
+        FE1 -.-> WS1[WebSocket] -.-> FC[FlowChannel]
+        FE2 -.-> WS2[WebSocket] -.-> FC
+        FC <--> FSM[FlowSessionManager]
+        FC --> API[REST API]
+        API --> DB[(PostgreSQL)]
     end
 ```
 
-### Real-Time Collaboration Flow
+* Real-time collaboration through WebSockets + Phoenix Channels
+* React Flow for node-based workflow design
+* GenServer-based session management with conflict resolution
+* RESTful API for workflow CRUD
 
-```mermaid
-%%{init: {'theme':'dark'}}%%
-sequenceDiagram
-    participant UA as User A
-    participant FA as Frontend A
-    participant WS as WebSocket
-    participant FC as FlowChannel
-    participant FSM as FlowSessionManager
-    participant FB as Frontend B
-    participant UB as User B
-
-    UA->>FA: Create/Edit Node
-    FA->>FA: Update Local State
-    FA->>WS: Send flow_change event
-    WS->>FC: Receive flow_change
-    FC->>FSM: broadcast_flow_change()
-    FSM->>FSM: Update session state
-    FSM->>FC: Broadcast to other clients
-    FC->>WS: Send flow_update
-    WS->>FB: Receive flow_update
-    FB->>FB: Apply remote changes
-    FB->>UB: Visual update appears
-
-    Note over FSM: Manages client sessions,<br/>conflict resolution,<br/>and state synchronization
-```
-
-### Key Architecture Components
-
-- **Real-time collaboration** via Phoenix Channels and WebSocket connections
-- **Component-based** React architecture with TypeScript for type safety
-- **Node-based workflow** representation using React Flow library
-- **GenServer-based session management** for multi-user state coordination
-- **Client-side persistence** with localStorage for offline capability
-- **Conflict resolution** handled by FlowSessionManager GenServer
-- **RESTful API endpoints** for flow CRUD operations
+---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+1. Fork & branch (`git checkout -b feature/amazing-feature`)
+2. Add changes + tests
+3. Run full test suite (`npm run test:all && mix test`)
+4. Commit using [Conventional Commits](https://conventionalcommits.org/)
+5. Open a pull request
 
-### Quick Start for Contributors
+See [Contributing Guide](CONTRIBUTING.md) for details.
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes and add tests
-4. Run the test suite: `npm run test:all && mix test`
-5. Commit using [Conventional Commits](https://conventionalcommits.org/)
-6. Push to your fork and submit a pull request
+---
 
 ## 📝 License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Phoenix Framework](https://phoenixframework.org/) for the robust backend foundation
-- [React Flow](https://reactflow.dev/) for the excellent node-based UI components
-- [Tailwind CSS](https://tailwindcss.com/) for the utility-first styling approach
+Apache 2.0 — see [LICENSE](LICENSE).
 
 ---
 
 <div align="center">
 
-**[⭐ Star this repo](https://github.com/ccarvalho-eng/helix/stargazers) if you find it useful!**
+⭐ If you find Helix useful, [give it a star](https://github.com/ccarvalho-eng/helix/stargazers).
 
-Made with ❤️ for the AI community
+Built with ❤️ for the AI community.
 
 </div>
