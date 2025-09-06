@@ -135,23 +135,89 @@ npm run prettier
 
 ## 🏗 Architecture
 
+### System Overview
+
 ```mermaid
+%%{init: {'theme':'dark'}}%%
 graph TB
-    A[React Frontend] --> B[Phoenix Channels]
-    B --> C[Phoenix Backend]
-    C --> D[PostgreSQL]
-    A --> E[React Flow]
-    A --> F[WebSocket Connection]
-    F --> B
-    G[Local Storage] --> A
+    subgraph "Client Side"
+        UA[User A Browser]
+        UB[User B Browser]
+        FEA[React Frontend<br/>React Flow + TypeScript]
+        FEB[React Frontend<br/>React Flow + TypeScript]
+        LSA[Local Storage<br/>Flow Data]
+        LSB[Local Storage<br/>Flow Data]
+
+        UA --> FEA
+        UB --> FEB
+        FEA --> LSA
+        FEB --> LSB
+    end
+
+    subgraph "Network Layer"
+        WSA[WebSocket Connection A]
+        WSB[WebSocket Connection B]
+
+        FEA -.->|flow_change events| WSA
+        FEB -.->|flow_change events| WSB
+        WSA -.->|flow_update events| FEA
+        WSB -.->|flow_update events| FEB
+    end
+
+    subgraph "Phoenix Server"
+        FC[FlowChannel<br/>Phoenix Channel]
+        FSM[FlowSessionManager<br/>GenServer State]
+        API[REST API<br/>Flow CRUD]
+
+        WSA --> FC
+        WSB --> FC
+        FC <--> FSM
+        FC --> API
+    end
+
+    subgraph "Data Layer"
+        PG[(PostgreSQL<br/>Database)]
+        API --> PG
+    end
 ```
 
-- **Real-time collaboration** via Phoenix Channels and WebSockets
-- **Component-based** React architecture with TypeScript
-- **Node-based workflow** representation using React Flow
-- **RESTful API** for workflow CRUD operations
-- **Client-side storage** with localStorage persistence
-- **Session management** for multi-user collaboration
+### Real-Time Collaboration Flow
+
+```mermaid
+%%{init: {'theme':'dark'}}%%
+sequenceDiagram
+    participant UA as User A
+    participant FA as Frontend A
+    participant WS as WebSocket
+    participant FC as FlowChannel
+    participant FSM as FlowSessionManager
+    participant FB as Frontend B
+    participant UB as User B
+
+    UA->>FA: Create/Edit Node
+    FA->>FA: Update Local State
+    FA->>WS: Send flow_change event
+    WS->>FC: Receive flow_change
+    FC->>FSM: broadcast_flow_change()
+    FSM->>FSM: Update session state
+    FSM->>FC: Broadcast to other clients
+    FC->>WS: Send flow_update
+    WS->>FB: Receive flow_update
+    FB->>FB: Apply remote changes
+    FB->>UB: Visual update appears
+
+    Note over FSM: Manages client sessions,<br/>conflict resolution,<br/>and state synchronization
+```
+
+### Key Architecture Components
+
+- **Real-time collaboration** via Phoenix Channels and WebSocket connections
+- **Component-based** React architecture with TypeScript for type safety
+- **Node-based workflow** representation using React Flow library
+- **GenServer-based session management** for multi-user state coordination
+- **Client-side persistence** with localStorage for offline capability
+- **Conflict resolution** handled by FlowSessionManager GenServer
+- **RESTful API endpoints** for flow CRUD operations
 
 ## 🤝 Contributing
 
