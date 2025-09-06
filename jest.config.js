@@ -19,14 +19,12 @@ export default {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  // Coverage thresholds updated to reflect improved test coverage
-  // These thresholds ensure we maintain good coverage for critical components
   coverageThreshold: {
     global: {
-      branches: 8,     // Current: 8.56% - Set slightly below to allow minor fluctuations
-      functions: 10,   // Current: 11.58% - Set below current to allow room for new untested functions  
-      lines: 12,       // Current: 14.11% - Set below current with buffer
-      statements: 12   // Current: 14.18% - Set below current with buffer
+      branches: 8,
+      functions: 10,
+      lines: 12,
+      statements: 12
     }
   },
   transform: {
