@@ -16,7 +16,7 @@ jest.mock('../../hooks/useDownloadImage', () => ({
 }));
 
 // Create a mock function that can be configured per test
-const mockUseThemeContext = jest.fn(() => ({ theme: 'light' }));
+const mockUseThemeContext = jest.fn<{ theme: string } | null, []>(() => ({ theme: 'light' }));
 
 jest.mock('../../contexts/ThemeContext', () => ({
   useThemeContext: () => mockUseThemeContext(),
