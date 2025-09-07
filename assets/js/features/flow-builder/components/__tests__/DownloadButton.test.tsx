@@ -35,20 +35,20 @@ describe('DownloadButton', () => {
 
   it('renders download button with correct text', () => {
     render(<DownloadButton />);
-    
+
     expect(screen.getByRole('button')).toBeInTheDocument();
     expect(screen.getByText('Download')).toBeInTheDocument();
   });
 
   it('renders with custom filename prop', () => {
-    render(<DownloadButton filename="custom-flow" />);
-    
+    render(<DownloadButton filename='custom-flow' />);
+
     expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
   it('calls downloadImage with correct parameters when clicked', async () => {
-    render(<DownloadButton filename="test-flow" />);
-    
+    render(<DownloadButton filename='test-flow' />);
+
     const button = screen.getByRole('button');
     fireEvent.click(button);
 
@@ -59,7 +59,7 @@ describe('DownloadButton', () => {
 
   it('uses default filename when none provided', async () => {
     render(<DownloadButton />);
-    
+
     const button = screen.getByRole('button');
     fireEvent.click(button);
 
@@ -70,14 +70,14 @@ describe('DownloadButton', () => {
 
   it('has correct aria-label', () => {
     render(<DownloadButton />);
-    
+
     const button = screen.getByRole('button');
     expect(button).toHaveAttribute('aria-label', 'Download flow as PNG');
   });
 
   it('renders download icon', () => {
     render(<DownloadButton />);
-    
+
     // The Lucide Download component should be rendered
     const button = screen.getByRole('button');
     expect(button.querySelector('svg')).toBeInTheDocument();
@@ -85,9 +85,9 @@ describe('DownloadButton', () => {
 
   it('calls downloadImage with dark theme', async () => {
     mockUseThemeContext.mockReturnValue({ theme: 'dark' });
-    
-    render(<DownloadButton filename="dark-flow" />);
-    
+
+    render(<DownloadButton filename='dark-flow' />);
+
     const button = screen.getByRole('button');
     fireEvent.click(button);
 
@@ -98,9 +98,9 @@ describe('DownloadButton', () => {
 
   it('defaults to light theme when context is null', async () => {
     mockUseThemeContext.mockReturnValue(null);
-    
+
     render(<DownloadButton />);
-    
+
     const button = screen.getByRole('button');
     fireEvent.click(button);
 
@@ -114,9 +114,9 @@ describe('DownloadButton', () => {
       downloadImage: mockDownloadImage,
       isDownloading: true,
     });
-    
+
     render(<DownloadButton />);
-    
+
     expect(screen.getByText('Downloading...')).toBeInTheDocument();
     expect(screen.getByRole('button')).toBeDisabled();
   });
@@ -126,9 +126,9 @@ describe('DownloadButton', () => {
       downloadImage: mockDownloadImage,
       isDownloading: true,
     });
-    
+
     render(<DownloadButton />);
-    
+
     const button = screen.getByRole('button');
     expect(button).toHaveAttribute('aria-label', 'Downloading...');
   });
