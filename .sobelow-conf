@@ -2,11 +2,11 @@
   verbose: false,
   private: false,
   skip: false,
-  router: "",
+  router: "HelixWeb.Router",
   exit: "low",
   format: "txt",
   out: "",
   threshold: "low",
-  ignore: ["Config.CSP", "Config.Secrets", "Config.HTTPS"],
+  ignore: ["Config.CSP", "Config.HTTPS"],
   ignore_files: []
 ]
