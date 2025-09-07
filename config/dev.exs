@@ -23,7 +23,7 @@ config :helix, HelixWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base:
+  secret_key_base: System.get_env("SECRET_KEY_BASE") || "dev-only-do-not-use-in-prod",
     "dev_secret_key_base_not_for_production_use_only_for_development_1234567890abcdef",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:helix, ~w(--sourcemap=inline --watch)]},
