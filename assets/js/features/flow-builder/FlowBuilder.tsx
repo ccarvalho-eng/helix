@@ -42,12 +42,12 @@ import {
   Sliders,
   Settings,
   Gamepad2,
+  ChevronDown,
+  ChevronUp,
+  BarChart3,
 } from 'lucide-react';
 
-// Extended node type for React Flow
 type ReactFlowAINode = OriginalAIFlowNode;
-
-// Custom Node Component that matches the original design
 function FlowNode({
   data,
   selected,
@@ -87,7 +87,6 @@ function FlowNode({
 
   const iconColor = getIconColor(data.type);
 
-  // Use smaller, fixed dimensions for better canvas appearance
   const getNodeDimensions = (nodeType: ReactFlowAINode['type']) => {
     const dimensions = {
       agent: { width: '140px', height: '80px' },
@@ -110,7 +109,6 @@ function FlowNode({
     '--node-bg-color': data.color,
     '--node-border-color': data.borderColor,
     '--node-shadow': '0 1px 3px rgba(0, 0, 0, 0.06)',
-    // Remove fixed dimensions to allow resizing
     width: '100%',
     height: '100%',
   } as React.CSSProperties;
@@ -147,14 +145,12 @@ function FlowNode({
   );
 }
 
-// Node types for React Flow
 const nodeTypes: NodeTypes = {
   aiFlowNode: FlowNode,
 };
 
 const edgeTypes: EdgeTypes = {};
 
-// Node Palette - Simplified version with category selector
 function ReactFlowNodePalette({
   onAddNode,
   onAddTemplate: _onAddTemplate,
@@ -398,14 +394,12 @@ function ReactFlowNodePalette({
   );
 }
 
-// Extract flow ID from URL
 const getFlowIdFromUrl = (): string | null => {
   const path = window.location.pathname;
   const match = path.match(/\/flow\/(.+)/);
   return match ? match[1] : null;
 };
 
-// Internal component that uses React Flow hooks
 function FlowBuilderInternal() {
   const { theme = 'light' } = useThemeContext() ?? { theme: 'light' };
   const flowId = getFlowIdFromUrl();
@@ -441,13 +435,12 @@ function FlowBuilderInternal() {
   const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
   const [activeTemplateTab, setActiveTemplateTab] = useState<'technology' | 'gaming'>('technology');
   const [isCanvasLocked, setIsCanvasLocked] = useState(false);
+  const [isMobileStatsOpen, setIsMobileStatsOpen] = useState(false);
 
-  // Check URL parameters on mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('templates') === 'true') {
       setIsTemplatesModalOpen(true);
-      // Clean up URL without affecting navigation
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
     }
@@ -466,7 +459,6 @@ function FlowBuilderInternal() {
     };
   }, []);
 
-  // Handle title editing
   const handleStartEditingTitle = () => {
     if (currentFlow) {
       setEditingTitle(currentFlow.title);
@@ -487,7 +479,6 @@ function FlowBuilderInternal() {
     setEditingTitle('');
   };
 
-  // Helper function to get node description by type
   const getNodeDescriptionByType = (type: ReactFlowAINode['type']): string => {
     const descriptions = {
       agent: 'Autonomous AI agent with reasoning capabilities',
@@ -504,7 +495,6 @@ function FlowBuilderInternal() {
     return descriptions[type] || `${type} node`;
   };
 
-  // Add node function (now uses the hook's addNode)
   const addNodeWithDefaults = useCallback(
     (
       type: ReactFlowAINode['type'],
@@ -512,9 +502,7 @@ function FlowBuilderInternal() {
       customDescription?: string,
       _defaultConfig?: NodeConfig
     ) => {
-      // Prevent interactions if flow is not ready
       if (!isFlowReady) {
-        // Flow not ready yet - ignoring node addition request
         return;
       }
       const nodeDefaults = {
@@ -540,7 +528,6 @@ function FlowBuilderInternal() {
         api: { width: 100, height: 60, color: '#fff7ed', label: 'API' },
       };
 
-      // Node creation is now handled by the hook - use addNode function
       const defaults = nodeDefaults[type];
       addNode(
         type,
@@ -551,13 +538,6 @@ function FlowBuilderInternal() {
     [addNode, isFlowReady]
   );
 
-  // Connection handling is now managed by the hook
-
-  // Drag and drop handling is now managed by the hook
-
-  // Drop handling is now managed by the hook
-
-  // Selection change wrapper to handle properties panel
   const handleSelectionChange = useCallback(
     (params: { nodes: Node<ReactFlowAINode>[] }) => {
       onSelectionChange(params);
@@ -568,39 +548,26 @@ function FlowBuilderInternal() {
     [onSelectionChange]
   );
 
-  // Node update function is now managed by the hook
-
-  // Node deletion function is now managed by the hook
-
-  // Node duplication function is now managed by the hook
-
-  // Template functionality is now handled by the useFlowManager hook
-
-  // Auto-save is now managed by the hook
-
-  // Handle keyboard events
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Delete node with Delete/Backspace
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (selectedNode) {
           deleteNode(selectedNode.id);
         }
       }
 
-      // Duplicate node with Ctrl+D (Windows/Linux) or Cmd+D (Mac)
       if (e.key === 'd' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault(); // Prevent browser bookmark shortcut
+        e.preventDefault();
         if (selectedNode) {
           duplicateNode(selectedNode.id);
         }
       }
 
-      // Escape closes drawers on mobile
       if (e.key === 'Escape') {
         setIsPaletteOpen(false);
         setIsPropertiesOpen(false);
         setIsTemplatesModalOpen(false);
+        setIsMobileStatsOpen(false);
       }
 
       // Toggle canvas lock with Ctrl+Shift+L or Cmd+Shift+L
@@ -615,6 +582,25 @@ function FlowBuilderInternal() {
   }, [selectedNode, deleteNode, duplicateNode, isCanvasLocked]);
 
   const hasAnyDrawerOpen = (isPaletteOpen || isPropertiesOpen) && isMobile;
+
+  // Close mobile stats panel when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (
+        isMobileStatsOpen &&
+        !target.closest('.flow-builder__mobile-stats-panel') &&
+        !target.closest('.flow-builder__mobile-stats-toggle')
+      ) {
+        setIsMobileStatsOpen(false);
+      }
+    };
+
+    if (isMobileStatsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isMobileStatsOpen]);
 
   return (
     <div className='flow-builder'>
@@ -658,39 +644,59 @@ function FlowBuilderInternal() {
           )}
         </div>
 
-        <div className='flow-builder__header-controls'>
-          <div className='flow-builder__stats'>
-            <span className='flow-builder__stat'>
-              <Circle size={14} className='flow-builder__stat-icon' />
-              {nodes.length} nodes
+        <div className='flow-builder__header-controls' style={{ position: 'relative' }}>
+          {/* Desktop stats and controls */}
+          {!isMobile && (
+            <>
+              <div className='flow-builder__stats'>
+                <span className='flow-builder__stat'>
+                  <Circle size={14} className='flow-builder__stat-icon' />
+                  {nodes.length} nodes
+                </span>
+                <span className='flow-builder__stat'>
+                  <Zap size={14} className='flow-builder__stat-icon' />
+                  {edges.length} connections
+                </span>
+                {!isFlowReady && (
+                  <span className='flow-builder__stat flow-builder__stat--connecting'>
+                    <Circle
+                      size={14}
+                      className='flow-builder__stat-icon flow-builder__stat-icon--pulse'
+                    />
+                    Connecting...
+                  </span>
+                )}
+                {isFlowReady && isConnected && (
+                  <span className='flow-builder__stat flow-builder__stat--connected'>
+                    <Circle
+                      size={14}
+                      className='flow-builder__stat-icon flow-builder__stat-icon--connected'
+                    />
+                    Live
+                  </span>
+                )}
+              </div>
+              <DownloadButton
+                filename={currentFlow?.title.toLowerCase().replace(/\s+/g, '-') || 'flow-diagram'}
+              />
+            </>
+          )}
+
+          {/* Mobile stats toggle */}
+          <button
+            className={`flow-builder__mobile-stats-toggle ${isMobileStatsOpen ? 'flow-builder__mobile-stats-toggle--active' : ''}`}
+            onClick={() => setIsMobileStatsOpen(!isMobileStatsOpen)}
+            aria-label='Toggle stats and controls'
+          >
+            <BarChart3 size={14} />
+            <span>
+              {nodes.length}n {edges.length}c
             </span>
-            <span className='flow-builder__stat'>
-              <Zap size={14} className='flow-builder__stat-icon' />
-              {edges.length} connections
-            </span>
-            {!isFlowReady && (
-              <span className='flow-builder__stat flow-builder__stat--connecting'>
-                <Circle
-                  size={14}
-                  className='flow-builder__stat-icon flow-builder__stat-icon--pulse'
-                />
-                Connecting...
-              </span>
-            )}
-            {isFlowReady && isConnected && (
-              <span className='flow-builder__stat flow-builder__stat--connected'>
-                <Circle
-                  size={14}
-                  className='flow-builder__stat-icon flow-builder__stat-icon--connected'
-                />
-                Live
-              </span>
-            )}
-          </div>
-          <DownloadButton
-            filename={currentFlow?.title.toLowerCase().replace(/\s+/g, '-') || 'flow-diagram'}
-          />
+            {isMobileStatsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </button>
+
           <ThemeToggle />
+
           {/* Mobile burgers */}
           <button
             className='flow-builder__burger flow-builder__burger--left'
@@ -707,6 +713,40 @@ function FlowBuilderInternal() {
             <Sliders size={18} />
           </button>
         </div>
+
+        {/* Mobile expandable stats/controls */}
+        {isMobile && isMobileStatsOpen && (
+          <div className='flow-builder__mobile-stats-panel'>
+            {/* Stats */}
+            <div className='flow-builder__mobile-stats-panel__stats'>
+              <div className='flow-builder__mobile-stats-panel__stat'>
+                <Circle size={14} />
+                {nodes.length} nodes
+              </div>
+              <div className='flow-builder__mobile-stats-panel__stat'>
+                <Zap size={14} />
+                {edges.length} connections
+              </div>
+              {!isFlowReady && (
+                <div className='flow-builder__mobile-stats-panel__stat flow-builder__mobile-stats-panel__stat--connecting'>
+                  <Circle size={14} />
+                  Connecting...
+                </div>
+              )}
+              {isFlowReady && isConnected && (
+                <div className='flow-builder__mobile-stats-panel__stat flow-builder__mobile-stats-panel__stat--connected'>
+                  <Circle size={14} />
+                  Live
+                </div>
+              )}
+            </div>
+
+            {/* Download button */}
+            <DownloadButton
+              filename={currentFlow?.title.toLowerCase().replace(/\s+/g, '-') || 'flow-diagram'}
+            />
+          </div>
+        )}
       </div>
 
       {/* Main Content */}
@@ -829,6 +869,7 @@ function FlowBuilderInternal() {
           onClick={() => {
             setIsPaletteOpen(false);
             setIsPropertiesOpen(false);
+            setIsMobileStatsOpen(false);
           }}
         />
       )}
