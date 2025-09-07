@@ -23,6 +23,7 @@ import { ErrorBoundary } from '../../shared/components/ui/ErrorBoundary';
 import { ThemeProvider, useThemeContext } from './contexts/ThemeContext';
 import { ThemeToggle } from './components/ThemeToggle';
 import { Modal } from './components/Modal';
+import { DownloadButton } from './components/DownloadButton';
 import { useFlowManager } from './hooks/useFlowManager';
 import {
   Bot,
@@ -686,6 +687,9 @@ function FlowBuilderInternal() {
               </span>
             )}
           </div>
+          <DownloadButton
+            filename={currentFlow?.title.toLowerCase().replace(/\s+/g, '-') || 'flow-diagram'}
+          />
           <ThemeToggle />
           {/* Mobile burgers */}
           <button
