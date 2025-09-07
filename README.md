@@ -4,14 +4,13 @@
 
 **Visual AI Agent Workflow Designer**
 
-*Plan, design, and visualize complex multi-agent workflows with a clean drag-and-drop interface.*
+_Plan, design, and visualize complex multi-agent workflows with a clean drag-and-drop interface._
 
 [![GitHub release](https://img.shields.io/github/v/release/ccarvalho-eng/helix?style=for-the-badge)](https://github.com/ccarvalho-eng/helix/releases)
-[![CI](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/ci.yml?style=for-the-badge\&logo=github-actions)](https://github.com/ccarvalho-eng/helix/actions/workflows/ci.yml)
-[![E2E Tests](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/nightly-e2e-tests.yml?style=for-the-badge\&logo=playwright\&label=E2E)](https://github.com/ccarvalho-eng/helix/actions/workflows/nightly-e2e-tests.yml)
-[![codecov](https://img.shields.io/codecov/c/github/ccarvalho-eng/helix?style=for-the-badge\&logo=codecov)](https://codecov.io/gh/ccarvalho-eng/helix)
-[![Security](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/security.yml?style=for-the-badge\&logo=security\&label=Security)](https://github.com/ccarvalho-eng/helix/actions/workflows/security.yml)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge)](https://www.apache.org/licenses/LICENSE-2.0)
+[![CI](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/ci.yml?style=for-the-badge&logo=github-actions)](https://github.com/ccarvalho-eng/helix/actions/workflows/ci.yml)
+[![E2E Tests](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/nightly-e2e-tests.yml?style=for-the-badge&logo=playwright&label=E2E)](https://github.com/ccarvalho-eng/helix/actions/workflows/nightly-e2e-tests.yml)
+[![codecov](https://img.shields.io/codecov/c/github/ccarvalho-eng/helix?style=for-the-badge&logo=codecov)](https://codecov.io/gh/ccarvalho-eng/helix)
+[![Security](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/security.yml?style=for-the-badge&logo=security&label=Security)](https://github.com/ccarvalho-eng/helix/actions/workflows/security.yml)
 
 [Features](#-features) • [Getting Started](#-getting-started) • [Architecture](#-architecture) • [Contributing](#-contributing)
 
@@ -30,13 +29,13 @@ Build complex workflows through an intuitive node editor with collaboration, tem
 
 ## ✨ Features
 
-* **Visual Workflow Design**
+- **Visual Workflow Design**
   Drag-and-drop interface with customizable nodes, connections, minimap, and properties panel.
-* **Collaboration**
+- **Collaboration**
   Real-time multi-user editing via Phoenix Channels with conflict resolution.
-* **Modern UI/UX**
+- **Modern UI/UX**
   Light/dark themes, responsive design, Tailwind styling, robust error boundaries.
-* **Workflow Management**
+- **Workflow Management**
   Save, load, duplicate flows, with metadata and local persistence.
 
 ---
@@ -45,10 +44,10 @@ Build complex workflows through an intuitive node editor with collaboration, tem
 
 ### Requirements
 
-* Elixir **1.17+**
-* Erlang/OTP **26+**
-* Node.js **18+**
-* PostgreSQL **14+**
+- Elixir **1.17+**
+- Erlang/OTP **26+**
+- Node.js **18+**
+- PostgreSQL **14+**
 
 ### Installation
 
@@ -90,10 +89,10 @@ npm run prettier
 
 ## 🛠 Tech Stack
 
-| Layer | Stack |
-|-------|-------|
-| **Backend** | ![Elixir](https://img.shields.io/badge/Elixir-4B275F?logo=elixir&logoColor=white&style=for-the-badge) ![Phoenix](https://img.shields.io/badge/Phoenix-E95420?logo=phoenixframework&logoColor=white&style=for-the-badge) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?logo=postgresql&logoColor=white&style=for-the-badge) |
-| **Frontend** | ![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB&style=for-the-badge) ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white&style=for-the-badge) ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white&style=for-the-badge) ![Lucide Icons](https://img.shields.io/badge/Lucide-000000?logo=lucide&logoColor=white&style=for-the-badge) |
+| Layer                 | Stack                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Backend**           | ![Elixir](https://img.shields.io/badge/Elixir-4B275F?logo=elixir&logoColor=white&style=for-the-badge) ![Phoenix](https://img.shields.io/badge/Phoenix-E95420?logo=phoenixframework&logoColor=white&style=for-the-badge) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?logo=postgresql&logoColor=white&style=for-the-badge)                                                                                                                                                                                         |
+| **Frontend**          | ![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB&style=for-the-badge) ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white&style=for-the-badge) ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white&style=for-the-badge) ![Lucide Icons](https://img.shields.io/badge/Lucide-000000?logo=lucide&logoColor=white&style=for-the-badge)                                                                           |
 | **Testing & Quality** | ![ExUnit](https://img.shields.io/badge/ExUnit-4B275F?logo=elixir&logoColor=white&style=for-the-badge) ![Jest](https://img.shields.io/badge/Jest-C21325?logo=jest&logoColor=white&style=for-the-badge) ![Playwright](https://img.shields.io/badge/Playwright-2EAD33?logo=playwright&logoColor=white&style=for-the-badge) ![Credo](https://img.shields.io/badge/Credo-4B275F?logo=elixir&logoColor=white&style=for-the-badge) ![ESLint](https://img.shields.io/badge/ESLint-4B32C3?logo=eslint&logoColor=white&style=for-the-badge) |
 
 ---
@@ -174,10 +173,10 @@ sequenceDiagram
     Note over FSM: Manages client sessions,<br/>conflict resolution,<br/>and state synchronization
 ```
 
-* Real-time collaboration through WebSockets + Phoenix Channels
-* React Flow for node-based workflow design
-* GenServer-based session management with conflict resolution
-* RESTful API for workflow CRUD
+- Real-time collaboration through WebSockets + Phoenix Channels
+- React Flow for node-based workflow design
+- GenServer-based session management with conflict resolution
+- RESTful API for workflow CRUD
 
 ---
 
