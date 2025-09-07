@@ -124,7 +124,26 @@ test.describe('Flow Persistence and Data Integrity', () => {
       const agentNode = page.locator('[data-node-type="agent"]').first();
       if (await agentNode.isVisible()) {
         await agentNode.click();
-        await page.waitForTimeout(2000); // Wait for auto-save debounce
+
+        // Wait for node to be rendered in DOM first
+        await page.waitForSelector('.react-flow__node', { timeout: 5000 });
+
+        // Wait for auto-save debounce (500ms) + buffer time for CI environments
+        await page.waitForTimeout(3000);
+
+        // Poll until nodeCount is updated in registry (with timeout)
+        let attempts = 0;
+        let nodeCount = 0;
+        while (attempts < 10 && nodeCount === 0) {
+          const registry = await page.evaluate(() => {
+            return JSON.parse(localStorage.getItem('flows-registry') || '{"flows":[]}');
+          });
+          nodeCount = registry.flows[0]?.nodeCount || 0;
+          if (nodeCount === 0) {
+            await page.waitForTimeout(500);
+            attempts++;
+          }
+        }
       }
 
       // Check that metadata was updated
@@ -310,7 +329,7 @@ test.describe('Flow Persistence and Data Integrity', () => {
       await page.waitForSelector('.react-flow__node', { timeout: 5000 });
       const flowUrl = page.url();
       const nodeCountBefore = await page.locator('.react-flow__node').count();
-      
+
       // Ensure we have at least one node before proceeding
       expect(nodeCountBefore).toBeGreaterThan(0);
 
