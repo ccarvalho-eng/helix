@@ -16,6 +16,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     strategy:
       matrix:
         browser: [chromium, firefox, webkit]
@@ -47,18 +60,32 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps ${{ matrix.browser }}
 
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+
       - name: Setup test database
         run: |
           mix ecto.create
           mix ecto.migrate
         env:
-          MIX_ENV: test
+          MIX_ENV: e2e
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: postgres
 
       - name: Compile application
         run: mix compile
+        env:
+          MIX_ENV: e2e
 
       - name: Build assets
         run: mix assets.build
+        env:
+          MIX_ENV: e2e
 
       - name: Start Phoenix server in background
         run: |
@@ -67,7 +94,7 @@ jobs:
           # Wait for server to be ready
           timeout 30 bash -c 'until curl -f http://localhost:4000/; do sleep 1; done'
         env:
-          MIX_ENV: test
+          MIX_ENV: e2e
           PORT: 4000
 
       - name: Run E2E tests
