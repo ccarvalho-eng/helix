@@ -10,6 +10,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/ci.yml?style=for-the-badge\&logo=github-actions)](https://github.com/ccarvalho-eng/helix/actions/workflows/ci.yml)
 [![E2E Tests](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/nightly-e2e-tests.yml?style=for-the-badge\&logo=playwright\&label=E2E)](https://github.com/ccarvalho-eng/helix/actions/workflows/nightly-e2e-tests.yml)
 [![codecov](https://img.shields.io/codecov/c/github/ccarvalho-eng/helix?style=for-the-badge\&logo=codecov)](https://codecov.io/gh/ccarvalho-eng/helix)
+[![Security](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/security.yml?style=for-the-badge\&logo=security\&label=Security)](https://github.com/ccarvalho-eng/helix/actions/workflows/security.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge)](https://www.apache.org/licenses/LICENSE-2.0)
 
 [Features](#-features) • [Getting Started](#-getting-started) • [Architecture](#-architecture) • [Contributing](#-contributing)
