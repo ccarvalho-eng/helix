@@ -17,7 +17,8 @@ config :helix, Helix.Repo,
 # you can enable the server option below.
 config :helix, HelixWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: "v0Pjb4ksLXAUEnJQquM36h09CL2k64LmH8BBzp44hncYZFp9uGjqymM+/pj+zFYO",
+  secret_key_base:
+    System.get_env("SECRET_KEY_BASE") || Base.encode64(:crypto.strong_rand_bytes(48)),
   server: false
 
 # In test we don't send emails

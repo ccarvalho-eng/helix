@@ -16,7 +16,8 @@ config :helix, HelixWeb.Endpoint,
   check_origin: false,
   code_reloader: false,
   debug_errors: false,
-  secret_key_base: "fYXD+FnFB+zS3trAUsZ39UIhGBcAYyzPTy6hZQ+lykpqqkzyQIXxAZcF1ZdS0s3X",
+  secret_key_base:
+    System.get_env("SECRET_KEY_BASE") || Base.encode64(:crypto.strong_rand_bytes(48)),
   server: true
 
 # Disable live reload for e2e tests
