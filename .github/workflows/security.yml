@@ -48,6 +48,9 @@ jobs:
       - name: Elixir security audit
         run: mix deps.audit
 
+      - name: Sobelow security scan
+        run: mix sobelow --config .sobelow-conf
+
       - name: Node.js security audit
         run: npm audit --audit-level=high
 
