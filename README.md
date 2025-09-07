@@ -89,9 +89,11 @@ npm run prettier
 
 ## 🛠 Tech Stack
 
-**Backend:** Phoenix · Elixir · PostgreSQL · Phoenix Channels
-**Frontend:** React (19+) · TypeScript · React Flow · Tailwind CSS · Lucide Icons
-**Testing:** ExUnit · Jest · Playwright · Credo · ESLint
+| Layer | Stack |
+|-------|-------|
+| **Backend** | ![Elixir](https://img.shields.io/badge/Elixir-4B275F?logo=elixir&logoColor=white&style=for-the-badge) ![Phoenix](https://img.shields.io/badge/Phoenix-E95420?logo=phoenixframework&logoColor=white&style=for-the-badge) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?logo=postgresql&logoColor=white&style=for-the-badge) |
+| **Frontend** | ![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB&style=for-the-badge) ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white&style=for-the-badge) ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white&style=for-the-badge) ![Lucide Icons](https://img.shields.io/badge/Lucide-000000?logo=lucide&logoColor=white&style=for-the-badge) |
+| **Testing & Quality** | ![ExUnit](https://img.shields.io/badge/ExUnit-4B275F?logo=elixir&logoColor=white&style=for-the-badge) ![Jest](https://img.shields.io/badge/Jest-C21325?logo=jest&logoColor=white&style=for-the-badge) ![Playwright](https://img.shields.io/badge/Playwright-2EAD33?logo=playwright&logoColor=white&style=for-the-badge) ![Credo](https://img.shields.io/badge/Credo-4B275F?logo=elixir&logoColor=white&style=for-the-badge) ![ESLint](https://img.shields.io/badge/ESLint-4B32C3?logo=eslint&logoColor=white&style=for-the-badge) |
 
 ---
 
