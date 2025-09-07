@@ -97,23 +97,78 @@ npm run prettier
 
 ## 🏗 Architecture
 
-### High-Level
+### System Overview
 
 ```mermaid
+%%{init: {'theme':'dark'}}%%
 graph TB
-    subgraph Client
-        U1[User A] --> FE1[React + React Flow]
-        U2[User B] --> FE2[React + React Flow]
-        FE1 --> LS1[Local Storage]
-        FE2 --> LS2[Local Storage]
+    subgraph "Client Side"
+        UA[User A Browser]
+        UB[User B Browser]
+        FEA[React Frontend<br/>React Flow + TypeScript]
+        FEB[React Frontend<br/>React Flow + TypeScript]
+        LSA[Local Storage<br/>Flow Data]
+        LSB[Local Storage<br/>Flow Data]
+
+        UA --> FEA
+        UB --> FEB
+        FEA --> LSA
+        FEB --> LSB
     end
-    subgraph Server
-        FE1 -.-> WS1[WebSocket] -.-> FC[FlowChannel]
-        FE2 -.-> WS2[WebSocket] -.-> FC
-        FC <--> FSM[FlowSessionManager]
-        FC --> API[REST API]
-        API --> DB[(PostgreSQL)]
+
+    subgraph "Network Layer"
+        WSA[WebSocket Connection A]
+        WSB[WebSocket Connection B]
+
+        FEA -.->|flow_change events| WSA
+        FEB -.->|flow_change events| WSB
+        WSA -.->|flow_update events| FEA
+        WSB -.->|flow_update events| FEB
     end
+
+    subgraph "Phoenix Server"
+        FC[FlowChannel<br/>Phoenix Channel]
+        FSM[FlowSessionManager<br/>GenServer State]
+        API[REST API<br/>Flow CRUD]
+
+        WSA --> FC
+        WSB --> FC
+        FC <--> FSM
+        FC --> API
+    end
+
+    subgraph "Data Layer"
+        PG[(PostgreSQL<br/>Database)]
+        API --> PG
+    end
+```
+
+### Real-Time Collaboration Flow
+
+```mermaid
+%%{init: {'theme':'dark'}}%%
+sequenceDiagram
+    participant UA as User A
+    participant FA as Frontend A
+    participant WS as WebSocket
+    participant FC as FlowChannel
+    participant FSM as FlowSessionManager
+    participant FB as Frontend B
+    participant UB as User B
+
+    UA->>FA: Create/Edit Node
+    FA->>FA: Update Local State
+    FA->>WS: Send flow_change event
+    WS->>FC: Receive flow_change
+    FC->>FSM: broadcast_flow_change()
+    FSM->>FSM: Update session state
+    FSM->>FC: Broadcast to other clients
+    FC->>WS: Send flow_update
+    WS->>FB: Receive flow_update
+    FB->>FB: Apply remote changes
+    FB->>UB: Visual update appears
+
+    Note over FSM: Manages client sessions,<br/>conflict resolution,<br/>and state synchronization
 ```
 
 * Real-time collaboration through WebSockets + Phoenix Channels
