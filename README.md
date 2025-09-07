@@ -102,7 +102,7 @@ npm run prettier
 ### System Overview
 
 ```mermaid
-%%{init: {'theme':'dark'}}%%
+%%{init: {'theme':'neutral'}}%%
 graph TB
     subgraph "Client Side"
         UA[User A Browser]
@@ -148,7 +148,7 @@ graph TB
 ### Real-Time Collaboration Flow
 
 ```mermaid
-%%{init: {'theme':'dark'}}%%
+%%{init: {'theme':'neutral'}}%%
 sequenceDiagram
     participant UA as User A
     participant FA as Frontend A
