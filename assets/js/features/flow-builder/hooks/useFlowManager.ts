@@ -297,13 +297,40 @@ export function useFlowManager(flowId: string | null) {
     (type: AIFlowNode['type'], customLabel?: string, customDescription?: string) => {
       const defaults = nodeDefaults[type];
       const newId = generateId();
+
+      // Calculate smart position near existing nodes
+      const calculateNewNodePosition = () => {
+        const existingNodes = nodes;
+
+        if (existingNodes.length === 0) {
+          return { x: 100, y: 100 };
+        }
+
+        // Find the center of all existing nodes
+        const centerX =
+          existingNodes.reduce((sum, node) => sum + node.position.x, 0) / existingNodes.length;
+        const centerY =
+          existingNodes.reduce((sum, node) => sum + node.position.y, 0) / existingNodes.length;
+
+        // Place new nodes in a spiral pattern around the center
+        const angle = existingNodes.length * 0.5; // Increment angle for each new node
+        const radius = 100 + existingNodes.length * 30; // Increasing radius
+
+        return {
+          x: centerX + Math.cos(angle) * radius,
+          y: centerY + Math.sin(angle) * radius,
+        };
+      };
+
+      const position = calculateNewNodePosition();
+
       const nodeData: AIFlowNode = {
         id: newId,
         type,
-        position: { x: 0, y: 0 },
+        position,
         dimensions: { width: defaults.width, height: defaults.height },
-        x: 0,
-        y: 0,
+        x: position.x,
+        y: position.y,
         width: defaults.width,
         height: defaults.height,
         label: customLabel || defaults.label,
@@ -317,16 +344,13 @@ export function useFlowManager(flowId: string | null) {
       const newNode: Node<AIFlowNode> = {
         id: nodeData.id,
         type: 'aiFlowNode',
-        position: {
-          x: Math.random() * 400 + 100,
-          y: Math.random() * 400 + 100,
-        },
+        position,
         data: nodeData,
       };
 
       setNodes(nds => nds.concat(newNode));
     },
-    [setNodes]
+    [setNodes, nodes]
   );
 
   const onConnect = useCallback(

@@ -18,7 +18,7 @@ export function useDownloadImage(): UseDownloadImageReturn {
 
       try {
         const nodes = getNodes();
-        
+
         if (nodes.length === 0) {
           throw new Error('No nodes to capture');
         }
@@ -99,7 +99,6 @@ export function useDownloadImage(): UseDownloadImageReturn {
         link.download = `${filename}.png`;
         link.href = dataUrl;
         link.click();
-
       } catch (error) {
         console.error('Error downloading image:', error);
       } finally {
