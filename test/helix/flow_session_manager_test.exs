@@ -300,8 +300,191 @@ defmodule Helix.FlowSessionManagerTest do
     test "handles nil values gracefully" do
       # nil gets replaced with anonymous ID
       assert {:ok, 1} = FlowSessionManager.join_flow("flow", nil)
-      # Leave with nil won't match the anonymous ID, so count stays 1  
+      # Leave with nil won't match the anonymous ID, so count stays 1
       assert {:ok, 1} = FlowSessionManager.leave_flow("flow", nil)
+    end
+  end
+
+  describe "force_close_flow_session/1" do
+    test "force closes flow session with multiple clients" do
+      flow_id = test_flow_id("force-close-flow")
+      client_1 = test_client_id("client-1")
+      client_2 = test_client_id("client-2")
+      client_3 = test_client_id("client-3")
+
+      # Set up a flow with multiple clients
+      FlowSessionManager.join_flow(flow_id, client_1)
+      FlowSessionManager.join_flow(flow_id, client_2)
+      FlowSessionManager.join_flow(flow_id, client_3)
+
+      # Verify the flow is active with 3 clients
+      assert %{active: true, client_count: 3} = FlowSessionManager.get_flow_status(flow_id)
+
+      # Force close the session
+      assert {:ok, 3} = FlowSessionManager.force_close_flow_session(flow_id)
+
+      # Verify the flow is now inactive
+      assert %{active: false, client_count: 0} = FlowSessionManager.get_flow_status(flow_id)
+
+      # Verify the flow is no longer in active sessions
+      refute Map.has_key?(FlowSessionManager.get_active_sessions(), flow_id)
+    end
+
+    test "force closes flow session with single client" do
+      flow_id = test_flow_id("force-close-single")
+      client_id = test_client_id("client-single")
+
+      FlowSessionManager.join_flow(flow_id, client_id)
+      assert %{active: true, client_count: 1} = FlowSessionManager.get_flow_status(flow_id)
+
+      assert {:ok, 1} = FlowSessionManager.force_close_flow_session(flow_id)
+      assert %{active: false, client_count: 0} = FlowSessionManager.get_flow_status(flow_id)
+    end
+
+    test "force closes non-existent flow session returns 0 clients" do
+      flow_id = "non-existent-flow"
+
+      assert {:ok, 0} = FlowSessionManager.force_close_flow_session(flow_id)
+      assert %{active: false, client_count: 0} = FlowSessionManager.get_flow_status(flow_id)
+    end
+
+    test "force close broadcasts flow_deleted message to subscribed clients" do
+      flow_id = test_flow_id("broadcast-delete-flow")
+      client_id = test_client_id("client-broadcast")
+
+      # Subscribe to the flow topic to receive broadcasts
+      Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
+
+      # Set up a flow session
+      FlowSessionManager.join_flow(flow_id, client_id)
+
+      # Force close the session
+      assert {:ok, 1} = FlowSessionManager.force_close_flow_session(flow_id)
+
+      # Verify the flow_deleted broadcast was sent
+      assert_receive {:flow_deleted, ^flow_id}, 1000
+    end
+
+    test "force close removes all client_flows mappings for the flow" do
+      flow_id = test_flow_id("mappings-flow")
+      client_1 = test_client_id("client-1")
+      client_2 = test_client_id("client-2")
+
+      # Set up multiple clients in the flow
+      FlowSessionManager.join_flow(flow_id, client_1)
+      FlowSessionManager.join_flow(flow_id, client_2)
+
+      # Force close the flow
+      assert {:ok, 2} = FlowSessionManager.force_close_flow_session(flow_id)
+
+      # The flow should be completely removed
+      assert %{active: false, client_count: 0} = FlowSessionManager.get_flow_status(flow_id)
+      assert %{} = FlowSessionManager.get_active_sessions()
+    end
+
+    test "force close does not affect other flow sessions" do
+      flow_id_1 = test_flow_id("flow-1")
+      flow_id_2 = test_flow_id("flow-2")
+      client_1 = test_client_id("client-1")
+      client_2 = test_client_id("client-2")
+
+      # Set up two separate flows
+      FlowSessionManager.join_flow(flow_id_1, client_1)
+      FlowSessionManager.join_flow(flow_id_2, client_2)
+
+      # Verify both flows are active
+      assert %{active: true, client_count: 1} = FlowSessionManager.get_flow_status(flow_id_1)
+      assert %{active: true, client_count: 1} = FlowSessionManager.get_flow_status(flow_id_2)
+
+      # Force close only the first flow
+      assert {:ok, 1} = FlowSessionManager.force_close_flow_session(flow_id_1)
+
+      # Verify first flow is closed, second flow is still active
+      assert %{active: false, client_count: 0} = FlowSessionManager.get_flow_status(flow_id_1)
+      assert %{active: true, client_count: 1} = FlowSessionManager.get_flow_status(flow_id_2)
+
+      # Active sessions should only contain the second flow
+      active_sessions = FlowSessionManager.get_active_sessions()
+      refute Map.has_key?(active_sessions, flow_id_1)
+      assert Map.has_key?(active_sessions, flow_id_2)
+    end
+
+    test "force close handles empty flow_id gracefully" do
+      assert {:ok, 0} = FlowSessionManager.force_close_flow_session("")
+    end
+
+    test "force close handles nil flow_id gracefully" do
+      assert {:ok, 0} = FlowSessionManager.force_close_flow_session(nil)
+    end
+
+    test "force close can be called multiple times on same flow" do
+      flow_id = test_flow_id("multiple-force-close")
+      client_id = test_client_id("client")
+
+      FlowSessionManager.join_flow(flow_id, client_id)
+
+      # First force close
+      assert {:ok, 1} = FlowSessionManager.force_close_flow_session(flow_id)
+
+      # Second force close on already closed flow
+      assert {:ok, 0} = FlowSessionManager.force_close_flow_session(flow_id)
+
+      # Third force close
+      assert {:ok, 0} = FlowSessionManager.force_close_flow_session(flow_id)
+    end
+
+    test "force close after normal client leave operations" do
+      flow_id = test_flow_id("mixed-operations-flow")
+      client_1 = test_client_id("client-1")
+      client_2 = test_client_id("client-2")
+      client_3 = test_client_id("client-3")
+
+      # Set up flow with 3 clients
+      FlowSessionManager.join_flow(flow_id, client_1)
+      FlowSessionManager.join_flow(flow_id, client_2)
+      FlowSessionManager.join_flow(flow_id, client_3)
+
+      # One client leaves normally
+      assert {:ok, 2} = FlowSessionManager.leave_flow(flow_id, client_1)
+
+      # Force close the remaining session
+      assert {:ok, 2} = FlowSessionManager.force_close_flow_session(flow_id)
+
+      # Flow should be completely closed
+      assert %{active: false, client_count: 0} = FlowSessionManager.get_flow_status(flow_id)
+    end
+
+    test "force close concurrent with normal operations" do
+      flow_id = test_flow_id("concurrent-operations")
+
+      # Start with some clients
+      FlowSessionManager.join_flow(flow_id, "client-1")
+      FlowSessionManager.join_flow(flow_id, "client-2")
+
+      # Run force close and normal join concurrently
+      force_close_task =
+        Task.async(fn ->
+          FlowSessionManager.force_close_flow_session(flow_id)
+        end)
+
+      join_task =
+        Task.async(fn ->
+          FlowSessionManager.join_flow(flow_id, "client-3")
+        end)
+
+      force_result = Task.await(force_close_task)
+      join_result = Task.await(join_task)
+
+      # Force close should have closed the existing session
+      assert {:ok, client_count} = force_result
+      assert client_count >= 0
+
+      # Join might succeed (creating new session) or return 1 if it happened after force close
+      assert {:ok, _} = join_result
+
+      # Final state should be consistent
+      status = FlowSessionManager.get_flow_status(flow_id)
+      assert status.client_count >= 0
     end
   end
 
