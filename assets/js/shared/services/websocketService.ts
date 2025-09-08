@@ -14,6 +14,7 @@ export interface WebSocketCallbacks {
   onFlowUpdate?: (_data: FlowChangeData) => void;
   onClientJoined?: (_data: ClientJoinedData) => void;
   onClientLeft?: (_data: ClientJoinedData) => void;
+  onFlowDeleted?: () => void;
   onConnect?: () => void;
   onDisconnect?: () => void;
   onError?: (_error: unknown) => void;
@@ -131,6 +132,10 @@ class WebSocketService {
 
       this.channel.on('client_left', (data: ClientJoinedData) => {
         this.callbacks.onClientLeft?.(data);
+      });
+
+      this.channel.on('flow_deleted', () => {
+        this.callbacks.onFlowDeleted?.();
       });
 
       // Join the channel
