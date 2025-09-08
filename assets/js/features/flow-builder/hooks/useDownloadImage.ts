@@ -16,6 +16,9 @@ export function useDownloadImage(): UseDownloadImageReturn {
     async (filename = 'flow-diagram', theme = 'light') => {
       setIsDownloading(true);
 
+      let originalSelectedNodes: ReturnType<typeof getNodes> = [];
+      let originalViewport: ReturnType<typeof getViewport> | null = null;
+
       try {
         const nodes = getNodes();
 
@@ -23,13 +26,16 @@ export function useDownloadImage(): UseDownloadImageReturn {
           throw new Error('No nodes to capture');
         }
 
-        const originalSelectedNodes = nodes.filter(node => node.selected);
+        // Store original state for restoration
+        originalSelectedNodes = nodes.filter(node => node.selected);
+        originalViewport = getViewport();
+
+        // Clear selection for clean export
         if (originalSelectedNodes.length > 0) {
           setNodes(nodes => nodes.map(node => ({ ...node, selected: false })));
         }
 
-        const originalViewport = getViewport();
-
+        // Calculate bounds using accurate node dimensions
         let minX = Infinity;
         let minY = Infinity;
         let maxX = -Infinity;
@@ -38,8 +44,9 @@ export function useDownloadImage(): UseDownloadImageReturn {
         nodes.forEach(node => {
           const x = node.position.x;
           const y = node.position.y;
-          const width = node.width || 100;
-          const height = node.height || 60;
+          // Use actual dimensions first, then fallback to defaults
+          const width = node.width || (node as any).measured?.width || node.data?.width || 100;
+          const height = node.height || (node as any).measured?.height || node.data?.height || 60;
 
           minX = Math.min(minX, x);
           minY = Math.min(minY, y);
@@ -56,15 +63,8 @@ export function useDownloadImage(): UseDownloadImageReturn {
         const width = maxX - minX;
         const height = maxY - minY;
         const pixelRatio = 2;
-        const scaledWidth = width * pixelRatio;
-        const scaledHeight = height * pixelRatio;
 
-        const viewportTransform = {
-          x: -minX * pixelRatio,
-          y: -minY * pixelRatio,
-          zoom: pixelRatio,
-        };
-
+        // Use single scaling strategy via pixelRatio only
         const viewportElement = document.querySelector('.react-flow__viewport') as HTMLElement;
         if (!viewportElement) {
           throw new Error('React Flow viewport not found');
@@ -74,16 +74,25 @@ export function useDownloadImage(): UseDownloadImageReturn {
 
         const dataUrl = await toPng(viewportElement, {
           backgroundColor,
-          width: scaledWidth,
-          height: scaledHeight,
+          width: width * pixelRatio,
+          height: height * pixelRatio,
           pixelRatio,
           style: {
-            width: `${scaledWidth}px`,
-            height: `${scaledHeight}px`,
-            transform: `translate(${viewportTransform.x}px, ${viewportTransform.y}px) scale(${viewportTransform.zoom})`,
+            width: `${width}px`,
+            height: `${height}px`,
+            transform: `translate(${-minX}px, ${-minY}px)`,
           },
         });
 
+        // Create download link
+        const link = document.createElement('a');
+        link.download = `${filename}.png`;
+        link.href = dataUrl;
+        link.click();
+      } catch (error) {
+        console.error('Error downloading image:', error);
+      } finally {
+        // Always restore original state
         if (originalSelectedNodes.length > 0) {
           setNodes(nodes =>
             nodes.map(node => ({
@@ -93,15 +102,10 @@ export function useDownloadImage(): UseDownloadImageReturn {
           );
         }
 
-        setViewport(originalViewport, { duration: 0 });
+        if (originalViewport) {
+          setViewport(originalViewport, { duration: 0 });
+        }
 
-        const link = document.createElement('a');
-        link.download = `${filename}.png`;
-        link.href = dataUrl;
-        link.click();
-      } catch (error) {
-        console.error('Error downloading image:', error);
-      } finally {
         setIsDownloading(false);
       }
     },
