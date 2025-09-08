@@ -42,9 +42,9 @@ describe('websocketService', () => {
     // Setup default mock returns
     mockChannel.join.mockReturnValue({
       receive: jest.fn().mockImplementation(function (
-        this: any,
+        this: unknown,
         status: string,
-        callback: (data: any) => void
+        callback: (_data: unknown) => void
       ) {
         if (status === 'ok') {
           setTimeout(() => callback({}), 0);
@@ -55,9 +55,9 @@ describe('websocketService', () => {
 
     mockChannel.push.mockReturnValue({
       receive: jest.fn().mockImplementation(function (
-        this: any,
+        this: unknown,
         status: string,
-        callback: (data: any) => void
+        callback: (_data: unknown) => void
       ) {
         if (status === 'ok') {
           setTimeout(() => callback({ status: 'success' }), 0);
