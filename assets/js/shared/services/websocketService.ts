@@ -225,8 +225,8 @@ class WebSocketService {
     try {
       // Create a temporary channel to send the deletion notification
       const tempChannel = this.socket.channel('flow_management', {});
-      
-      const result = await new Promise<boolean>((resolve) => {
+
+      const result = await new Promise<boolean>(resolve => {
         tempChannel
           .join()
           .receive('ok', () => {

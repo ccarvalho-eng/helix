@@ -27,13 +27,13 @@ defmodule HelixWeb.FlowManagementChannel do
   @impl true
   def handle_in("flow_deleted", %{"flow_id" => flow_id}, socket) when is_binary(flow_id) do
     Logger.info("Received flow deletion notification for flow: #{flow_id}")
-    
+
     # Force close any active sessions for this flow
     case FlowSessionManager.force_close_flow_session(flow_id) do
       {:ok, closed_clients} ->
         Logger.info("Closed flow session #{flow_id} with #{closed_clients} active clients")
         {:reply, {:ok, %{status: "session_closed", clients_affected: closed_clients}}, socket}
-        
+
       {:error, reason} ->
         Logger.warning("Failed to close flow session #{flow_id}: #{inspect(reason)}")
         {:reply, {:error, %{reason: "Failed to close session"}}, socket}

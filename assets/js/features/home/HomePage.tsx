@@ -26,7 +26,7 @@ export const HomePage: React.FC = () => {
   // Load flows on component mount
   useEffect(() => {
     loadFlows();
-    
+
     // Initialize websocket connection if not already connected
     if (!websocketService.isConnected()) {
       websocketService.connect();
@@ -100,12 +100,12 @@ export const HomePage: React.FC = () => {
     try {
       // Delete from local storage first
       flowStorage.deleteFlow(flowId);
-      
+
       // Notify websocket service about the deletion
       if (websocketService.isConnected()) {
         await websocketService.notifyFlowDeleted(flowId);
       }
-      
+
       loadFlows();
       setShowDeleteConfirm(null);
     } catch (error) {
