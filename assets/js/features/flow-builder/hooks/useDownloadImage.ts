@@ -45,8 +45,8 @@ export function useDownloadImage(): UseDownloadImageReturn {
           const x = node.position.x;
           const y = node.position.y;
           // Use actual dimensions first, then fallback to defaults
-          const width = node.width || (node as any).measured?.width || node.data?.width || 100;
-          const height = node.height || (node as any).measured?.height || node.data?.height || 60;
+          const width = node.width || node.data?.width || 100;
+          const height = node.height || node.data?.height || 60;
 
           minX = Math.min(minX, x);
           minY = Math.min(minY, y);
