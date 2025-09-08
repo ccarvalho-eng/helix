@@ -53,6 +53,14 @@ defmodule Helix.FlowSessionManager do
     GenServer.call(__MODULE__, :get_active_sessions)
   end
 
+  @doc """
+  Force close a flow session and disconnect all clients.
+  Returns the number of clients that were disconnected.
+  """
+  def force_close_flow_session(flow_id) do
+    GenServer.call(__MODULE__, {:force_close_flow_session, flow_id})
+  end
+
   # Server Callbacks
 
   @impl true
@@ -160,6 +168,34 @@ defmodule Helix.FlowSessionManager do
       |> Enum.into(%{})
 
     {:reply, active_sessions, state}
+  end
+
+  @impl true
+  def handle_call({:force_close_flow_session, flow_id}, _from, state) do
+    case Map.get(state.sessions, flow_id) do
+      nil ->
+        {:reply, {:ok, 0}, state}
+
+      session ->
+        client_count = MapSet.size(session.clients)
+
+        # Remove the session entirely
+        new_sessions = Map.delete(state.sessions, flow_id)
+
+        # Remove all client_flows mappings for this flow
+        new_client_flows =
+          state.client_flows
+          |> Enum.reject(fn {_client_id, client_flow_id} -> client_flow_id == flow_id end)
+          |> Map.new()
+
+        # Broadcast flow_deleted message to all clients in this flow
+        Phoenix.PubSub.broadcast(Helix.PubSub, "flow:#{flow_id}", {:flow_deleted, flow_id})
+
+        Logger.info("Force closed flow session #{flow_id} with #{client_count} clients")
+
+        {:reply, {:ok, client_count},
+         %{state | sessions: new_sessions, client_flows: new_client_flows}}
+    end
   end
 
   @impl true

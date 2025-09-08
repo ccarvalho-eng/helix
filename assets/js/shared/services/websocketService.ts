@@ -210,6 +210,48 @@ class WebSocketService {
   }
 
   /**
+   * Notify server that a flow has been deleted
+   */
+  async notifyFlowDeleted(flowId: string): Promise<boolean> {
+    if (!this.socket) {
+      return false;
+    }
+
+    try {
+      // Create a temporary channel to send the deletion notification
+      const tempChannel = this.socket.channel('flow_management', {});
+      
+      const result = await new Promise<boolean>((resolve) => {
+        tempChannel
+          .join()
+          .receive('ok', () => {
+            tempChannel
+              .push('flow_deleted', { flow_id: flowId })
+              .receive('ok', () => {
+                tempChannel.leave();
+                resolve(true);
+              })
+              .receive('error', () => {
+                tempChannel.leave();
+                resolve(false);
+              })
+              .receive('timeout', () => {
+                tempChannel.leave();
+                resolve(false);
+              });
+          })
+          .receive('error', () => resolve(false))
+          .receive('timeout', () => resolve(false));
+      });
+
+      return result;
+    } catch (error) {
+      console.error('Failed to notify flow deletion:', error);
+      return false;
+    }
+  }
+
+  /**
    * Send ping to test connection
    */
   async ping(): Promise<boolean> {

@@ -78,6 +78,18 @@ defmodule HelixWeb.FlowChannel do
   end
 
   @impl true
+  def handle_info({:flow_deleted, flow_id}, socket) do
+    # Notify client that the flow has been deleted
+    push(socket, "flow_deleted", %{
+      flow_id: flow_id,
+      timestamp: System.system_time(:second)
+    })
+
+    # Close the channel since the flow no longer exists
+    {:stop, :normal, socket}
+  end
+
+  @impl true
   def handle_in("flow_change", %{"changes" => changes}, socket) do
     flow_id = socket.assigns.flow_id
 
