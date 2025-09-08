@@ -63,8 +63,9 @@ export function useDownloadImage(): UseDownloadImageReturn {
         const width = maxX - minX;
         const height = maxY - minY;
         const pixelRatio = 2;
+        const scaledWidth = width * pixelRatio;
+        const scaledHeight = height * pixelRatio;
 
-        // Use single scaling strategy via pixelRatio only
         const viewportElement = document.querySelector('.react-flow__viewport') as HTMLElement;
         if (!viewportElement) {
           throw new Error('React Flow viewport not found');
@@ -74,13 +75,13 @@ export function useDownloadImage(): UseDownloadImageReturn {
 
         const dataUrl = await toPng(viewportElement, {
           backgroundColor,
-          width: width * pixelRatio,
-          height: height * pixelRatio,
+          width: scaledWidth,
+          height: scaledHeight,
           pixelRatio,
           style: {
-            width: `${width}px`,
-            height: `${height}px`,
-            transform: `translate(${-minX}px, ${-minY}px)`,
+            width: `${scaledWidth}px`,
+            height: `${scaledHeight}px`,
+            transform: `translate(${-minX * pixelRatio}px, ${-minY * pixelRatio}px) scale(${pixelRatio})`,
           },
         });
 
