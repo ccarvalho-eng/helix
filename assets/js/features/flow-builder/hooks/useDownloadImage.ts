@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useReactFlow } from 'reactflow';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 
 interface UseDownloadImageReturn {
   // eslint-disable-next-line no-unused-vars
@@ -10,78 +10,80 @@ interface UseDownloadImageReturn {
 
 export function useDownloadImage(): UseDownloadImageReturn {
   const [isDownloading, setIsDownloading] = useState(false);
-  const { getViewport, setViewport, getNodes, fitView, setNodes } = useReactFlow();
+  const { getViewport, setViewport, getNodes, setNodes } = useReactFlow();
 
   const downloadImage = useCallback(
     async (filename = 'flow-diagram', theme = 'light') => {
       setIsDownloading(true);
 
       try {
-        const reactFlowElement = document.querySelector('.react-flow') as HTMLElement;
-        if (!reactFlowElement) {
-          throw new Error('React Flow element not found');
-        }
-
-        const originalViewport = getViewport();
-
-        // Clear selection and store original selection state
         const nodes = getNodes();
-        const originalSelectedNodes = nodes.filter(node => node.selected);
-
-        if (originalSelectedNodes.length > 0) {
-          setNodes(nodes => nodes.map(node => ({ ...node, selected: false })));
-        }
+        
         if (nodes.length === 0) {
           throw new Error('No nodes to capture');
         }
 
-        await new Promise(resolve => {
-          fitView({
-            padding: 0.1,
-            includeHiddenNodes: false,
-            minZoom: 0.1,
-            maxZoom: 3,
-            duration: 0,
-          });
+        const originalSelectedNodes = nodes.filter(node => node.selected);
+        if (originalSelectedNodes.length > 0) {
+          setNodes(nodes => nodes.map(node => ({ ...node, selected: false })));
+        }
 
-          setTimeout(resolve, 300);
+        const originalViewport = getViewport();
+
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+
+        nodes.forEach(node => {
+          const x = node.position.x;
+          const y = node.position.y;
+          const width = node.width || 100;
+          const height = node.height || 60;
+
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x + width);
+          maxY = Math.max(maxY, y + height);
         });
 
-        // Hide UI elements during capture
-        const controlsElement = reactFlowElement.querySelector(
-          '.react-flow__controls'
-        ) as HTMLElement;
-        const minimapElement = reactFlowElement.querySelector(
-          '.react-flow__minimap'
-        ) as HTMLElement;
-        const attributionElement = reactFlowElement.querySelector(
-          '.react-flow__attribution'
-        ) as HTMLElement;
+        const padding = 100;
+        minX -= padding;
+        minY -= padding;
+        maxX += padding;
+        maxY += padding;
 
-        const originalControlsDisplay = controlsElement?.style?.display;
-        const originalMinimapDisplay = minimapElement?.style?.display;
-        const originalAttributionDisplay = attributionElement?.style?.display;
+        const width = maxX - minX;
+        const height = maxY - minY;
+        const pixelRatio = 2;
+        const scaledWidth = width * pixelRatio;
+        const scaledHeight = height * pixelRatio;
 
-        if (controlsElement) controlsElement.style.display = 'none';
-        if (minimapElement) minimapElement.style.display = 'none';
-        if (attributionElement) attributionElement.style.display = 'none';
+        const viewportTransform = {
+          x: -minX * pixelRatio,
+          y: -minY * pixelRatio,
+          zoom: pixelRatio,
+        };
+
+        const viewportElement = document.querySelector('.react-flow__viewport') as HTMLElement;
+        if (!viewportElement) {
+          throw new Error('React Flow viewport not found');
+        }
 
         const backgroundColor = theme === 'dark' ? '#21252b' : '#ffffff';
 
-        const canvas = await html2canvas(reactFlowElement, {
+        const dataUrl = await toPng(viewportElement, {
           backgroundColor,
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          removeContainer: true,
+          width: scaledWidth,
+          height: scaledHeight,
+          pixelRatio,
+          style: {
+            width: `${scaledWidth}px`,
+            height: `${scaledHeight}px`,
+            transform: `translate(${viewportTransform.x}px, ${viewportTransform.y}px) scale(${viewportTransform.zoom})`,
+          },
         });
 
-        // Restore UI elements
-        if (controlsElement) controlsElement.style.display = originalControlsDisplay || '';
-        if (minimapElement) minimapElement.style.display = originalMinimapDisplay || '';
-        if (attributionElement) attributionElement.style.display = originalAttributionDisplay || '';
-
-        // Restore original selection
         if (originalSelectedNodes.length > 0) {
           setNodes(nodes =>
             nodes.map(node => ({
@@ -93,23 +95,18 @@ export function useDownloadImage(): UseDownloadImageReturn {
 
         setViewport(originalViewport, { duration: 0 });
 
-        canvas.toBlob(blob => {
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `${filename}.png`;
-            link.click();
-            URL.revokeObjectURL(url);
-          }
-        }, 'image/png');
+        const link = document.createElement('a');
+        link.download = `${filename}.png`;
+        link.href = dataUrl;
+        link.click();
+
       } catch (error) {
         console.error('Error downloading image:', error);
       } finally {
         setIsDownloading(false);
       }
     },
-    [getViewport, setViewport, getNodes, setNodes, fitView]
+    [getViewport, setViewport, getNodes, setNodes]
   );
 
   return {

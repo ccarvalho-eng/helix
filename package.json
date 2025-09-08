@@ -20,7 +20,7 @@
 	"dependencies": {
 		"@types/react": "^19.1.12",
 		"@types/react-dom": "^19.1.8",
-		"html2canvas": "^1.4.1",
+		"html-to-image": "^1.11.11",
 		"lucide-react": "^0.542.0",
 		"phoenix": "^1.7.14",
 		"react": "^19.1.1",
