@@ -32,7 +32,7 @@ Build complex workflows through an intuitive node editor with collaboration, tem
 - **Visual Workflow Design**
   Drag-and-drop interface with customizable nodes, connections, minimap, and properties panel.
 - **Collaboration**
-  Real-time multi-user editing via Phoenix Channels with conflict resolution.
+  Real-time multi-user editing via Phoenix Channels with last-write-wins synchronization.
 - **Modern UI/UX**
   Light/dark themes, responsive design, Tailwind styling, robust error boundaries.
 - **Workflow Management**
@@ -74,7 +74,7 @@ npm test
 
 # Code quality
 mix credo --strict
-npm run lint
+npm run lint  # Must pass with --max-warnings 0
 npm run typecheck
 
 # E2E tests
@@ -121,28 +121,48 @@ graph TB
     subgraph "Network Layer"
         WSA[WebSocket Connection A]
         WSB[WebSocket Connection B]
+        HTTP[HTTP/REST Requests]
 
         FEA -.->|flow_change events| WSA
         FEB -.->|flow_change events| WSB
         WSA -.->|flow_update events| FEA
         WSB -.->|flow_update events| FEB
+        FEA -->|CRUD operations| HTTP
+        FEB -->|CRUD operations| HTTP
     end
 
     subgraph "Phoenix Server"
+        US[UserSocket<br/>WebSocket Handler]
         FC[FlowChannel<br/>Phoenix Channel]
         FSM[FlowSessionManager<br/>GenServer State]
+        PUB[Phoenix.PubSub<br/>Message Broadcasting]
         API[REST API<br/>Flow CRUD]
 
-        WSA --> FC
-        WSB --> FC
+        WSA --> US
+        WSB --> US
+        US --> FC
         FC <--> FSM
-        FC --> API
+        FSM --> PUB
+        PUB --> FC
+        HTTP --> API
     end
 
     subgraph "Data Layer"
         PG[(PostgreSQL<br/>Database)]
         API --> PG
     end
+
+    classDef client fill:#e3f2fd,stroke:#1976d2,color:#000
+    classDef network fill:#f3e5f5,stroke:#7b1fa2,color:#000
+    classDef server fill:#e8f5e8,stroke:#388e3c,color:#000
+    classDef database fill:#fff3e0,stroke:#f57c00,color:#000
+    classDef realtime fill:#ffebee,stroke:#d32f2f,color:#000
+
+    class UA,UB,FEA,FEB,LSA,LSB client
+    class WSA,WSB,HTTP network
+    class US,API server
+    class FC,FSM,PUB realtime
+    class PG database
 ```
 
 ### Real-Time Collaboration Flow
@@ -150,32 +170,105 @@ graph TB
 ```mermaid
 %%{init: {'theme':'neutral'}}%%
 sequenceDiagram
-    participant UA as User A
-    participant FA as Frontend A
-    participant WS as WebSocket
-    participant FC as FlowChannel
-    participant FSM as FlowSessionManager
-    participant FB as Frontend B
-    participant UB as User B
+    participant UA as 👤 User A
+    participant FA as 🖥️ Frontend A
+    participant WS as 🌐 WebSocket
+    participant FC as 📡 FlowChannel
+    participant FSM as 🧠 FlowSessionManager
+    participant PUB as 📢 Phoenix.PubSub
+    participant FB as 🖥️ Frontend B
+    participant UB as 👤 User B
 
-    UA->>FA: Create/Edit Node
-    FA->>FA: Update Local State
-    FA->>WS: Send flow_change event
-    WS->>FC: Receive flow_change
-    FC->>FSM: broadcast_flow_change()
-    FSM->>FSM: Update session state
-    FSM->>FC: Broadcast to other clients
-    FC->>WS: Send flow_update
-    WS->>FB: Receive flow_update
-    FB->>FB: Apply remote changes
-    FB->>UB: Visual update appears
+    UA->>FA: ✏️ Create/Edit Node
+    FA->>FA: 💾 Update Local State
+    Note over FA: Debounced (500ms)
+    FA->>WS: 📤 Send flow_change event
+    WS->>FC: 📥 Receive flow_change
+    FC->>FSM: 🚀 broadcast_flow_change()
+    FSM->>FSM: ⏰ Update last_activity
+    FSM->>PUB: 📡 Phoenix.PubSub.broadcast
+    PUB->>FC: 📢 {:flow_change, data}
+    FC->>WS: 📤 Send flow_update
+    WS->>FB: 📥 Receive flow_update
+    FB->>FB: 🔄 Apply remote changes
+    FB->>UB: ✨ Visual update appears
 
-    Note over FSM: Manages client sessions,<br/>conflict resolution,<br/>and state synchronization
+    Note over FSM: 📋 Manages client sessions<br/>⏰ Updates activity timestamps<br/>❌ No conflict resolution
+    Note over PUB: 🚀 Handles message broadcasting<br/>📡 Topic: "flow:#{flow_id}"
 ```
+
+### WebSocket Conflict Resolution
+
+```mermaid
+%%{init: {'theme':'neutral'}}%%
+flowchart TD
+    A[Client A: flow_change] --> B{Connection Status}
+    A2[Client B: flow_change<br/>⚡ Concurrent Event] --> B2{Connection Status}
+
+    B -->|Connected| C[FlowChannel handles A]
+    B -->|Disconnected| D[❌ Event Lost<br/>No Queuing]
+
+    B2 -->|Connected| C2[FlowChannel handles B]
+    B2 -->|Disconnected| D2[❌ Event Lost<br/>No Queuing]
+
+    C --> E[FlowSessionManager.broadcast_flow_change]
+    C2 --> E2[FlowSessionManager.broadcast_flow_change]
+
+    E --> F{Active Session?}
+    E2 --> F2{Active Session?}
+
+    F -->|Yes| G[✅ Broadcast A to all clients<br/>Last-Write-Wins]
+    F -->|No| H[⚠️ Log: No session found]
+
+    F2 -->|Yes| G2[✅ Broadcast B to all clients<br/>⚡ Overwrites A's changes]
+    F2 -->|No| H2[⚠️ Log: No session found]
+
+    G --> I[Phoenix.PubSub broadcast]
+    G2 --> I2[Phoenix.PubSub broadcast]
+    H --> K[❌ Changes discarded]
+    H2 --> K2[❌ Changes discarded]
+
+    I --> J[All clients receive A]
+    I2 --> J2[All clients receive B<br/>🔄 Conflicts possible]
+
+    J --> L[Frontend applies A]
+    J2 --> L2[Frontend applies B<br/>May overwrite A]
+
+    subgraph "Connection Handling"
+        M[Connection Lost] --> N{Reconnection?}
+        N -->|Success| O[Auto-rejoin channel<br/>🔄 No state sync]
+        N -->|Failed| P[Exponential backoff]
+        P --> Q{Max attempts<br/>10 retries?}
+        Q -->|No| R[Wait + retry]
+        Q -->|Yes| S[❌ Give up]
+        R --> N
+        O --> T[Resume sending events]
+    end
+
+    classDef error fill:#ffebee,stroke:#d32f2f,color:#000
+    classDef success fill:#e8f5e8,stroke:#388e3c,color:#000
+    classDef warning fill:#fff3e0,stroke:#f57c00,color:#000
+    classDef conflict fill:#f3e5f5,stroke:#7b1fa2,color:#000
+    classDef info fill:#e3f2fd,stroke:#1976d2,color:#000
+
+    class D,D2,H,H2,K,K2,S error
+    class G,G2,I,I2,O,T success
+    class P,R warning
+    class A2,G2,I2,J2,L2 conflict
+    class F,F2,N,Q info
+```
+
+**Conflict Resolution Strategy:**
+
+- ❌ **No validation**: All changes are accepted and broadcasted immediately
+- ⚡ **Last-Write-Wins**: Concurrent changes overwrite each other
+- 📡 **No queuing**: Disconnected events are lost (not queued for later)
+- 🔄 **No state sync**: Reconnected clients don't get missed changes
+- ⚠️ **Session-based**: Only active sessions (with connected clients) receive broadcasts
 
 - Real-time collaboration through WebSockets + Phoenix Channels
 - React Flow for node-based workflow design
-- GenServer-based session management with conflict resolution
+- GenServer-based session management with last-write-wins synchronization
 - RESTful API for workflow CRUD
 
 ---
