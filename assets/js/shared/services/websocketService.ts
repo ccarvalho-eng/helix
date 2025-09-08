@@ -218,12 +218,11 @@ class WebSocketService {
    * Notify server that a flow has been deleted
    */
   async notifyFlowDeleted(flowId: string): Promise<boolean> {
-    if (!this.socket) {
+    if (!this.socket || !this.socket.isConnected()) {
       return false;
     }
 
     try {
-      // Create a temporary channel to send the deletion notification
       const tempChannel = this.socket.channel('flow_management', {});
 
       const result = await new Promise<boolean>(resolve => {
@@ -245,8 +244,14 @@ class WebSocketService {
                 resolve(false);
               });
           })
-          .receive('error', () => resolve(false))
-          .receive('timeout', () => resolve(false));
+          .receive('error', () => {
+            tempChannel.leave();
+            resolve(false);
+          })
+          .receive('timeout', () => {
+            tempChannel.leave();
+            resolve(false);
+          });
       });
 
       return result;
