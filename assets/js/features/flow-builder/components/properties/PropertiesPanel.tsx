@@ -100,12 +100,6 @@ export function PropertiesPanel({
               <kbd className='properties-panel__kbd'>Scroll</kbd>
               <span>Pan canvas</span>
             </div>
-            <div className='properties-panel__shortcut'>
-              <kbd className='properties-panel__kbd'>Ctrl+Shift+L</kbd>
-              <span>or</span>
-              <kbd className='properties-panel__kbd'>⌘+Shift+L</kbd>
-              <span>Lock/unlock canvas</span>
-            </div>
           </div>
         </div>
       </div>
