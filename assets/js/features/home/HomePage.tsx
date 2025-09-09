@@ -14,6 +14,7 @@ import {
 import { ThemeToggle } from '../flow-builder/components/ThemeToggle';
 import { flowStorage } from '../../shared/services/flowStorage';
 import { FlowRegistryEntry } from '../../shared/types/flow';
+import { websocketService } from '../../shared/services/websocketService';
 
 export const HomePage: React.FC = () => {
   const [flows, setFlows] = useState<FlowRegistryEntry[]>([]);
@@ -25,6 +26,11 @@ export const HomePage: React.FC = () => {
   // Load flows on component mount
   useEffect(() => {
     loadFlows();
+
+    // Initialize websocket connection if not already connected
+    if (!websocketService.isConnected()) {
+      websocketService.connect();
+    }
   }, []);
 
   // Handle click outside to close dropdowns
@@ -90,10 +96,24 @@ export const HomePage: React.FC = () => {
     }
   };
 
-  const handleDeleteFlow = (flowId: string) => {
-    flowStorage.deleteFlow(flowId);
-    loadFlows();
-    setShowDeleteConfirm(null);
+  const handleDeleteFlow = async (flowId: string) => {
+    try {
+      // Delete from local storage first
+      flowStorage.deleteFlow(flowId);
+
+      // Notify websocket service about the deletion
+      if (websocketService.isConnected()) {
+        await websocketService.notifyFlowDeleted(flowId);
+      }
+
+      loadFlows();
+      setShowDeleteConfirm(null);
+    } catch (error) {
+      console.error('Failed to delete flow:', error);
+      // Still update UI even if websocket notification fails
+      loadFlows();
+      setShowDeleteConfirm(null);
+    }
   };
 
   const handleOpenFlow = (flowId: string) => {

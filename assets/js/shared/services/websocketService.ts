@@ -14,6 +14,7 @@ export interface WebSocketCallbacks {
   onFlowUpdate?: (_data: FlowChangeData) => void;
   onClientJoined?: (_data: ClientJoinedData) => void;
   onClientLeft?: (_data: ClientJoinedData) => void;
+  onFlowDeleted?: () => void;
   onConnect?: () => void;
   onDisconnect?: () => void;
   onError?: (_error: unknown) => void;
@@ -133,6 +134,10 @@ class WebSocketService {
         this.callbacks.onClientLeft?.(data);
       });
 
+      this.channel.on('flow_deleted', () => {
+        this.callbacks.onFlowDeleted?.();
+      });
+
       // Join the channel
       const _joinResponse = await new Promise((resolve, reject) => {
         this.channel
@@ -207,6 +212,53 @@ class WebSocketService {
    */
   getCurrentFlowId(): string | null {
     return this.currentFlowId;
+  }
+
+  /**
+   * Notify server that a flow has been deleted
+   */
+  async notifyFlowDeleted(flowId: string): Promise<boolean> {
+    if (!this.socket || !this.socket.isConnected()) {
+      return false;
+    }
+
+    try {
+      const tempChannel = this.socket.channel('flow_management', {});
+
+      const result = await new Promise<boolean>(resolve => {
+        tempChannel
+          .join()
+          .receive('ok', () => {
+            tempChannel
+              .push('flow_deleted', { flow_id: flowId })
+              .receive('ok', () => {
+                tempChannel.leave();
+                resolve(true);
+              })
+              .receive('error', () => {
+                tempChannel.leave();
+                resolve(false);
+              })
+              .receive('timeout', () => {
+                tempChannel.leave();
+                resolve(false);
+              });
+          })
+          .receive('error', () => {
+            tempChannel.leave();
+            resolve(false);
+          })
+          .receive('timeout', () => {
+            tempChannel.leave();
+            resolve(false);
+          });
+      });
+
+      return result;
+    } catch (error) {
+      console.error('Failed to notify flow deletion:', error);
+      return false;
+    }
   }
 
   /**

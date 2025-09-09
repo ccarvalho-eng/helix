@@ -125,6 +125,10 @@ export function useFlowManager(flowId: string | null) {
       },
       onClientJoined: data => setConnectedClients(data.client_count),
       onClientLeft: data => setConnectedClients(data.client_count),
+      onFlowDeleted: () => {
+        // Flow has been deleted by another user, redirect to home
+        window.location.href = '/';
+      },
       onError: error => console.error('🔌❌ WebSocket connection error:', error),
     });
 

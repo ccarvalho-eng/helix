@@ -8,6 +8,7 @@ defmodule HelixWeb.UserSocket do
 
   ## Channels
   channel "flow:*", HelixWeb.FlowChannel
+  channel "flow_management", HelixWeb.FlowManagementChannel
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After

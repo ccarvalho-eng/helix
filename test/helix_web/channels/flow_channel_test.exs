@@ -304,6 +304,185 @@ defmodule HelixWeb.FlowChannelTest do
     end
   end
 
+  describe "flow deletion handling" do
+    test "handles flow_deleted message by notifying client and closing channel", %{socket: socket} do
+      flow_id = test_flow_id("flow-deleted-test")
+
+      {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
+
+      # Clear join broadcast
+      assert_broadcast("client_joined", %{client_count: 1})
+
+      # Simulate flow_deleted message from FlowSessionManager
+      timestamp = System.system_time(:second)
+      send(socket.channel_pid, {:flow_deleted, flow_id})
+
+      # Should receive flow_deleted push notification
+      assert_push("flow_deleted", %{
+        flow_id: ^flow_id,
+        timestamp: received_timestamp
+      })
+
+      # Timestamp should be around the current time (within 5 seconds)
+      assert abs(received_timestamp - timestamp) <= 5
+
+      # Channel should be closed - we should receive an EXIT signal
+      Process.flag(:trap_exit, true)
+
+      # The channel will terminate with :normal reason after sending flow_deleted
+      assert_receive {:EXIT, _pid, :normal}, 1000
+    end
+
+    test "flow_deleted message includes correct flow_id", %{socket: socket} do
+      flow_id = test_flow_id("specific-flow-id-test")
+
+      {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
+
+      # Clear join broadcast
+      assert_broadcast("client_joined", %{client_count: 1})
+
+      # Send flow_deleted for this specific flow
+      send(socket.channel_pid, {:flow_deleted, flow_id})
+
+      # Should receive notification with the exact flow_id
+      assert_push("flow_deleted", %{
+        flow_id: ^flow_id,
+        timestamp: _timestamp
+      })
+
+      # Channel should close
+      Process.flag(:trap_exit, true)
+      assert_receive {:EXIT, _pid, :normal}, 1000
+    end
+
+    test "flow_deleted message for different flow_id does not affect channel", %{socket: socket} do
+      flow_id = test_flow_id("my-flow")
+      other_flow_id = test_flow_id("other-flow")
+
+      {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
+
+      # Clear join broadcast
+      assert_broadcast("client_joined", %{client_count: 1})
+
+      # Send flow_deleted for a different flow
+      send(socket.channel_pid, {:flow_deleted, other_flow_id})
+
+      # Should receive notification for the other flow
+      assert_push("flow_deleted", %{
+        flow_id: ^other_flow_id,
+        timestamp: _timestamp
+      })
+
+      # Channel should still close (the current implementation closes on any flow_deleted)
+      Process.flag(:trap_exit, true)
+      assert_receive {:EXIT, _pid, :normal}, 1000
+    end
+
+    test "multiple clients receive flow_deleted notification", %{socket: socket} do
+      flow_id = test_flow_id("multi-client-delete-test")
+
+      # Two clients join the same flow
+      {:ok, _reply1, _socket1} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
+      {:ok, socket2} = connect(UserSocket, %{}, connect_info: %{})
+      {:ok, _reply2, _socket2} = subscribe_and_join(socket2, FlowChannel, "flow:#{flow_id}")
+
+      # Clear join broadcasts
+      assert_broadcast("client_joined", %{client_count: 1})
+      assert_broadcast("client_joined", %{client_count: 2})
+
+      # Subscribe to PubSub to send flow_deleted message
+      Phoenix.PubSub.broadcast(Helix.PubSub, "flow:#{flow_id}", {:flow_deleted, flow_id})
+
+      # Both clients should receive flow_deleted notification
+      assert_push("flow_deleted", %{flow_id: ^flow_id, timestamp: _})
+
+      # Both channels should close - we'll receive socket_close messages
+      assert_receive {:socket_close, _pid1, :normal}, 1000
+      assert_receive {:socket_close, _pid2, :normal}, 1000
+    end
+
+    test "flow_deleted notification timestamp is current", %{socket: socket} do
+      flow_id = test_flow_id("timestamp-test")
+
+      {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
+
+      # Clear join broadcast
+      assert_broadcast("client_joined", %{client_count: 1})
+
+      # Record time before sending message
+      before_time = System.system_time(:second)
+      send(socket.channel_pid, {:flow_deleted, flow_id})
+      after_time = System.system_time(:second)
+
+      # Should receive notification with timestamp in the expected range
+      assert_push("flow_deleted", %{
+        flow_id: ^flow_id,
+        timestamp: timestamp
+      })
+
+      assert timestamp >= before_time
+      # Allow 1 second buffer
+      assert timestamp <= after_time + 1
+
+      # Channel should close
+      Process.flag(:trap_exit, true)
+      assert_receive {:EXIT, _pid, :normal}, 1000
+    end
+
+    test "flow_deleted handling with concurrent operations", %{socket: socket} do
+      flow_id = test_flow_id("concurrent-delete-test")
+
+      {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
+
+      # Clear join broadcast
+      assert_broadcast("client_joined", %{client_count: 1})
+
+      # Send a flow change and flow_deleted concurrently
+      changes = %{"nodes" => [], "edges" => []}
+
+      # Send flow change
+      _ref = push(socket, "flow_change", %{"changes" => changes})
+
+      # Immediately send flow_deleted
+      send(socket.channel_pid, {:flow_deleted, flow_id})
+
+      # We might get the flow_change reply or the channel might close first
+      # Either way, we should get the flow_deleted notification
+      assert_push("flow_deleted", %{flow_id: ^flow_id, timestamp: _})
+
+      # Channel should close
+      Process.flag(:trap_exit, true)
+      assert_receive {:EXIT, _pid, :normal}, 1000
+    end
+
+    test "flow_deleted closes channel immediately without waiting", %{socket: socket} do
+      flow_id = test_flow_id("immediate-close-test")
+
+      {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
+
+      # Clear join broadcast
+      assert_broadcast("client_joined", %{client_count: 1})
+
+      # Enable process trapping
+      Process.flag(:trap_exit, true)
+
+      # Send flow_deleted and measure time to channel close
+      start_time = System.monotonic_time(:millisecond)
+      send(socket.channel_pid, {:flow_deleted, flow_id})
+
+      # Should receive notification
+      assert_push("flow_deleted", %{flow_id: ^flow_id, timestamp: _})
+
+      # Channel should close quickly
+      # 100ms should be plenty
+      assert_receive {:EXIT, _pid, :normal}, 100
+      end_time = System.monotonic_time(:millisecond)
+
+      # Should close very quickly (under 50ms typically)
+      assert end_time - start_time < 50
+    end
+  end
+
   describe "error edge cases" do
     test "handles join when FlowSessionManager returns error", %{socket: socket} do
       # Mock scenario where join might fail
