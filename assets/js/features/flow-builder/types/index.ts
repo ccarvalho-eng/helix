@@ -24,7 +24,14 @@ export interface AIFlowConnection extends Connection {
 export type AIFlowMode = 'select' | 'connect' | 'pan';
 
 // Template related types
-export type TemplateCategory = 'gaming' | 'technology';
+export type TemplateCategory =
+  | 'business-automation'
+  | 'customer-service'
+  | 'content-creation'
+  | 'data-analysis'
+  | 'healthcare'
+  | 'finance'
+  | 'e-commerce';
 
 export interface TemplateNode {
   id: string;
@@ -53,11 +60,19 @@ export interface Template {
 }
 
 export type TemplateType =
-  | 'assassins-creed'
-  | 'lotr'
-  | 'the-witcher'
-  | 'zelda'
-  | 'skyrim'
-  | 'cyber-security'
-  | 'devops-pipeline'
-  | 'software-automation';
+  | 'invoice-processing'
+  | 'employee-onboarding'
+  | 'hr-recruitment'
+  | 'customer-support-automation'
+  | 'feedback-analysis'
+  | 'social-media-content'
+  | 'blog-generation'
+  | 'financial-reporting'
+  | 'predictive-analytics'
+  | 'iot-data-processing'
+  | 'patient-triage'
+  | 'medical-diagnosis'
+  | 'fraud-detection'
+  | 'risk-assessment'
+  | 'product-recommendation'
+  | 'inventory-optimization';

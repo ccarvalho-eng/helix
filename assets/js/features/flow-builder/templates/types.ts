@@ -19,11 +19,19 @@ export interface FlowTemplate {
 export type { Template } from '../types';
 
 export type TemplateType =
-  | 'assassins-creed'
-  | 'lotr'
-  | 'the-witcher'
-  | 'zelda'
-  | 'skyrim'
-  | 'cyber-security'
-  | 'devops-pipeline'
-  | 'software-automation';
+  | 'invoice-processing'
+  | 'employee-onboarding'
+  | 'hr-recruitment'
+  | 'customer-support-automation'
+  | 'feedback-analysis'
+  | 'social-media-content'
+  | 'blog-generation'
+  | 'financial-reporting'
+  | 'predictive-analytics'
+  | 'iot-data-processing'
+  | 'patient-triage'
+  | 'medical-diagnosis'
+  | 'fraud-detection'
+  | 'risk-assessment'
+  | 'product-recommendation'
+  | 'inventory-optimization';

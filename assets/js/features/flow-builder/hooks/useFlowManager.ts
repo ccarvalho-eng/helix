@@ -586,7 +586,7 @@ export function useFlowManager(flowId: string | null) {
 
     // Add template functionality
     addTemplate: useCallback(
-      (templateType: TemplateType = 'assassins-creed') => {
+      (templateType: TemplateType = 'invoice-processing') => {
         const template = getTemplate(templateType);
         const { nodes: templateNodes, connections: templateConnections } = template;
 

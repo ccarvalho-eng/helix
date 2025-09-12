@@ -45,6 +45,11 @@ import {
   ChevronDown,
   ChevronUp,
   BarChart3,
+  Users,
+  FileText,
+  Heart,
+  DollarSign,
+  ShoppingCart,
 } from 'lucide-react';
 
 type ReactFlowAINode = OriginalAIFlowNode;
@@ -433,7 +438,15 @@ function FlowBuilderInternal() {
   const [isMobile, setIsMobile] = useState(false);
   const [modalNodeId, setModalNodeId] = useState<string | null>(null);
   const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
-  const [activeTemplateTab, setActiveTemplateTab] = useState<'technology' | 'gaming'>('technology');
+  const [activeTemplateTab, setActiveTemplateTab] = useState<
+    | 'business-automation'
+    | 'customer-service'
+    | 'content-creation'
+    | 'data-analysis'
+    | 'healthcare'
+    | 'finance'
+    | 'e-commerce'
+  >('business-automation');
   const [isCanvasLocked, setIsCanvasLocked] = useState(false);
   const [isMobileStatsOpen, setIsMobileStatsOpen] = useState(false);
 
@@ -892,58 +905,58 @@ function FlowBuilderInternal() {
             }}
           >
             <button
-              className={`flow-builder__template-tab ${activeTemplateTab === 'technology' ? 'active' : ''}`}
+              className={`flow-builder__template-tab ${activeTemplateTab === 'business-automation' ? 'active' : ''}`}
               style={{
                 padding: '12px 20px',
                 border: 'none',
                 background: 'transparent',
                 borderBottom:
-                  activeTemplateTab === 'technology'
+                  activeTemplateTab === 'business-automation'
                     ? `2px solid ${theme === 'dark' ? '#98c379' : '#0f172a'}`
                     : '2px solid transparent',
                 color:
-                  activeTemplateTab === 'technology'
+                  activeTemplateTab === 'business-automation'
                     ? theme === 'dark'
                       ? '#98c379'
                       : '#0f172a'
                     : '#6b7280',
-                fontWeight: activeTemplateTab === 'technology' ? '600' : '400',
+                fontWeight: activeTemplateTab === 'business-automation' ? '600' : '400',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
               }}
-              onClick={() => setActiveTemplateTab('technology')}
+              onClick={() => setActiveTemplateTab('business-automation')}
             >
               <Settings size={16} />
-              Technology
+              Business Automation
             </button>
             <button
-              className={`flow-builder__template-tab ${activeTemplateTab === 'gaming' ? 'active' : ''}`}
+              className={`flow-builder__template-tab ${activeTemplateTab === 'customer-service' ? 'active' : ''}`}
               style={{
                 padding: '12px 20px',
                 border: 'none',
                 background: 'transparent',
                 borderBottom:
-                  activeTemplateTab === 'gaming'
+                  activeTemplateTab === 'customer-service'
                     ? `2px solid ${theme === 'dark' ? '#98c379' : '#0f172a'}`
                     : '2px solid transparent',
                 color:
-                  activeTemplateTab === 'gaming'
+                  activeTemplateTab === 'customer-service'
                     ? theme === 'dark'
                       ? '#98c379'
                       : '#0f172a'
                     : '#6b7280',
-                fontWeight: activeTemplateTab === 'gaming' ? '600' : '400',
+                fontWeight: activeTemplateTab === 'customer-service' ? '600' : '400',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
               }}
-              onClick={() => setActiveTemplateTab('gaming')}
+              onClick={() => setActiveTemplateTab('customer-service')}
             >
-              <Gamepad2 size={16} />
-              Gaming
+              <Users size={16} />
+              Customer Service
             </button>
           </div>
 
@@ -952,10 +965,20 @@ function FlowBuilderInternal() {
             {getTemplatesByCategory(activeTemplateTab).map(template => {
               const getTemplateIcon = (category: string) => {
                 switch (category) {
-                  case 'technology':
+                  case 'business-automation':
                     return Settings;
-                  case 'gaming':
-                    return Gamepad2;
+                  case 'customer-service':
+                    return Users;
+                  case 'content-creation':
+                    return FileText;
+                  case 'data-analysis':
+                    return BarChart3;
+                  case 'healthcare':
+                    return Heart;
+                  case 'finance':
+                    return DollarSign;
+                  case 'e-commerce':
+                    return ShoppingCart;
                   default:
                     return Circle;
                 }

@@ -85,14 +85,14 @@ test.describe('Template Functionality', () => {
 
         // Should show template options
         const templateOptions = page.locator(
-          '[data-testid="template-option"], .template-option, button:has-text("Assassin"), button:has-text("Software"), button:has-text("Customer")'
+          '[data-testid="template-option"], .template-option, button:has-text("Invoice"), button:has-text("Employee"), button:has-text("Customer")'
         );
         const optionCount = await templateOptions.count();
         expect(optionCount).toBeGreaterThan(0);
       } else {
         // If no template button found, look for direct template options
         const directTemplateButtons = page.locator(
-          'button:has-text("Assassin"), button:has-text("Software"), button:has-text("Customer")'
+          'button:has-text("Invoice"), button:has-text("Employee"), button:has-text("Customer")'
         );
         const directCount = await directTemplateButtons.count();
         expect(directCount).toBeGreaterThanOrEqual(0); // Allow for different UI implementations
@@ -104,7 +104,7 @@ test.describe('Template Functionality', () => {
 
       // Look for Assassins Creed template button
       const assassinTemplate = page.locator(
-        'button:has-text("Assassin"), [data-template="assassins-creed"], .template-assassins-creed'
+        'button:has-text("Invoice"), [data-template="assassins-creed"], .template-assassins-creed'
       );
 
       if (await assassinTemplate.first().isVisible()) {
@@ -129,7 +129,7 @@ test.describe('Template Functionality', () => {
 
       // Look for Software Automation template button
       const softwareTemplate = page.locator(
-        'button:has-text("Software"), [data-template="software-automation"], .template-software-automation'
+        'button:has-text("Employee"), [data-template="software-automation"], .template-software-automation'
       );
 
       if (await softwareTemplate.first().isVisible()) {
@@ -188,7 +188,7 @@ test.describe('Template Functionality', () => {
 
       // Add a template
       const templateButton = page
-        .locator('button:has-text("Assassin"), button:has-text("Template")')
+        .locator('button:has-text("Invoice"), button:has-text("Template")')
         .first();
       if (await templateButton.isVisible()) {
         await templateButton.click();
@@ -209,7 +209,7 @@ test.describe('Template Functionality', () => {
 
       // Add template
       const templateButton = page
-        .locator('button:has-text("Assassin"), button:has-text("Template")')
+        .locator('button:has-text("Invoice"), button:has-text("Template")')
         .first();
       if (await templateButton.isVisible()) {
         await templateButton.click();
@@ -231,7 +231,7 @@ test.describe('Template Functionality', () => {
 
       // Add a template that should have connections
       const templateButton = page
-        .locator('button:has-text("Assassin"), button:has-text("Template")')
+        .locator('button:has-text("Invoice"), button:has-text("Template")')
         .first();
       if (await templateButton.isVisible()) {
         await templateButton.click();
@@ -248,7 +248,7 @@ test.describe('Template Functionality', () => {
     test('should load template nodes with correct labels and descriptions', async ({ page }) => {
       // Add assassins creed template
       const templateButton = page
-        .locator('button:has-text("Assassin"), button:has-text("Template")')
+        .locator('button:has-text("Invoice"), button:has-text("Template")')
         .first();
       if (await templateButton.isVisible()) {
         await templateButton.click();
@@ -279,7 +279,7 @@ test.describe('Template Functionality', () => {
     test('should allow editing template node properties', async ({ page }) => {
       // Add template
       const templateButton = page
-        .locator('button:has-text("Assassin"), button:has-text("Template")')
+        .locator('button:has-text("Invoice"), button:has-text("Template")')
         .first();
       if (await templateButton.isVisible()) {
         await templateButton.click();
@@ -322,7 +322,7 @@ test.describe('Template Functionality', () => {
       const initialNodeCount = await page.locator('.react-flow__node').count();
 
       // Add first template
-      const assassinTemplate = page.locator('button:has-text("Assassin")').first();
+      const assassinTemplate = page.locator('button:has-text("Invoice")').first();
       if (await assassinTemplate.isVisible()) {
         await assassinTemplate.click();
         await page.waitForTimeout(1000);
@@ -331,7 +331,7 @@ test.describe('Template Functionality', () => {
         expect(afterFirstTemplate).toBeGreaterThan(initialNodeCount);
 
         // Add second template
-        const softwareTemplate = page.locator('button:has-text("Software")').first();
+        const softwareTemplate = page.locator('button:has-text("Employee")').first();
         if (await softwareTemplate.isVisible()) {
           await softwareTemplate.click();
           await page.waitForTimeout(1000);
@@ -346,7 +346,7 @@ test.describe('Template Functionality', () => {
       page,
     }) => {
       // Add same template twice
-      const templateButton = page.locator('button:has-text("Assassin")').first();
+      const templateButton = page.locator('button:has-text("Invoice")').first();
       if (await templateButton.isVisible()) {
         await templateButton.click();
         await page.waitForTimeout(1000);
@@ -374,7 +374,7 @@ test.describe('Template Functionality', () => {
       const startTime = Date.now();
 
       // Add template
-      const templateButton = page.locator('button:has-text("Assassin")').first();
+      const templateButton = page.locator('button:has-text("Invoice")').first();
       if (await templateButton.isVisible()) {
         await templateButton.click();
 
@@ -405,7 +405,7 @@ test.describe('Template Functionality', () => {
       // We'll click template buttons and ensure the page remains functional
 
       const templateButtons = page.locator(
-        'button:has-text("Template"), button:has-text("Assassin"), button:has-text("Software"), button:has-text("Customer")'
+        'button:has-text("Template"), button:has-text("Invoice"), button:has-text("Employee"), button:has-text("Customer")'
       );
       const buttonCount = await templateButtons.count();
 
