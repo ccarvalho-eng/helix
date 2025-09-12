@@ -61,7 +61,7 @@ export const customerSupportAutomationTemplate: Template = {
       y: 350,
       config: {
         storage_type: 'vector_database',
-        retention_policy: 'permanent',
+        retention_policy: '2_years',
         embedding_model: 'sentence-transformers',
       },
     },
@@ -85,8 +85,8 @@ export const customerSupportAutomationTemplate: Template = {
       x: 700,
       y: 250,
       config: {
-        condition_type: 'javascript',
-        condition: 'needsHumanAgent(sentiment, complexity)',
+        condition_type: 'rule_based',
+        condition: 'sentiment.score < 0.3 OR complexity_level > 7 OR intent = "complaint"',
       },
     },
     {

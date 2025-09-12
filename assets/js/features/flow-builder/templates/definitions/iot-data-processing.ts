@@ -112,8 +112,8 @@ export const iotDataProcessingTemplate: Template = {
       x: 900,
       y: 275,
       config: {
-        condition_type: 'javascript',
-        condition: 'checkCriticalThresholds(sensorData)',
+        condition_type: 'rule_based',
+        condition: 'temperature > 85 OR pressure > 100 OR humidity < 20',
       },
     },
     {

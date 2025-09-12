@@ -141,8 +141,8 @@ export const blogGenerationTemplate: Template = {
       x: 1100,
       y: 250,
       config: {
-        condition_type: 'javascript',
-        condition: 'qualityScore > 8 && seoScore > 85',
+        condition_type: 'rule_based',
+        condition: 'quality_score > 8 AND seo_score > 85',
       },
     },
     {

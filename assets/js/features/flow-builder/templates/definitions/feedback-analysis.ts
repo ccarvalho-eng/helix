@@ -73,8 +73,8 @@ export const feedbackAnalysisTemplate: Template = {
       x: 700,
       y: 275,
       config: {
-        condition_type: 'javascript',
-        condition: 'calculatePriorityScore(feedback, trends)',
+        condition_type: 'rule_based',
+        condition: 'urgency_score > 7 OR frequency_count > 10 OR sentiment_trend < -0.5',
       },
     },
     {

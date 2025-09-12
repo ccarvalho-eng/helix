@@ -99,8 +99,8 @@ export const employeeOnboardingTemplate: Template = {
       x: 900,
       y: 250,
       config: {
-        condition_type: 'javascript',
-        condition: 'checkOnboardingComplete(tasks)',
+        condition_type: 'rule_based',
+        condition: 'tasks_completed = 100% AND documents_signed = true AND training_passed = true',
       },
     },
     {

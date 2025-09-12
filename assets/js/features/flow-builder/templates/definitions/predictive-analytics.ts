@@ -160,8 +160,8 @@ export const predictiveAnalyticsTemplate: Template = {
       x: 900,
       y: 275,
       config: {
-        condition_type: 'javascript',
-        condition: 'selectBestModel(modelPerformance)',
+        condition_type: 'rule_based',
+        condition: 'accuracy > 0.85 AND validation_score > 0.8',
       },
     },
     {

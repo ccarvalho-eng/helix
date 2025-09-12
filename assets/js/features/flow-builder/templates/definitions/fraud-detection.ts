@@ -97,8 +97,8 @@ export const fraudDetectionTemplate: Template = {
       x: 900,
       y: 250,
       config: {
-        condition_type: 'javascript',
-        condition: 'calculateFraudRisk(riskScore, anomalyScore, geoRisk)',
+        condition_type: 'rule_based',
+        condition: 'risk_score > 0.7 OR anomaly_score > 0.8 OR geo_risk = true',
       },
     },
     {
