@@ -11,8 +11,8 @@ defmodule HelixWeb.Schema.AccountsTypes do
     field :email, :string, description: "The user's email address"
     field :first_name, :string, description: "The user's first name"
     field :last_name, :string, description: "The user's last name"
-    field :inserted_at, :naive_datetime, description: "When the user was created"
-    field :updated_at, :naive_datetime, description: "When the user was last updated"
+    field :inserted_at, :datetime, description: "When the user was created"
+    field :updated_at, :datetime, description: "When the user was last updated"
   end
 
   @desc "Authentication payload containing user and token"

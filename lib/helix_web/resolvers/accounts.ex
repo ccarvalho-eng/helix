@@ -32,7 +32,7 @@ defmodule HelixWeb.Resolvers.Accounts do
             {:ok, %{user: user, token: token}}
 
           {:error, reason} ->
-            {:error, reason}
+            {:error, to_string(reason)}
         end
 
       {:error, changeset} ->
@@ -63,7 +63,7 @@ defmodule HelixWeb.Resolvers.Accounts do
         {:error, "Invalid email or password"}
 
       {:error, reason} ->
-        {:error, reason}
+        {:error, to_string(reason)}
     end
   end
 

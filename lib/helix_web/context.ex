@@ -58,7 +58,9 @@ defmodule HelixWeb.Context do
   """
   @spec build_context(Plug.Conn.t()) :: map()
   def build_context(conn) do
-    with ["Bearer " <> token] <- get_req_header(conn, "authorization"),
+    with [auth_header] <- get_req_header(conn, "authorization"),
+         "Bearer " <> token <- String.trim(auth_header),
+         true <- String.length(token) > 0,
          {:ok, current_user} <- authorize(token) do
       %{current_user: current_user, token: token}
     else
