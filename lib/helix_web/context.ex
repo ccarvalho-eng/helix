@@ -12,23 +12,27 @@ defmodule HelixWeb.Context do
   @doc """
   Initializes the plug with the given options.
 
-  ## Parameters
-    - opts: Plug options
+  ## Examples
 
-  ## Returns
-    - The unchanged options
+      iex> HelixWeb.Context.init([])
+      []
+
+      iex> HelixWeb.Context.init(some: :option)
+      [some: :option]
+
   """
   def init(opts), do: opts
 
   @doc """
   Calls the plug to add authentication context to the connection.
 
-  ## Parameters
-    - conn: The Plug connection
-    - _: Unused plug options
+  ## Examples
 
-  ## Returns
-    - `Plug.Conn.t()` with authentication context added
+      iex> conn = %Plug.Conn{}
+      iex> result = HelixWeb.Context.call(conn, [])
+      iex> is_struct(result, Plug.Conn)
+      true
+
   """
   def call(conn, _) do
     context = build_context(conn)
@@ -41,12 +45,16 @@ defmodule HelixWeb.Context do
   Extracts JWT token from Authorization header and validates it to build
   the GraphQL context with current user information.
 
-  ## Parameters
-    - conn: The Plug connection
+  ## Examples
 
-  ## Returns
-    - `%{current_user: User.t(), token: String.t()}` when authenticated
-    - `%{}` when not authenticated
+      iex> conn = %Plug.Conn{req_headers: []}
+      iex> HelixWeb.Context.build_context(conn)
+      %{}
+
+      iex> conn = %Plug.Conn{req_headers: [{"authorization", "invalid"}]}
+      iex> HelixWeb.Context.build_context(conn)
+      %{}
+
   """
   @spec build_context(Plug.Conn.t()) :: map()
   def build_context(conn) do

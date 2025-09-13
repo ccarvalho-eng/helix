@@ -17,8 +17,11 @@ defmodule Helix.Accounts do
   @doc """
   Returns the list of users.
 
-  ## Returns
-    - `[User.t()]` list of all users
+  ## Examples
+
+      iex> Helix.Accounts.list_users()
+      [%User{}]
+
   """
   @spec list_users() :: [User.t()]
   def list_users do
@@ -30,11 +33,16 @@ defmodule Helix.Accounts do
 
   Raises `Ecto.NoResultsError` if the User does not exist.
 
-  ## Parameters
-    - id: The user's UUID
+  ## Examples
 
-  ## Returns
-    - `User.t()` the user struct
+      iex> user = %Helix.Accounts.User{id: "123"}
+      iex> Helix.Repo.insert!(user)
+      iex> Helix.Accounts.get_user!("123")
+      %Helix.Accounts.User{id: "123"}
+
+      iex> Helix.Accounts.get_user!("nonexistent")
+      ** (Ecto.NoResultsError) expected at least one result but got none
+
   """
   @spec get_user!(binary()) :: User.t()
   def get_user!(id), do: Repo.get!(User, id)
@@ -42,12 +50,11 @@ defmodule Helix.Accounts do
   @doc """
   Gets a single user by ID.
 
-  ## Parameters
-    - id: The user's UUID
+  ## Examples
 
-  ## Returns
-    - `User.t()` if found
-    - `nil` if not found
+      iex> Helix.Accounts.get_user("nonexistent")
+      nil
+
   """
   @spec get_user(binary()) :: User.t() | nil
   def get_user(id), do: Repo.get(User, id)
@@ -55,12 +62,11 @@ defmodule Helix.Accounts do
   @doc """
   Gets a user by email address.
 
-  ## Parameters
-    - email: The user's email address
+  ## Examples
 
-  ## Returns
-    - `User.t()` if found
-    - `nil` if not found
+      iex> Helix.Accounts.get_user_by_email("nonexistent@example.com")
+      nil
+
   """
   @spec get_user_by_email(String.t()) :: User.t() | nil
   def get_user_by_email(email) when is_binary(email) do
@@ -70,12 +76,14 @@ defmodule Helix.Accounts do
   @doc """
   Creates a user with the given attributes.
 
-  ## Parameters
-    - attrs: Map of user attributes (email, password, first_name, last_name)
+  ## Examples
 
-  ## Returns
-    - `{:ok, User.t()}` on successful creation
-    - `{:error, Ecto.Changeset.t()}` on validation failure
+      iex> attrs = %{email: "test@example.com", password: "ValidPass123", first_name: "Test", last_name: "User"}
+      iex> {:ok, %Helix.Accounts.User{}} = Helix.Accounts.create_user(attrs)
+
+      iex> Helix.Accounts.create_user(%{})
+      {:error, %Ecto.Changeset{}}
+
   """
   @spec create_user(map()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def create_user(attrs \\ %{}) do
@@ -87,13 +95,15 @@ defmodule Helix.Accounts do
   @doc """
   Updates a user with the given attributes.
 
-  ## Parameters
-    - user: The User struct to update
-    - attrs: Map of attributes to change
+  ## Examples
 
-  ## Returns
-    - `{:ok, User.t()}` on successful update
-    - `{:error, Ecto.Changeset.t()}` on validation failure
+      iex> user = %Helix.Accounts.User{first_name: "Old"}
+      iex> {:ok, %Helix.Accounts.User{first_name: "New"}} = Helix.Accounts.update_user(user, %{first_name: "New"})
+
+      iex> user = %Helix.Accounts.User{}
+      iex> Helix.Accounts.update_user(user, %{email: "invalid"})
+      {:error, %Ecto.Changeset{}}
+
   """
   @spec update_user(User.t(), map()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def update_user(%User{} = user, attrs) do
@@ -105,13 +115,15 @@ defmodule Helix.Accounts do
   @doc """
   Updates a user's password with the given attributes.
 
-  ## Parameters
-    - user: The User struct to update
-    - attrs: Map containing the new password
+  ## Examples
 
-  ## Returns
-    - `{:ok, User.t()}` on successful update
-    - `{:error, Ecto.Changeset.t()}` on validation failure
+      iex> user = %Helix.Accounts.User{}
+      iex> {:ok, %Helix.Accounts.User{}} = Helix.Accounts.update_user_password(user, %{password: "NewValidPass123"})
+
+      iex> user = %Helix.Accounts.User{}
+      iex> Helix.Accounts.update_user_password(user, %{password: "weak"})
+      {:error, %Ecto.Changeset{}}
+
   """
   @spec update_user_password(User.t(), map()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def update_user_password(%User{} = user, attrs) do
@@ -123,12 +135,11 @@ defmodule Helix.Accounts do
   @doc """
   Deletes a User.
 
-  ## Parameters
-    - user: The User struct to delete
+  ## Examples
 
-  ## Returns
-    - `{:ok, User.t()}` on successful deletion
-    - `{:error, Ecto.Changeset.t()}` on failure
+      iex> user = %Helix.Accounts.User{}
+      iex> {:ok, %Helix.Accounts.User{}} = Helix.Accounts.delete_user(user)
+
   """
   @spec delete_user(User.t()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def delete_user(%User{} = user) do
@@ -138,12 +149,14 @@ defmodule Helix.Accounts do
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking user changes.
 
-  ## Parameters
-    - user: The User struct
-    - attrs: Map of attributes (optional)
+  ## Examples
 
-  ## Returns
-    - `Ecto.Changeset.t()` for the user
+      iex> user = %Helix.Accounts.User{}
+      iex> %Ecto.Changeset{} = Helix.Accounts.change_user(user)
+
+      iex> user = %Helix.Accounts.User{}
+      iex> %Ecto.Changeset{} = Helix.Accounts.change_user(user, %{first_name: "New"})
+
   """
   @spec change_user(User.t(), map()) :: Ecto.Changeset.t()
   def change_user(%User{} = user, attrs \\ %{}) do
@@ -153,13 +166,14 @@ defmodule Helix.Accounts do
   @doc """
   Authenticates a user with email and password.
 
-  ## Parameters
-    - email: User's email address
-    - password: User's plain text password
+  ## Examples
 
-  ## Returns
-    - `{:ok, User.t()}` on successful authentication
-    - `{:error, :invalid_credentials}` on authentication failure
+      iex> Helix.Accounts.authenticate_user("nonexistent@example.com", "password")
+      {:error, :invalid_credentials}
+
+      iex> Helix.Accounts.authenticate_user("user@example.com", "wrong_password")
+      {:error, :invalid_credentials}
+
   """
   @spec authenticate_user(String.t(), String.t()) ::
           {:ok, User.t()} | {:error, :invalid_credentials}
