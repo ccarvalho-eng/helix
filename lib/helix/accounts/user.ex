@@ -93,6 +93,24 @@ defmodule Helix.Accounts.User do
     |> hash_password()
   end
 
+  @doc """
+  Verifies a plain text password against a hashed password.
+
+  Uses Argon2 to safely compare passwords with constant-time verification.
+
+  ## Parameters
+    - password: The plain text password to verify
+    - hash: The stored Argon2 password hash
+
+  ## Returns
+    - `true` if password matches the hash
+    - `false` if password doesn't match
+  """
+  @spec verify_password(String.t(), String.t()) :: boolean()
+  def verify_password(password, hash) do
+    Argon2.verify_pass(password, hash)
+  end
+
   defp validate_email(changeset) do
     changeset
     |> validate_format(:email, ~r/^[^\s]+@[^\s]+\.[^\s]+$/,
@@ -124,23 +142,5 @@ defmodule Helix.Accounts.User do
     else
       changeset
     end
-  end
-
-  @doc """
-  Verifies a plain text password against a hashed password.
-
-  Uses Argon2 to safely compare passwords with constant-time verification.
-
-  ## Parameters
-    - password: The plain text password to verify
-    - hash: The stored Argon2 password hash
-
-  ## Returns
-    - `true` if password matches the hash
-    - `false` if password doesn't match
-  """
-  @spec verify_password(String.t(), String.t()) :: boolean()
-  def verify_password(password, hash) do
-    Argon2.verify_pass(password, hash)
   end
 end

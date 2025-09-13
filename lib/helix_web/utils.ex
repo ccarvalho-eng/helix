@@ -21,14 +21,6 @@ defmodule HelixWeb.Utils do
     end)
   end
 
-  defp translate_error({msg, opts}) do
-    Enum.reduce(opts, msg, fn {key, value}, acc ->
-      String.replace(acc, "%{#{key}}", inspect(value))
-    end)
-  end
-
-  defp not_authenticated_error, do: {:error, "Not authenticated"}
-
   @doc """
   Checks if a resolution context contains an authenticated user.
 
@@ -61,4 +53,12 @@ defmodule HelixWeb.Utils do
       HelixWeb.Utils.get_current_user(unquote(resolution))
     end
   end
+
+  defp translate_error({msg, opts}) do
+    Enum.reduce(opts, msg, fn {key, value}, acc ->
+      String.replace(acc, "%{#{key}}", inspect(value))
+    end)
+  end
+
+  defp not_authenticated_error, do: {:error, "Not authenticated"}
 end
