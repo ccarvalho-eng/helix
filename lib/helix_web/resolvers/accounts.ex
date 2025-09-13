@@ -182,5 +182,4 @@ defmodule HelixWeb.Resolvers.Accounts do
   def change_password(_parent, _args, _resolution) do
     {:error, "Not authenticated"}
   end
-
 end
