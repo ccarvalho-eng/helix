@@ -21,30 +21,13 @@ defmodule HelixWeb.Utils do
     end)
   end
 
-  @doc """
-  Translates error message tuples with interpolated values.
-
-  ## Parameters
-    - error_tuple: {message, opts} tuple from changeset errors
-
-  ## Returns
-    - String with interpolated values
-  """
-  @spec translate_error({String.t(), keyword()}) :: String.t()
-  def translate_error({msg, opts}) do
+  defp translate_error({msg, opts}) do
     Enum.reduce(opts, msg, fn {key, value}, acc ->
       String.replace(acc, "%{#{key}}", inspect(value))
     end)
   end
 
-  @doc """
-  Standard "not authenticated" error response.
-
-  ## Returns
-    - `{:error, "Not authenticated"}`
-  """
-  @spec not_authenticated_error :: {:error, String.t()}
-  def not_authenticated_error, do: {:error, "Not authenticated"}
+  defp not_authenticated_error, do: {:error, "Not authenticated"}
 
   @doc """
   Checks if a resolution context contains an authenticated user.
