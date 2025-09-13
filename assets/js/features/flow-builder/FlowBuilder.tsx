@@ -45,6 +45,11 @@ import {
   ChevronDown,
   ChevronUp,
   BarChart3,
+  Users,
+  FileText,
+  Heart,
+  DollarSign,
+  ShoppingCart,
 } from 'lucide-react';
 
 type ReactFlowAINode = OriginalAIFlowNode;
@@ -433,7 +438,15 @@ function FlowBuilderInternal() {
   const [isMobile, setIsMobile] = useState(false);
   const [modalNodeId, setModalNodeId] = useState<string | null>(null);
   const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
-  const [activeTemplateTab, setActiveTemplateTab] = useState<'technology' | 'gaming'>('technology');
+  const [activeTemplateTab, setActiveTemplateTab] = useState<
+    | 'business-automation'
+    | 'customer-service'
+    | 'content-creation'
+    | 'data-analysis'
+    | 'healthcare'
+    | 'finance'
+    | 'e-commerce'
+  >('business-automation');
   const [isCanvasLocked, setIsCanvasLocked] = useState(false);
   const [isMobileStatsOpen, setIsMobileStatsOpen] = useState(false);
 
@@ -881,117 +894,165 @@ function FlowBuilderInternal() {
         title='All Templates'
         size='large'
       >
-        <div>
-          {/* Category Tabs */}
+        <div
+          style={{
+            display: 'flex',
+            height: '500px',
+            maxHeight: '70vh',
+          }}
+        >
+          {/* Sidebar */}
           <div
-            className='flow-builder__template-tabs'
+            className='flow-builder__templates-sidebar'
             style={{
-              display: 'flex',
-              borderBottom: '1px solid #e5e7eb',
-              marginBottom: '20px',
+              width: '240px',
+              borderRight: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
+              padding: '16px',
+              backgroundColor: 'transparent',
             }}
           >
-            <button
-              className={`flow-builder__template-tab ${activeTemplateTab === 'technology' ? 'active' : ''}`}
+            <h3
               style={{
-                padding: '12px 20px',
-                border: 'none',
-                background: 'transparent',
-                borderBottom:
-                  activeTemplateTab === 'technology'
-                    ? `2px solid ${theme === 'dark' ? '#98c379' : '#0f172a'}`
-                    : '2px solid transparent',
-                color:
-                  activeTemplateTab === 'technology'
-                    ? theme === 'dark'
-                      ? '#98c379'
-                      : '#0f172a'
-                    : '#6b7280',
-                fontWeight: activeTemplateTab === 'technology' ? '600' : '400',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: theme === 'dark' ? '#e5e7eb' : '#374151',
+                marginBottom: '16px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
               }}
-              onClick={() => setActiveTemplateTab('technology')}
             >
-              <Settings size={16} />
-              Technology
-            </button>
-            <button
-              className={`flow-builder__template-tab ${activeTemplateTab === 'gaming' ? 'active' : ''}`}
-              style={{
-                padding: '12px 20px',
-                border: 'none',
-                background: 'transparent',
-                borderBottom:
-                  activeTemplateTab === 'gaming'
-                    ? `2px solid ${theme === 'dark' ? '#98c379' : '#0f172a'}`
-                    : '2px solid transparent',
-                color:
-                  activeTemplateTab === 'gaming'
-                    ? theme === 'dark'
-                      ? '#98c379'
-                      : '#0f172a'
-                    : '#6b7280',
-                fontWeight: activeTemplateTab === 'gaming' ? '600' : '400',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-              onClick={() => setActiveTemplateTab('gaming')}
-            >
-              <Gamepad2 size={16} />
-              Gaming
-            </button>
+              Categories
+            </h3>
+            <div className='flow-builder__category-list'>
+              {[
+                { id: 'business-automation', label: 'Business Automation', icon: Settings },
+                { id: 'customer-service', label: 'Customer Service', icon: Users },
+                { id: 'content-creation', label: 'Content Creation', icon: FileText },
+                { id: 'data-analysis', label: 'Data Analysis', icon: BarChart3 },
+                { id: 'healthcare', label: 'Healthcare', icon: Heart },
+                { id: 'finance', label: 'Finance', icon: DollarSign },
+                { id: 'e-commerce', label: 'E-Commerce', icon: ShoppingCart },
+              ].map(category => {
+                const IconComponent = category.icon;
+                const isActive = activeTemplateTab === category.id;
+                return (
+                  <button
+                    key={category.id}
+                    className={`flow-builder__category-item ${isActive ? 'active' : ''}`}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      width: '100%',
+                      padding: '12px 16px',
+                      margin: '4px 0',
+                      border: 'none',
+                      borderRadius: '8px',
+                      background: isActive
+                        ? theme === 'dark'
+                          ? '#374151'
+                          : '#e5e7eb'
+                        : 'transparent',
+                      color: isActive
+                        ? theme === 'dark'
+                          ? '#98c379'
+                          : '#0f172a'
+                        : theme === 'dark'
+                          ? '#d1d5db'
+                          : '#6b7280',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: isActive ? '600' : '400',
+                      textAlign: 'left',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onClick={() => setActiveTemplateTab(category.id as typeof activeTemplateTab)}
+                    onMouseEnter={e => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor =
+                          theme === 'dark' ? '#2d3748' : '#f3f4f6';
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }
+                    }}
+                  >
+                    <IconComponent size={18} style={{ flexShrink: 0 }} />
+                    {category.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Template Cards */}
-          <div className='flow-builder__templates-grid'>
-            {getTemplatesByCategory(activeTemplateTab).map(template => {
-              const getTemplateIcon = (category: string) => {
-                switch (category) {
-                  case 'technology':
-                    return Settings;
-                  case 'gaming':
-                    return Gamepad2;
-                  default:
-                    return Circle;
-                }
-              };
-              const IconComponent = getTemplateIcon(template.category);
+          <div
+            className='flow-builder__templates-content'
+            style={{
+              flex: 1,
+              padding: '16px 24px',
+              overflow: 'auto',
+            }}
+          >
+            <div className='flow-builder__templates-grid'>
+              {getTemplatesByCategory(activeTemplateTab).map(template => {
+                const getTemplateIcon = (category: string) => {
+                  switch (category) {
+                    case 'business-automation':
+                      return Settings;
+                    case 'customer-service':
+                      return Users;
+                    case 'content-creation':
+                      return FileText;
+                    case 'data-analysis':
+                      return BarChart3;
+                    case 'healthcare':
+                      return Heart;
+                    case 'finance':
+                      return DollarSign;
+                    case 'e-commerce':
+                      return ShoppingCart;
+                    default:
+                      return Circle;
+                  }
+                };
+                const IconComponent = getTemplateIcon(template.category);
 
-              return (
-                <div
-                  key={template.id}
-                  className='flow-builder__template-card'
-                  onClick={() => {
-                    addTemplate(template.id as TemplateType);
-                    setIsTemplatesModalOpen(false);
-                  }}
-                >
-                  <div className='flow-builder__template-card-header'>
-                    <h3
-                      className='flow-builder__template-card-title'
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                      }}
-                    >
-                      <IconComponent size={18} style={{ color: '#6b7280', flexShrink: 0 }} />
-                      {template.name}
-                    </h3>
+                return (
+                  <div
+                    key={template.id}
+                    className='flow-builder__template-card'
+                    onClick={() => {
+                      addTemplate(template.id as TemplateType);
+                      setIsTemplatesModalOpen(false);
+                    }}
+                  >
+                    <div className='flow-builder__template-card-header'>
+                      <h3
+                        className='flow-builder__template-card-title'
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}
+                      >
+                        <IconComponent size={18} style={{ color: '#6b7280', flexShrink: 0 }} />
+                        {template.name}
+                      </h3>
+                    </div>
+                    <p className='flow-builder__template-card-description'>
+                      {template.description}
+                    </p>
+                    <div className='flow-builder__template-card-stats'>
+                      <span>{template.nodes.length} nodes</span>
+                      <span>{template.connections.length} connections</span>
+                    </div>
                   </div>
-                  <p className='flow-builder__template-card-description'>{template.description}</p>
-                  <div className='flow-builder__template-card-stats'>
-                    <span>{template.nodes.length} nodes</span>
-                    <span>{template.connections.length} connections</span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       </Modal>
