@@ -14,6 +14,11 @@ defmodule HelixWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :graphql do
+    plug :accepts, ["json"]
+    plug HelixWeb.Context
+  end
+
   scope "/", HelixWeb do
     pipe_through :browser
 
@@ -28,6 +33,19 @@ defmodule HelixWeb.Router do
 
     post "/flows/:id/sync", FlowController, :sync
     get "/flows/:id/status", FlowController, :status
+  end
+
+  # GraphQL API
+  scope "/api" do
+    pipe_through :graphql
+
+    forward "/graphql", Absinthe.Plug, schema: HelixWeb.Schema
+
+    if Application.compile_env(:helix, :dev_routes) do
+      forward "/graphiql", Absinthe.Plug.GraphiQL,
+        schema: HelixWeb.Schema,
+        interface: :simple
+    end
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
