@@ -83,7 +83,6 @@ defmodule Helix.MixProject do
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
       {:absinthe, "~> 1.7"},
       {:absinthe_plug, "~> 1.5"},
-      {:absinthe_phoenix, "~> 2.0"},
       {:guardian, "~> 2.3"},
       {:argon2_elixir, "~> 3.0"}
     ]
