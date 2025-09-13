@@ -61,6 +61,17 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Configure Guardian
+secret_key =
+  case config_env() do
+    :prod -> System.fetch_env!("GUARDIAN_SECRET_KEY")
+    _ -> System.get_env("GUARDIAN_SECRET_KEY") || "default_secret_key_for_development_only"
+  end
+
+config :helix, Helix.Accounts.Guardian,
+  issuer: "helix",
+  secret_key: secret_key
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
