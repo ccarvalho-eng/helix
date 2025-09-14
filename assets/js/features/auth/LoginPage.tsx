@@ -7,7 +7,6 @@ import {
   Lock,
   GitFork,
   UsersRound,
-  Save,
   LayoutTemplate,
 } from 'lucide-react';
 import { ThemeToggle } from '../flow-builder/components/ThemeToggle';
@@ -43,39 +42,55 @@ export const LoginPage: React.FC = () => {
         {/* Left side - Branding */}
         <div className='login-brand-section'>
           <div className='login-brand-content'>
-            <h2 className='login-brand-title'>Helix: AI Agent Workflow Designer</h2>
+            <h2 className='login-brand-title'>Design AI Agent Workflows</h2>
             <p className='login-brand-subtitle'>
-              Visually design, collaborate on, and manage complex AI agent workflows with ease.
+              Build, collaborate, and deploy intelligent multi-agent systems with visual simplicity.
             </p>
 
             <div className='login-features'>
               <div className='login-feature'>
-                <GitFork className='login-feature-icon' size={20} />
-                <span>
-                  <strong>Intuitive Visual Editor:</strong> Drag-and-drop nodes, connections, and a
-                  minimap make workflow design a breeze.
-                </span>
+                <div className='login-feature-icon'>
+                  <Cpu size={18} />
+                </div>
+                <div className='login-feature-content'>
+                  <h3 className='login-feature-title'>Advanced Node System</h3>
+                  <p className='login-feature-description'>
+                    10+ specialized AI components: agents, sensors, memory, and decision logic
+                  </p>
+                </div>
               </div>
               <div className='login-feature'>
-                <UsersRound className='login-feature-icon' size={20} />
-                <span>
-                  <strong>Real-Time Collaboration:</strong> Work with your team in real-time with
-                  changes synced instantly across all clients.
-                </span>
+                <div className='login-feature-icon'>
+                  <UsersRound size={18} />
+                </div>
+                <div className='login-feature-content'>
+                  <h3 className='login-feature-title'>Live Collaboration</h3>
+                  <p className='login-feature-description'>
+                    Real-time editing with your team through instant WebSocket sync
+                  </p>
+                </div>
               </div>
               <div className='login-feature'>
-                <Save className='login-feature-icon' size={20} />
-                <span>
-                  <strong>Powerful Workflow Management:</strong> Save, load, and duplicate your
-                  workflows with ease.
-                </span>
+                <div className='login-feature-icon'>
+                  <GitFork size={18} />
+                </div>
+                <div className='login-feature-content'>
+                  <h3 className='login-feature-title'>Professional Canvas</h3>
+                  <p className='login-feature-description'>
+                    Drag-and-drop editor with minimap, properties, and beautiful themes
+                  </p>
+                </div>
               </div>
               <div className='login-feature'>
-                <LayoutTemplate className='login-feature-icon' size={20} />
-                <span>
-                  <strong>Modern UI/UX:</strong> A clean, responsive, and themable interface that's
-                  a joy to use.
-                </span>
+                <div className='login-feature-icon'>
+                  <LayoutTemplate size={18} />
+                </div>
+                <div className='login-feature-content'>
+                  <h3 className='login-feature-title'>Ready-Made Templates</h3>
+                  <p className='login-feature-description'>
+                    16+ workflow templates for business, healthcare, finance, and more
+                  </p>
+                </div>
               </div>
             </div>
           </div>
