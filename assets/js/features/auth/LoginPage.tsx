@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Cpu,
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  GitFork,
-  UsersRound,
-  LayoutTemplate,
-} from 'lucide-react';
+import { Cpu, Eye, EyeOff, Mail, Lock, GitFork, UsersRound, LayoutTemplate } from 'lucide-react';
 import { ThemeToggle } from '../flow-builder/components/ThemeToggle';
 
 export const LoginPage: React.FC = () => {

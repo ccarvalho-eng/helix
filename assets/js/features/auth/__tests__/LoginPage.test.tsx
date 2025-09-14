@@ -4,7 +4,7 @@ import { LoginPage } from '../LoginPage';
 
 // Mock the ThemeToggle component since it's imported
 jest.mock('../../flow-builder/components/ThemeToggle', () => ({
-  ThemeToggle: () => <div data-testid="theme-toggle">Theme Toggle</div>,
+  ThemeToggle: () => <div data-testid='theme-toggle'>Theme Toggle</div>,
 }));
 
 describe('LoginPage', () => {
@@ -17,7 +17,9 @@ describe('LoginPage', () => {
 
     // Check branding section
     expect(screen.getByText('Design AI Agent Workflows')).toBeInTheDocument();
-    expect(screen.getByText(/Build, collaborate, and deploy intelligent multi-agent systems/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Build, collaborate, and deploy intelligent multi-agent systems/)
+    ).toBeInTheDocument();
 
     // Check form section
     expect(screen.getByText('Welcome back')).toBeInTheDocument();
@@ -119,9 +121,12 @@ describe('LoginPage', () => {
     expect(submitButton).toBeDisabled();
 
     // Wait for loading to finish
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Sign in' })).not.toBeDisabled();
-    }, { timeout: 2000 });
+    await waitFor(
+      () => {
+        expect(screen.getByRole('button', { name: 'Sign in' })).not.toBeDisabled();
+      },
+      { timeout: 2000 }
+    );
   });
 
   it('renders footer with correct links', () => {
