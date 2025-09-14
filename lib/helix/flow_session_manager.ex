@@ -66,7 +66,8 @@ defmodule Helix.FlowSessionManager do
   @impl true
   def init(_) do
     # Schedule initial cleanup
-    {:ok, %{sessions: %{}, client_flows: %{}, cleanup_timer: nil} |> schedule_cleanup()}
+    initial_state = %{sessions: %{}, client_flows: %{}, cleanup_timer: nil}
+    {:ok, schedule_cleanup(initial_state)}
   end
 
   @impl true
@@ -85,7 +86,8 @@ defmodule Helix.FlowSessionManager do
 
     new_client_flows = Map.put(state.client_flows, safe_client_id, flow_id)
 
-    session = Map.get(state.sessions, flow_id, %{clients: MapSet.new(), last_activity: now})
+    default_session = %{clients: MapSet.new(), last_activity: now}
+    session = Map.get(state.sessions, flow_id, default_session)
 
     updated_session = %{
       clients: MapSet.put(session.clients, safe_client_id),
@@ -96,7 +98,8 @@ defmodule Helix.FlowSessionManager do
     client_count = MapSet.size(updated_session.clients)
 
     Logger.info(
-      "Client #{safe_client_id} joined flow #{flow_id}. Active clients: #{client_count}"
+      "Client #{safe_client_id} joined flow #{flow_id}. " <>
+        "Active clients: #{client_count}"
     )
 
     {:reply, {:ok, client_count},
@@ -133,7 +136,8 @@ defmodule Helix.FlowSessionManager do
           end
 
         Logger.info(
-          "Client #{client_id} left flow #{flow_id}. Remaining clients: #{client_count}"
+          "Client #{client_id} left flow #{flow_id}. " <>
+            "Remaining clients: #{client_count}"
         )
 
         {:reply, {:ok, client_count},
@@ -163,7 +167,10 @@ defmodule Helix.FlowSessionManager do
       state.sessions
       |> Enum.map(fn {flow_id, session} ->
         {flow_id,
-         %{client_count: MapSet.size(session.clients), last_activity: session.last_activity}}
+         %{
+           client_count: MapSet.size(session.clients),
+           last_activity: session.last_activity
+         }}
       end)
       |> Enum.into(%{})
 
@@ -185,11 +192,17 @@ defmodule Helix.FlowSessionManager do
         # Remove all client_flows mappings for this flow
         new_client_flows =
           state.client_flows
-          |> Enum.reject(fn {_client_id, client_flow_id} -> client_flow_id == flow_id end)
+          |> Enum.reject(fn {_client_id, client_flow_id} ->
+            client_flow_id == flow_id
+          end)
           |> Map.new()
 
         # Broadcast flow_deleted message to all clients in this flow
-        Phoenix.PubSub.broadcast(Helix.PubSub, "flow:#{flow_id}", {:flow_deleted, flow_id})
+        Phoenix.PubSub.broadcast(
+          Helix.PubSub,
+          "flow:#{flow_id}",
+          {:flow_deleted, flow_id}
+        )
 
         Logger.info("Force closed flow session #{flow_id} with #{client_count} clients")
 
@@ -203,19 +216,32 @@ defmodule Helix.FlowSessionManager do
     case Map.get(state.sessions, flow_id) do
       nil ->
         # No active session, nothing to broadcast
-        Logger.warning("Attempted to broadcast changes to non-existent flow session: #{flow_id}")
+        Logger.warning(
+          "Attempted to broadcast changes to non-existent flow " <>
+            "session: #{flow_id}"
+        )
+
         {:noreply, state}
 
       session ->
         # Update last activity atomically
-        updated_session = %{session | last_activity: System.system_time(:second)}
+        updated_session = %{
+          session
+          | last_activity: System.system_time(:second)
+        }
+
         new_sessions = Map.put(state.sessions, flow_id, updated_session)
 
         # Broadcast original changes to all clients via Phoenix PubSub
-        Phoenix.PubSub.broadcast(Helix.PubSub, "flow:#{flow_id}", {:flow_change, changes})
+        Phoenix.PubSub.broadcast(
+          Helix.PubSub,
+          "flow:#{flow_id}",
+          {:flow_change, changes}
+        )
 
         Logger.debug(
-          "Broadcasted flow changes for #{flow_id} to #{MapSet.size(session.clients)} clients"
+          "Broadcasted flow changes for #{flow_id} to " <>
+            "#{MapSet.size(session.clients)} clients"
         )
 
         {:noreply, %{state | sessions: new_sessions}}
@@ -235,10 +261,12 @@ defmodule Helix.FlowSessionManager do
       end)
 
     if inactive_flows != [] do
-      inactive_flow_ids = Enum.map(inactive_flows, fn {flow_id, _} -> flow_id end)
+      inactive_flow_ids =
+        Enum.map(inactive_flows, fn {flow_id, _} -> flow_id end)
 
       Logger.info(
-        "Cleaned up #{length(inactive_flows)} inactive flow sessions: #{inspect(inactive_flow_ids)}"
+        "Cleaned up #{length(inactive_flows)} inactive flow sessions: " <>
+          "#{inspect(inactive_flow_ids)}"
       )
     end
 
@@ -252,11 +280,17 @@ defmodule Helix.FlowSessionManager do
 
     new_client_flows =
       state.client_flows
-      |> Enum.reject(fn {_client_id, flow_id} -> MapSet.member?(inactive_ids_set, flow_id) end)
+      |> Enum.reject(fn {_client_id, flow_id} ->
+        MapSet.member?(inactive_ids_set, flow_id)
+      end)
       |> Map.new()
 
     # Schedule next cleanup
-    new_state = %{state | sessions: new_sessions, client_flows: new_client_flows}
+    new_state = %{
+      state
+      | sessions: new_sessions,
+        client_flows: new_client_flows
+    }
 
     {:noreply, schedule_cleanup(new_state)}
   end
@@ -275,7 +309,11 @@ defmodule Helix.FlowSessionManager do
     if state.cleanup_timer, do: Process.cancel_timer(state.cleanup_timer)
 
     # Clean up every 10 minutes
-    timer = Process.send_after(__MODULE__, :cleanup_inactive_sessions, 10 * 60 * 1000)
+    # 10 minutes
+    cleanup_interval = 10 * 60 * 1000
+
+    timer =
+      Process.send_after(__MODULE__, :cleanup_inactive_sessions, cleanup_interval)
 
     %{state | cleanup_timer: timer}
   end

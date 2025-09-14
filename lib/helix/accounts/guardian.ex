@@ -19,7 +19,8 @@ defmodule Helix.Accounts.Guardian do
     - `{:ok, String.t()}` with the user ID
     - `{:error, :reason_for_error}` for invalid input
   """
-  @spec subject_for_token(User.t(), any()) :: {:ok, String.t()} | {:error, atom()}
+  @spec subject_for_token(User.t(), any()) ::
+          {:ok, String.t()} | {:error, atom()}
   def subject_for_token(%User{id: id}, _claims) do
     {:ok, to_string(id)}
   end
@@ -31,7 +32,8 @@ defmodule Helix.Accounts.Guardian do
   @doc """
   Retrieves a User from JWT token claims.
 
-  Extracts the user ID from the 'sub' claim and fetches the user from the database.
+  Extracts the user ID from the 'sub' claim and fetches the user from the
+  database.
 
   ## Parameters
     - claims: JWT claims map containing 'sub' key
@@ -67,7 +69,8 @@ defmodule Helix.Accounts.Guardian do
     - `{:error, :invalid_credentials}` on authentication failure
     - `{:error, atom()}` on token generation failure
   """
-  @spec authenticate(String.t(), String.t()) :: {:ok, User.t(), String.t()} | {:error, atom()}
+  @spec authenticate(String.t(), String.t()) ::
+          {:ok, User.t(), String.t()} | {:error, atom()}
   def authenticate(email, password) do
     case Accounts.authenticate_user(email, password) do
       {:ok, user} ->

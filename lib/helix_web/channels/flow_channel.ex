@@ -16,8 +16,13 @@ defmodule HelixWeb.FlowChannel do
   @impl true
   def join("flow:" <> flow_id, _payload, socket) do
     # Basic validation - ensure flow_id is not empty and has valid format
-    # Allow alphanumeric, hyphens, underscores, dots, and angle brackets for test compatibility
-    if String.trim(flow_id) == "" or not String.match?(flow_id, ~r/^[a-zA-Z0-9\-_.<>#]+$/) do
+    # Allow alphanumeric, hyphens, underscores, dots, and angle brackets
+    # for test compatibility
+    flow_id_pattern = ~r/^[a-zA-Z0-9\-_.<>#]+$/
+    is_empty = String.trim(flow_id) == ""
+    is_valid_format = String.match?(flow_id, flow_id_pattern)
+
+    if is_empty or not is_valid_format do
       Logger.warning("Invalid flow ID format attempted: #{inspect(flow_id)}")
       {:error, %{reason: "Invalid flow identifier"}}
     else
@@ -34,7 +39,8 @@ defmodule HelixWeb.FlowChannel do
             |> assign(:client_id, client_id)
 
           Logger.info(
-            "Client #{client_id} joined flow channel #{flow_id}. Total clients: #{client_count}"
+            "Client #{client_id} joined flow channel #{flow_id}. " <>
+              "Total clients: #{client_count}"
           )
 
           # Send join confirmation with current client count
@@ -121,7 +127,8 @@ defmodule HelixWeb.FlowChannel do
       case FlowSessionManager.leave_flow(flow_id, client_id) do
         {:ok, remaining_clients} ->
           # Broadcast that a client left using broadcast_from
-          # This may fail if the channel is already terminating or never properly joined
+          # This may fail if the channel is already terminating or never
+          # properly joined
           try do
             broadcast_from(socket, "client_left", %{
               client_count: remaining_clients,
@@ -130,12 +137,14 @@ defmodule HelixWeb.FlowChannel do
           rescue
             RuntimeError ->
               Logger.debug(
-                "Could not broadcast client_left during termination - socket not joined"
+                "Could not broadcast client_left during termination - " <>
+                  "socket not joined"
               )
           catch
             :exit, _ ->
               Logger.debug(
-                "Could not broadcast client_left during termination - channel already closed"
+                "Could not broadcast client_left during termination - " <>
+                  "channel already closed"
               )
           end
 
