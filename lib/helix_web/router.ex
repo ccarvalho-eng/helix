@@ -23,6 +23,7 @@ defmodule HelixWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/login", AuthController, :login
     get "/flow", FlowController, :index
     get "/flow/:id", FlowController, :show
   end

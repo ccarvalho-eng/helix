@@ -28,6 +28,8 @@ import { LiveSocket } from 'phoenix_live_view';
 import './apps/ai-flow';
 // Import the Home app
 import './apps/home';
+// Import the Auth app
+import './apps/auth';
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('content');
 let liveSocket = new LiveSocket('/live', Socket, {
