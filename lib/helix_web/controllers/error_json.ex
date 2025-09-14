@@ -16,6 +16,7 @@ defmodule HelixWeb.ErrorJSON do
   # the template name. For example, "404.json" becomes
   # "Not Found".
   def render(template, _assigns) do
-    %{errors: %{detail: Phoenix.Controller.status_message_from_template(template)}}
+    detail = Phoenix.Controller.status_message_from_template(template)
+    %{errors: %{detail: detail}}
   end
 end

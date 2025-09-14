@@ -42,9 +42,11 @@ defmodule Helix.Accounts.User do
   end
 
   @doc """
-  Creates a changeset for user registration with password validation and hashing.
+  Creates a changeset for user registration with password validation and
+  hashing.
 
-  Includes all basic validations plus password requirements and automatic hashing.
+  Includes all basic validations plus password requirements and automatic
+  hashing.
 
   ## Parameters
     - user: The User struct (typically %User{})
@@ -113,14 +115,22 @@ defmodule Helix.Accounts.User do
 
   defp validate_password(changeset) do
     changeset
-    |> validate_length(:password, min: 8, message: "password must be at least 8 characters")
+    |> validate_length(
+      :password,
+      min: 8,
+      message: "password must be at least 8 characters"
+    )
     |> validate_format(:password, ~r/[a-z]/,
       message: "password must contain at least one lowercase letter"
     )
     |> validate_format(:password, ~r/[A-Z]/,
       message: "password must contain at least one uppercase letter"
     )
-    |> validate_format(:password, ~r/[0-9]/, message: "password must contain at least one number")
+    |> validate_format(
+      :password,
+      ~r/[0-9]/,
+      message: "password must contain at least one number"
+    )
   end
 
   defp hash_password(changeset) do

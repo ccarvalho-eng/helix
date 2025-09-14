@@ -6,7 +6,7 @@ test.describe('WebSocket and Real-time Collaboration', () => {
       // Navigate directly to flow builder (more reliable than home + click)
       await page.goto('/flow');
       await page.waitForLoadState('networkidle');
-      
+
       // Wait for flow builder to fully load
       await page.waitForSelector('.flow-builder', { timeout: 10000 });
       await page.waitForTimeout(3000); // Give time for WebSocket to connect
@@ -14,11 +14,11 @@ test.describe('WebSocket and Real-time Collaboration', () => {
       // Check for connection status in UI - look for "Live" indicator or no "Connecting..." state
       const connectingIndicator = page.locator('.flow-builder__stat--connecting');
       const liveIndicator = page.locator('.flow-builder__stat--connected');
-      
+
       // Either we should see "Live" status, or not see "Connecting..." (meaning connection succeeded)
-      const isConnected = await liveIndicator.count() > 0;
-      const isNotConnecting = await connectingIndicator.count() === 0;
-      
+      const isConnected = (await liveIndicator.count()) > 0;
+      const isNotConnecting = (await connectingIndicator.count()) === 0;
+
       // At least one of these should be true (either showing "Live" or not showing "Connecting...")
       expect(isConnected || isNotConnecting).toBeTruthy();
     });
@@ -33,17 +33,17 @@ test.describe('WebSocket and Real-time Collaboration', () => {
       // Verify flow builder is loaded and functional (indication that channel join succeeded)
       await expect(page.locator('.flow-builder')).toBeVisible();
       await expect(page.locator('.node-palette')).toBeVisible();
-      
+
       // Check that we can interact with the flow (indicates successful channel join)
       const agentNode = page.locator('[data-node-type="agent"]').first();
       await expect(agentNode).toBeVisible();
-      
+
       // If we can add a node, it means the flow is properly connected and functional
       const initialNodeCount = await page.locator('.react-flow__node').count();
       await agentNode.click();
       await page.waitForTimeout(1000);
       const finalNodeCount = await page.locator('.react-flow__node').count();
-      
+
       // Node addition working indicates successful WebSocket connection and channel join
       expect(finalNodeCount).toBeGreaterThanOrEqual(initialNodeCount);
     });
@@ -62,14 +62,14 @@ test.describe('WebSocket and Real-time Collaboration', () => {
       // Look for either "Live" status or absence of "Connecting..." (both indicate success)
       const connectingStatus = page.locator('.flow-builder__stat--connecting');
       const liveStatus = page.locator('.flow-builder__stat--connected');
-      
+
       // Check that either we have "Live" status or we don't have "Connecting..." status
-      const hasLiveStatus = await liveStatus.count() > 0;
-      const notConnecting = await connectingStatus.count() === 0;
-      
+      const hasLiveStatus = (await liveStatus.count()) > 0;
+      const notConnecting = (await connectingStatus.count()) === 0;
+
       // At least one should be true - either showing live or not showing connecting
       expect(hasLiveStatus || notConnecting).toBeTruthy();
-      
+
       // Additionally, verify the stats area shows node/connection counts (indicates UI is functional)
       const nodeStats = page.locator('.flow-builder__stat', { hasText: 'nodes' });
       await expect(nodeStats).toBeVisible();
@@ -89,7 +89,7 @@ test.describe('WebSocket and Real-time Collaboration', () => {
       // Simulate disconnection by navigating away and back
       await page.goto('/');
       await page.waitForTimeout(500);
-      
+
       // Navigate back to flow builder
       await page.goto('/flow');
       await page.waitForLoadState('networkidle');
@@ -98,17 +98,17 @@ test.describe('WebSocket and Real-time Collaboration', () => {
       // Verify the flow builder is still functional after reconnection
       await expect(page.locator('.flow-builder')).toBeVisible();
       await expect(page.locator('.node-palette')).toBeVisible();
-      
+
       // Test that we can still interact with the UI (indicates successful reconnection)
       const agentNode = page.locator('[data-node-type="agent"]').first();
       await expect(agentNode).toBeVisible();
-      
+
       // If we can add a node, reconnection was successful
       const initialNodeCount = await page.locator('.react-flow__node').count();
       await agentNode.click();
       await page.waitForTimeout(1000);
       const finalNodeCount = await page.locator('.react-flow__node').count();
-      
+
       // Graceful reconnection means UI functionality is restored
       expect(finalNodeCount).toBeGreaterThanOrEqual(initialNodeCount);
     });
@@ -181,71 +181,11 @@ test.describe('WebSocket and Real-time Collaboration', () => {
     });
   });
 
-  test.describe('Real-time Flow Synchronization', () => {
-    test('should sync node additions between clients', async ({ browser }) => {
-      test.skip(); // Complex multi-client test - skip for now but leave structure
+  // TODO: Implement real-time collaboration tests when WebSocket sync is production-ready
+  // These tests require complex multi-client setup and are currently not feasible to maintain
 
-      const context1 = await browser.newContext();
-      const context2 = await browser.newContext();
-
-      const page1 = await context1.newPage();
-      const page2 = await context2.newPage();
-
-      try {
-        // User 1 creates flow and adds node
-        await page1.goto('/');
-        await page1.click('button:has-text("New Flow")');
-        await page1.waitForLoadState('networkidle');
-        const flowUrl = page1.url();
-
-        // User 2 joins same flow
-        await page2.goto(flowUrl);
-        await page2.waitForLoadState('networkidle');
-
-        // User 1 adds a node
-        const agentNode = page1.locator('[data-node-type="agent"]').first();
-        const canvas = page1.locator('.react-flow__pane');
-        await agentNode.dragTo(canvas, { targetPosition: { x: 300, y: 200 } });
-        await page1.waitForTimeout(1000);
-
-        // User 2 should see the new node
-        await page2.waitForTimeout(2000);
-        const nodesInPage2 = page2.locator('.react-flow__node');
-        const nodeCount = await nodesInPage2.count();
-        expect(nodeCount).toBeGreaterThan(0);
-      } finally {
-        await context1.close();
-        await context2.close();
-      }
-    });
-
-    test('should sync node property changes between clients', async ({ browser }) => {
-      test.skip(); // Complex multi-client test - skip for now but leave structure
-
-      // This would test real-time sync of node property changes
-      // Implementation similar to above but focusing on property updates
-    });
-
-    test('should sync node deletions between clients', async ({ browser }) => {
-      test.skip(); // Complex multi-client test - skip for now but leave structure
-
-      // This would test real-time sync of node deletions
-    });
-  });
-
-  test.describe('Conflict Resolution', () => {
-    test('should handle simultaneous edits gracefully', async ({ browser }) => {
-      test.skip(); // Complex conflict resolution test - skip for now
-
-      // This would test what happens when multiple users edit the same node simultaneously
-    });
-
-    test('should preserve data integrity during concurrent operations', async ({ browser }) => {
-      test.skip(); // Complex data integrity test - skip for now
-
-      // This would test that concurrent operations don't corrupt the flow data
-    });
-  });
+  // TODO: Implement conflict resolution tests when WebSocket conflict handling is production-ready
+  // These tests require complex concurrent operation simulation
 
   test.describe('Auto-save with WebSocket', () => {
     test('should automatically save changes to server', async ({ page }) => {
@@ -258,25 +198,25 @@ test.describe('WebSocket and Real-time Collaboration', () => {
       // Add a node to trigger auto-save
       const agentNode = page.locator('[data-node-type="agent"]').first();
       await expect(agentNode).toBeVisible();
-      
+
       const initialNodeCount = await page.locator('.react-flow__node').count();
       await agentNode.click();
       await page.waitForTimeout(1000);
-      
+
       const finalNodeCount = await page.locator('.react-flow__node').count();
       expect(finalNodeCount).toBeGreaterThan(initialNodeCount);
-      
+
       // Wait for auto-save debounce
       await page.waitForTimeout(2000);
-      
+
       // Verify auto-save worked by refreshing page and checking node still exists
       await page.reload();
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('.flow-builder', { timeout: 10000 });
       await page.waitForTimeout(1000);
-      
+
       const nodeCountAfterReload = await page.locator('.react-flow__node').count();
-      
+
       // Auto-save worked if node persists after reload
       expect(nodeCountAfterReload).toBeGreaterThanOrEqual(finalNodeCount);
     });
