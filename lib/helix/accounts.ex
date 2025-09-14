@@ -20,7 +20,7 @@ defmodule Helix.Accounts do
   ## Examples
 
       iex> Helix.Accounts.list_users()
-      [%User{}]
+      [%Helix.Accounts.User{}]
 
   """
   @spec list_users() :: [User.t()]
