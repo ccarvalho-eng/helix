@@ -8,9 +8,14 @@ describe('Auth App Integration', () => {
     document.body.innerHTML = '';
   });
 
-  it('should not crash when imported', async () => {
+  it('should not crash when imported', () => {
     // This will test that the module can be imported without errors
-    await expect(import('../index')).resolves.toBeDefined();
+    expect(() => {
+      jest.isolateModules(() => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef
+        require('../index');
+      });
+    }).not.toThrow();
   });
 
   it('should have auth app container detection logic', () => {
