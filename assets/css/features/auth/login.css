@@ -309,7 +309,6 @@
 
 .login-input-wrapper {
   position: relative;
-  group: input;
 }
 
 .login-input-icon {
@@ -358,10 +357,8 @@
   background: var(--theme-bg-primary);
 }
 
-.login-input:focus + .login-input-icon,
 .login-input-wrapper:focus-within .login-input-icon {
   color: var(--theme-syntax-green);
-  transform: translateY(-50%);
 }
 
 .login-input::placeholder {

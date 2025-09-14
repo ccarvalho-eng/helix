@@ -17,7 +17,7 @@ export const LoginPage: React.FC = () => {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Here you would integrate with your GraphQL authentication
-    console.log('Login attempt:', { email, password, rememberMe });
+    console.log('Login attempt:', { email: email.substring(0, 3) + '***', rememberMe });
 
     setIsLoading(false);
   };
@@ -152,8 +152,9 @@ export const LoginPage: React.FC = () => {
 
               {/* Remember Me & Forgot Password */}
               <div className='login-options'>
-                <label className='login-checkbox'>
+                <label htmlFor='remember-me' className='login-checkbox'>
                   <input
+                    id='remember-me'
                     type='checkbox'
                     checked={rememberMe}
                     onChange={e => setRememberMe(e.target.checked)}
