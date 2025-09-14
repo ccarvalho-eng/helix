@@ -43,7 +43,8 @@ defmodule HelixWeb.Resolvers.Accounts do
   @doc """
   Authenticates a user with email and password.
 
-  Validates the provided credentials and returns the user with a JWT token on success.
+  Validates the provided credentials and returns the user with a JWT token
+  on success.
 
   ## Parameters
     - input: Map containing email and password
@@ -76,7 +77,8 @@ defmodule HelixWeb.Resolvers.Accounts do
     - `{:ok, User.t()}` when authenticated
     - `{:error, "Not authenticated"}` when not authenticated
   """
-  @spec me(any(), any(), Absinthe.Resolution.t()) :: {:ok, User.t()} | {:error, String.t()}
+  @spec me(any(), any(), Absinthe.Resolution.t()) ::
+          {:ok, User.t()} | {:error, String.t()}
   def me(_parent, _args, resolution) do
     require_auth(resolution)
   end
@@ -94,7 +96,8 @@ defmodule HelixWeb.Resolvers.Accounts do
     - `{:error, "User not found"}` when user doesn't exist
     - `{:error, "Not authenticated"}` when not authenticated
   """
-  @spec get_user(any(), map(), Absinthe.Resolution.t()) :: {:ok, User.t()} | {:error, String.t()}
+  @spec get_user(any(), map(), Absinthe.Resolution.t()) ::
+          {:ok, User.t()} | {:error, String.t()}
   def get_user(_parent, %{id: id}, %{context: %{current_user: _user}}) do
     case Accounts.get_user(id) do
       %User{} = user -> {:ok, user}
@@ -109,7 +112,8 @@ defmodule HelixWeb.Resolvers.Accounts do
   @doc """
   Returns a list of all users.
 
-  Requires authentication. This endpoint should be restricted to admin users in production.
+  Requires authentication. This endpoint should be restricted to admin users
+  in production.
 
   ## Returns
     - `{:ok, [User.t()]}` with list of all users
@@ -140,7 +144,11 @@ defmodule HelixWeb.Resolvers.Accounts do
   """
   @spec update_profile(any(), map(), Absinthe.Resolution.t()) ::
           {:ok, User.t()} | {:error, any()}
-  def update_profile(_parent, %{input: input}, %{context: %{current_user: user}}) do
+  def update_profile(
+        _parent,
+        %{input: input},
+        %{context: %{current_user: user}}
+      ) do
     case Accounts.update_user(user, input) do
       {:ok, updated_user} ->
         {:ok, updated_user}
@@ -169,7 +177,11 @@ defmodule HelixWeb.Resolvers.Accounts do
   """
   @spec change_password(any(), map(), Absinthe.Resolution.t()) ::
           {:ok, User.t()} | {:error, any()}
-  def change_password(_parent, %{input: input}, %{context: %{current_user: user}}) do
+  def change_password(
+        _parent,
+        %{input: input},
+        %{context: %{current_user: user}}
+      ) do
     case Accounts.update_user_password(user, input) do
       {:ok, updated_user} ->
         {:ok, updated_user}

@@ -12,7 +12,8 @@ defmodule HelixWeb.CoreComponents do
   See the [Tailwind CSS documentation](https://tailwindcss.com) to learn
   how to customize them or feel free to swap in another framework altogether.
 
-  Icons are provided by [heroicons](https://heroicons.com). See `icon/1` for usage.
+  Icons are provided by [heroicons](https://heroicons.com). See `icon/1` for
+  usage.
   """
   use Phoenix.Component
   use Gettext, backend: HelixWeb.Gettext
@@ -44,7 +45,8 @@ defmodule HelixWeb.CoreComponents do
               return stored;
             }
             
-            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            const darkModeQuery = '(prefers-color-scheme: dark)'
+            if (window.matchMedia && window.matchMedia(darkModeQuery).matches) {
               return 'dark';
             }
             
@@ -108,7 +110,11 @@ defmodule HelixWeb.CoreComponents do
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-50 hidden"
     >
-      <div id={"#{@id}-bg"} class="bg-zinc-50/90 fixed inset-0 transition-opacity" aria-hidden="true" />
+      <div
+        id={"#{@id}-bg"}
+        class="bg-zinc-50/90 fixed inset-0 transition-opacity"
+        aria-hidden="true"
+      />
       <div
         class="fixed inset-0 overflow-y-auto"
         aria-labelledby={"#{@id}-title"}
@@ -124,7 +130,10 @@ defmodule HelixWeb.CoreComponents do
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition"
+              class={
+                "shadow-zinc-700/10 ring-zinc-700/10 relative hidden " <>
+                "rounded-2xl bg-white p-14 shadow-lg ring-1 transition"
+              }
             >
               <div class="absolute top-6 right-5">
                 <button
@@ -158,10 +167,15 @@ defmodule HelixWeb.CoreComponents do
   attr :id, :string, doc: "the optional id of flash container"
   attr :flash, :map, default: %{}, doc: "the map of flash messages to display"
   attr :title, :string, default: nil
-  attr :kind, :atom, values: [:info, :error], doc: "used for styling and flash lookup"
+
+  attr :kind, :atom,
+    values: [:info, :error],
+    doc: "used for styling and flash lookup"
+
   attr :rest, :global, doc: "the arbitrary HTML attributes to add to the flash container"
 
-  slot :inner_block, doc: "the optional inner block that renders the flash message"
+  slot :inner_block,
+    doc: "the optional inner block that renders the flash message"
 
   def flash(assigns) do
     assigns = assign_new(assigns, :id, fn -> "flash-#{assigns.kind}" end)

@@ -20,7 +20,7 @@ defmodule Helix.Accounts do
   ## Examples
 
       iex> Helix.Accounts.list_users()
-      [%User{}]
+      [%Helix.Accounts.User{}]
 
   """
   @spec list_users() :: [User.t()]
@@ -78,7 +78,8 @@ defmodule Helix.Accounts do
 
   ## Examples
 
-      iex> attrs = %{email: "test@example.com", password: "ValidPass123", first_name: "Test", last_name: "User"}
+      iex> attrs = %{email: "test@example.com", password: "ValidPass123",
+      ...>                first_name: "Test", last_name: "User"}
       iex> {:ok, %Helix.Accounts.User{}} = Helix.Accounts.create_user(attrs)
 
       iex> Helix.Accounts.create_user(%{})
@@ -98,14 +99,16 @@ defmodule Helix.Accounts do
   ## Examples
 
       iex> user = %Helix.Accounts.User{first_name: "Old"}
-      iex> {:ok, %Helix.Accounts.User{first_name: "New"}} = Helix.Accounts.update_user(user, %{first_name: "New"})
+      iex> {:ok, %Helix.Accounts.User{first_name: "New"}} =
+      ...>   Helix.Accounts.update_user(user, %{first_name: "New"})
 
       iex> user = %Helix.Accounts.User{}
       iex> Helix.Accounts.update_user(user, %{email: "invalid"})
       {:error, %Ecto.Changeset{}}
 
   """
-  @spec update_user(User.t(), map()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
+  @spec update_user(User.t(), map()) ::
+          {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def update_user(%User{} = user, attrs) do
     user
     |> User.changeset(attrs)
@@ -118,14 +121,18 @@ defmodule Helix.Accounts do
   ## Examples
 
       iex> user = %Helix.Accounts.User{}
-      iex> {:ok, %Helix.Accounts.User{}} = Helix.Accounts.update_user_password(user, %{password: "NewValidPass123"})
+      iex> {:ok, %Helix.Accounts.User{}} =
+      ...>   Helix.Accounts.update_user_password(
+      ...>     user, %{password: "NewValidPass123"}
+      ...>   )
 
       iex> user = %Helix.Accounts.User{}
       iex> Helix.Accounts.update_user_password(user, %{password: "weak"})
       {:error, %Ecto.Changeset{}}
 
   """
-  @spec update_user_password(User.t(), map()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
+  @spec update_user_password(User.t(), map()) ::
+          {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def update_user_password(%User{} = user, attrs) do
     user
     |> User.password_changeset(attrs)
@@ -155,7 +162,8 @@ defmodule Helix.Accounts do
       iex> %Ecto.Changeset{} = Helix.Accounts.change_user(user)
 
       iex> user = %Helix.Accounts.User{}
-      iex> %Ecto.Changeset{} = Helix.Accounts.change_user(user, %{first_name: "New"})
+      iex> %Ecto.Changeset{} =
+      ...>   Helix.Accounts.change_user(user, %{first_name: "New"})
 
   """
   @spec change_user(User.t(), map()) :: Ecto.Changeset.t()
@@ -168,16 +176,19 @@ defmodule Helix.Accounts do
 
   ## Examples
 
-      iex> Helix.Accounts.authenticate_user("nonexistent@example.com", "password")
+      iex> Helix.Accounts.authenticate_user(
+      ...>   "nonexistent@example.com", "password")
       {:error, :invalid_credentials}
 
-      iex> Helix.Accounts.authenticate_user("user@example.com", "wrong_password")
+      iex> Helix.Accounts.authenticate_user(
+      ...>   "user@example.com", "wrong_password")
       {:error, :invalid_credentials}
 
   """
   @spec authenticate_user(String.t(), String.t()) ::
           {:ok, User.t()} | {:error, :invalid_credentials}
-  def authenticate_user(email, password) when is_binary(email) and is_binary(password) do
+  def authenticate_user(email, password)
+      when is_binary(email) and is_binary(password) do
     case get_user_by_email(email) do
       %User{} = user ->
         if User.verify_password(password, user.password_hash) do

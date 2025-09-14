@@ -72,7 +72,8 @@ defmodule HelixWeb.Telemetry do
       summary("helix.repo.query.idle_time",
         unit: {:native, :millisecond},
         description:
-          "The time the connection spent waiting before being checked out for the query"
+          "The time the connection spent waiting before being " <>
+            "checked out for the query"
       ),
 
       # VM Metrics
@@ -86,7 +87,8 @@ defmodule HelixWeb.Telemetry do
   defp periodic_measurements do
     [
       # A module, function and arguments to be invoked periodically.
-      # This function must call :telemetry.execute/3 and a metric must be added above.
+      # This function must call :telemetry.execute/3 and a metric must be
+      # added above.
       # {HelixWeb, :count_users, []}
     ]
   end

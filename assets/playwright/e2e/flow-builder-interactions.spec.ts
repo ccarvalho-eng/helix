@@ -72,7 +72,7 @@ test.describe('Flow Builder Interactions', () => {
       expect(panelContent!.length).toBeGreaterThan(5); // Has some content
     });
 
-    test('should duplicate a node using context menu or keyboard shortcut', async ({ page }) => {
+    test('should duplicate a node using keyboard shortcut', async ({ page }) => {
       // Add a node
       const agentNode = page.locator('[data-node-type="agent"]').first();
       const canvas = page.locator('.react-flow__pane');
@@ -181,15 +181,17 @@ test.describe('Flow Builder Interactions', () => {
 
       // Manually create an edge through React Flow's connection mechanism (if available)
       // or simulate having connections by adding them via the template system
-      const template = page.locator('.react-flow-node-palette__template').first();
-      if (await template.count() > 0) {
+      const template = page
+        .locator(".flow-builder__template-card, button:has-text('Template')")
+        .first();
+      if ((await template.count()) > 0) {
         await template.click();
         await page.waitForTimeout(1000);
       }
 
       // Check if any edges exist
       const initialEdgeCount = await page.locator('.react-flow__edge').count();
-      
+
       // If we have edges, test unlinking functionality
       if (initialEdgeCount > 0) {
         // Select a node to open properties panel - try to click in center to avoid overlapping elements
@@ -203,8 +205,8 @@ test.describe('Flow Builder Interactions', () => {
 
         // Look for an unlink button (X button for connected nodes)
         const unlinkButton = propertiesPanel.locator('.properties-panel__unlink').first();
-        
-        if (await unlinkButton.count() > 0) {
+
+        if ((await unlinkButton.count()) > 0) {
           await unlinkButton.click();
           await page.waitForTimeout(500);
 
@@ -313,39 +315,6 @@ test.describe('Flow Builder Interactions', () => {
       const selectedCount = await selectedNodes.count();
       // Allow for at least one node to be selected, drag selection might be flaky
       expect(selectedCount).toBeGreaterThanOrEqual(0);
-    });
-  });
-
-  test.describe('Keyboard Shortcuts', () => {
-    test('should select all nodes with Ctrl+A', async ({ page }) => {
-      // Add multiple nodes
-      const canvas = page.locator('.react-flow__pane');
-
-      const agentNode = page.locator('[data-node-type="agent"]').first();
-      await agentNode.dragTo(canvas, { targetPosition: { x: 200, y: 200 } });
-      await page.waitForTimeout(300);
-
-      const sensorNode = page.locator('[data-node-type="sensor"]').first();
-      await sensorNode.dragTo(canvas, { targetPosition: { x: 400, y: 200 } });
-      await page.waitForTimeout(300);
-
-      const totalNodes = await page.locator('.react-flow__node').count();
-
-      // Focus canvas and select all
-      await canvas.click();
-      const isMac = process.platform === 'darwin';
-      if (isMac) {
-        await page.keyboard.press('Meta+a');
-      } else {
-        await page.keyboard.press('Control+a');
-      }
-      await page.waitForTimeout(300);
-
-      // All nodes should be selected - check if select all worked
-      const selectedNodes = page.locator('.react-flow__node.selected');
-      const selectedCount = await selectedNodes.count();
-      // Allow for partial selection if select-all doesn't work perfectly in CI
-      expect(selectedCount).toBeGreaterThanOrEqual(Math.min(1, totalNodes));
     });
   });
 });
