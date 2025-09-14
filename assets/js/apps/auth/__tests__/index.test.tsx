@@ -8,11 +8,9 @@ describe('Auth App Integration', () => {
     document.body.innerHTML = '';
   });
 
-  it('should not crash when imported', () => {
-    expect(() => {
-      // This will test that the module can be imported without errors
-      require('../index');
-    }).not.toThrow();
+  it('should not crash when imported', async () => {
+    // This will test that the module can be imported without errors
+    await expect(import('../index')).resolves.toBeDefined();
   });
 
   it('should have auth app container detection logic', () => {
