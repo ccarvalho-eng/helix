@@ -1,10 +1,4 @@
-<div align="center">
-
 # 🧬 Helix
-
-**AI Workflow Builder for Elixir**
-
-_Build robust AI agent workflows with real-time collaboration, powered by OTP fault-tolerance._
 
 [![GitHub release](https://img.shields.io/github/v/release/ccarvalho-eng/helix?style=for-the-badge)](https://github.com/ccarvalho-eng/helix/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/ci.yml?style=for-the-badge&logo=github-actions)](https://github.com/ccarvalho-eng/helix/actions/workflows/ci.yml)
@@ -12,19 +6,13 @@ _Build robust AI agent workflows with real-time collaboration, powered by OTP fa
 [![codecov](https://img.shields.io/codecov/c/github/ccarvalho-eng/helix?style=for-the-badge&logo=codecov)](https://codecov.io/gh/ccarvalho-eng/helix)
 [![Security](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/security.yml?style=for-the-badge&logo=security&label=Security)](https://github.com/ccarvalho-eng/helix/actions/workflows/security.yml)
 
-[Getting Started](#-getting-started) • [Features](#-features) • [Contributing](#-contributing)
+A visual workflow designer for AI agents, built with Elixir and Phoenix. Design complex multi-agent workflows using a drag-and-drop interface with real-time collaboration support.
 
----
-
-</div>
-
-Helix is a **visual AI workflow builder** that leverages Elixir's OTP architecture for robust, fault-tolerant workflow design. Unlike traditional workflow tools, Helix provides real-time collaboration through supervised GenServer processes and Phoenix Channels, ensuring your workflow sessions are resilient and automatically managed.
-
-**Why Helix?**
-- **Fault-Tolerant**: Built on OTP supervision trees with automatic session cleanup and error recovery
-- **Real-Time Collaboration**: Live multi-user editing with conflict-free synchronization
-- **Production-Ready**: Elixir's battle-tested concurrency model handles thousands of concurrent workflow sessions
-- **Developer-Friendly**: Clean drag-and-drop interface with full TypeScript support
+**Key Features:**
+- Visual workflow design with node-based interface
+- Real-time collaborative editing
+- Session management powered by OTP GenServers
+- Built for reliability with supervision trees and automatic cleanup
 
 ---
 
@@ -73,52 +61,33 @@ mix format
 npm run prettier
 ```
 
-## ✨ Features
+## Features
 
-- **🎨 Visual Workflow Design** - Intuitive drag-and-drop interface with customizable nodes and connections
-- **👥 Real-Time Collaboration** - Live multi-user editing with automatic conflict resolution
-- **⚡ Fault-Tolerant Backend** - OTP supervision trees ensure session reliability and automatic recovery
-- **🚀 Production-Ready** - Built on Phoenix/Elixir for handling thousands of concurrent users
-- **💾 Auto-Save Sessions** - GenServer automatically saves changes and manages session lifecycle
-- **🎯 Developer Experience** - Full TypeScript support with comprehensive testing
+**Visual Design**
+- Node-based workflow editor with drag-and-drop interface
+- Customizable node types and connections
+- Minimap and zoom controls for large workflows
 
-## 🏗 Architecture
+**Collaboration**
+- Multi-user editing with WebSocket-based synchronization
+- Automatic session management via OTP GenServers
+- Conflict resolution using last-write-wins strategy
 
-**OTP-Powered Session Management**
-- `FlowSessionManager` GenServer maintains workflow sessions with automatic cleanup
-- Supervised process tree ensures fault tolerance and graceful error recovery
-- Phoenix Channels provide real-time collaboration with last-write-wins conflict resolution
-- PostgreSQL persistence with local storage fallback
+**Architecture**
+- Built on Elixir/OTP for fault tolerance and concurrency
+- GraphQL API with Absinthe for flexible data fetching
+- Phoenix Channels for real-time communication
+- PostgreSQL for persistent storage
+- React + TypeScript frontend with comprehensive testing
 
-**Tech Stack**
-- **Backend:** Elixir, Phoenix, PostgreSQL
-- **Frontend:** React, TypeScript, TailwindCSS, React Flow
-- **Testing:** ExUnit, Jest, Playwright, E2E automation
 
----
+## Contributing
 
-## 🤝 Contributing
+1. Fork and create a feature branch
+2. Make your changes with tests
+3. Run the test suite: `mix test && npm test`
+4. Submit a pull request
 
-1. Fork & branch (`git checkout -b feature/amazing-feature`)
-2. Add changes + tests
-3. Run full test suite (`npm run test:all && mix test`)
-4. Commit using [Conventional Commits](https://conventionalcommits.org/)
-5. Open a pull request
+## License
 
-See [Contributing Guide](CONTRIBUTING.md) for details.
-
----
-
-## 📝 License
-
-Apache 2.0 — see [LICENSE](LICENSE).
-
----
-
-<div align="center">
-
-⭐ If you find Helix useful, [give it a star](https://github.com/ccarvalho-eng/helix/stargazers).
-
-Built with ❤️ for the AI community.
-
-</div>
+Apache 2.0
