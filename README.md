@@ -1,93 +1,63 @@
+<div align="center">
+
 # 🧬 Helix
 
-[![GitHub release](https://img.shields.io/github/v/release/ccarvalho-eng/helix?style=for-the-badge)](https://github.com/ccarvalho-eng/helix/releases)
-[![CI](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/ci.yml?style=for-the-badge&logo=github-actions)](https://github.com/ccarvalho-eng/helix/actions/workflows/ci.yml)
-[![E2E Tests](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/nightly-e2e-tests.yml?style=for-the-badge&logo=playwright&label=E2E)](https://github.com/ccarvalho-eng/helix/actions/workflows/nightly-e2e-tests.yml)
-[![codecov](https://img.shields.io/codecov/c/github/ccarvalho-eng/helix?style=for-the-badge&logo=codecov)](https://codecov.io/gh/ccarvalho-eng/helix)
-[![Security](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/security.yml?style=for-the-badge&logo=security&label=Security)](https://github.com/ccarvalho-eng/helix/actions/workflows/security.yml)
+**Visual workflow editor for AI agent systems**
 
-A visual workflow designer for AI agents, built with Elixir and Phoenix. Design complex multi-agent workflows using a drag-and-drop interface with real-time collaboration support.
+[![GitHub release](https://img.shields.io/github/v/release/ccarvalho-eng/helix?style=flat-square)](https://github.com/ccarvalho-eng/helix/releases)
+[![CI](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/ci.yml?style=flat-square&logo=github-actions)](https://github.com/ccarvalho-eng/helix/actions)
+[![E2E Tests](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/nightly-e2e-tests.yml?style=flat-square&logo=playwright&label=E2E)](https://github.com/ccarvalho-eng/helix/actions)
+[![Coverage](https://img.shields.io/codecov/c/github/ccarvalho-eng/helix?style=flat-square)](https://codecov.io/gh/ccarvalho-eng/helix)
+[![Security](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/security.yml?style=flat-square&label=Security)](https://github.com/ccarvalho-eng/helix/actions)
 
-**Key Features:**
-- Visual workflow design with node-based interface
-- Real-time collaborative editing
-- Session management powered by OTP GenServers
-- Built for reliability with supervision trees and automatic cleanup
+</div>
 
----
+Create and collaborate on AI workflow diagrams with real-time editing. Built with Elixir/Phoenix and React.
 
-## 🚀 Getting Started
+> **⚠️ Early Development**: Currently focused on visual design and planning. Workflows are stored in browser localStorage. PostgreSQL persistence and execution coming in future releases.
 
-### Requirements
-
-- Elixir **1.17+**
-- Erlang/OTP **26+**
-- Node.js **18+**
-- PostgreSQL **14+**
-
-### Installation
+## Quick Start
 
 ```bash
-# Clone
 git clone https://github.com/ccarvalho-eng/helix.git
 cd helix
-
-# Setup
 mix setup
-
-# Start
 mix phx.server
 ```
 
-Open: [http://localhost:4000](http://localhost:4000)
+Open [localhost:4000](http://localhost:4000) and start designing workflows.
 
-### Development
+**Requirements:** Elixir 1.17+, Node.js 18+, PostgreSQL 14+
+
+## What it does
+
+- Drag and drop nodes to create workflow diagrams
+- Connect nodes to show how agents interact
+- Multiple people can edit the same workflow simultaneously
+- Changes sync in real-time via WebSockets
+- Sessions are managed by Elixir GenServers
+- Export diagrams as PNG images
+
+## Development
 
 ```bash
-# Tests
-mix test
-npm test
-
-# Code quality
-mix credo --strict
-npm run lint  # Must pass with --max-warnings 0
-npm run typecheck
-
-# E2E tests
-npm run test:e2e
-
-# Formatting
-mix format
-npm run prettier
+mix test && npm test      # run all tests
+mix credo --strict        # code quality
+npm run test:e2e          # end-to-end tests
 ```
-
-## Features
-
-**Visual Design**
-- Node-based workflow editor with drag-and-drop interface
-- Customizable node types and connections
-- Minimap and zoom controls for large workflows
-
-**Collaboration**
-- Multi-user editing with WebSocket-based synchronization
-- Automatic session management via OTP GenServers
-- Conflict resolution using last-write-wins strategy
-
-**Architecture**
-- Built on Elixir/OTP for fault tolerance and concurrency
-- GraphQL API with Absinthe for flexible data fetching
-- Phoenix Channels for real-time communication
-- PostgreSQL for persistent storage
-- React + TypeScript frontend with comprehensive testing
-
 
 ## Contributing
 
-1. Fork and create a feature branch
-2. Make your changes with tests
-3. Run the test suite: `mix test && npm test`
-4. Submit a pull request
+- 🐛 **[Report bugs](https://github.com/ccarvalho-eng/helix/issues)** with reproduction steps
+- 💡 **[Request features](https://github.com/ccarvalho-eng/helix/discussions)** and share use cases
+- 🔧 **[Submit code](https://github.com/ccarvalho-eng/helix/pulls)** with tests and documentation
+
+See our [contributing guide](CONTRIBUTING.md) for more details.
 
 ## License
 
 Apache 2.0
+
+---
+
+⭐ **[Star this repo](https://github.com/ccarvalho-eng/helix)** to support development and help others discover it!
