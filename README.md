@@ -54,6 +54,10 @@ npm run test:e2e          # end-to-end tests
 
 See our [contributing guide](CONTRIBUTING.md) for more details.
 
+## Documentation
+
+- [Architecture](docs/architecture.md) - Technical details and system diagrams
+
 ## License
 
 Apache 2.0
