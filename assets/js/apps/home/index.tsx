@@ -1,13 +1,20 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { ApolloProvider } from '@apollo/client/react';
+import { client } from '../../lib/apollo';
 import { HomePage } from '../../features/home/HomePage';
+import { AuthProvider } from '../../shared/contexts/AuthContext';
 import { ThemeProvider } from '../../features/flow-builder/contexts/ThemeContext';
 
 function HomeApp() {
   return (
-    <ThemeProvider>
-      <HomePage />
-    </ThemeProvider>
+    <ApolloProvider client={client}>
+      <ThemeProvider>
+        <AuthProvider>
+          <HomePage />
+        </AuthProvider>
+      </ThemeProvider>
+    </ApolloProvider>
   );
 }
 

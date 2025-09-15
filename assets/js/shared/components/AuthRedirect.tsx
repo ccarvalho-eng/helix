@@ -6,7 +6,7 @@ interface AuthRedirectProps {
   redirectTo?: string;
 }
 
-export const AuthRedirect: React.FC<AuthRedirectProps> = ({ children, redirectTo = '/' }) => {
+export const AuthRedirect: React.FC<AuthRedirectProps> = ({ children, redirectTo = '/dashboard' }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const hasRedirected = useRef(false);
   const [initialLoading, setInitialLoading] = useState(true);

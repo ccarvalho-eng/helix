@@ -4,4 +4,8 @@ defmodule HelixWeb.AuthController do
   def login(conn, _params) do
     render(conn, :login, layout: {HelixWeb.Layouts, :root})
   end
+
+  def register(conn, _params) do
+    render(conn, :register, layout: {HelixWeb.Layouts, :root})
+  end
 end

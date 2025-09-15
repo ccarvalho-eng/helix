@@ -32,6 +32,7 @@
 		"react-dnd-html5-backend": "^16.0.1",
 		"react-dom": "^19.1.1",
 		"reactflow": "^11.11.4",
+		"topbar": "^3.0.0",
 		"tslib": "^2.8.1"
 	},
 	"devDependencies": {

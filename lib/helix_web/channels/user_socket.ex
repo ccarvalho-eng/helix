@@ -1,10 +1,7 @@
 defmodule HelixWeb.UserSocket do
   use Phoenix.Socket
 
-  # A Socket handler
-  #
-  # It's possible to control the websocket connection and
-  # assign values that can be accessed by your channel topics.
+  alias Helix.Accounts.Guardian
 
   ## Channels
   channel "flow:*", HelixWeb.FlowChannel
@@ -22,7 +19,24 @@ defmodule HelixWeb.UserSocket do
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
   @impl true
+  def connect(%{"token" => token}, socket, _connect_info) when is_binary(token) do
+    case Guardian.resource_from_token(token) do
+      {:ok, user, _claims} ->
+        socket =
+          socket
+          |> assign(:user_id, user.id)
+          |> assign(:user, user)
+
+        {:ok, socket}
+
+      {:error, _reason} ->
+        :error
+    end
+  end
+
   def connect(_params, socket, _connect_info) do
+    # Allow anonymous connections for now, but you can change this to `:error`
+    # if you want to require authentication for all WebSocket connections
     {:ok, socket}
   end
 
@@ -40,5 +54,6 @@ defmodule HelixWeb.UserSocket do
   #
   # Returning `nil` makes this socket anonymous.
   @impl true
+  def id(%{assigns: %{user_id: user_id}}), do: "user_socket:#{user_id}"
   def id(_socket), do: nil
 end

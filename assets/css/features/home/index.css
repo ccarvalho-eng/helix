@@ -180,6 +180,32 @@
 	height: 0.875rem;
 }
 
+.home-header__logout-btn {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.625rem 1rem;
+	background: transparent;
+	color: var(--home-text-secondary);
+	border: 1px solid var(--home-border);
+	border-radius: 0.5rem;
+	font-size: 0.8rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.home-header__logout-btn:hover {
+	background: var(--home-bg-subtle);
+	color: var(--home-text-primary);
+	border-color: var(--home-text-primary);
+}
+
+[data-theme="dark"] .home-header__logout-btn:hover {
+	background: var(--home-bg-muted);
+	border-color: var(--home-accent);
+	color: var(--home-accent);
+}
+
 /* Main Content */
 .home-main {
 	padding: 2.5rem 1.5rem;

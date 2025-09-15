@@ -63,8 +63,8 @@ export const LoginPage: React.FC = () => {
       setFieldErrors({});
 
       await login({ email, password });
-      // Redirect to home page after successful login
-      window.location.href = '/';
+      // Redirect to dashboard after successful login
+      window.location.href = '/dashboard';
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       setError(errorMessage);

@@ -80,8 +80,8 @@ export const RegisterPage: React.FC = () => {
       setFieldErrors({});
 
       await register({ email, password, firstName, lastName });
-      // Redirect to home page after successful registration
-      window.location.href = '/';
+      // Redirect to dashboard after successful registration
+      window.location.href = '/dashboard';
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed';
       setError(errorMessage);

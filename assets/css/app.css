@@ -34,3 +34,22 @@ html, body {
 }
 
 /* This file is for your main application CSS */
+
+/* Topbar styling for better visibility */
+#topbar {
+  z-index: 9999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 4px !important;
+}
+
+.topbar {
+  z-index: 9999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 4px !important;
+}
