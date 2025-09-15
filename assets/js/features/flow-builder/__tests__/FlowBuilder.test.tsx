@@ -237,15 +237,21 @@ describe('FlowBuilder Keyboard Event Handling', () => {
     it('should NOT delete node when Delete key is pressed while editing contentEditable element', () => {
       const { getByTestId } = render(<FlowBuilder />);
 
-      const contentEditable = getByTestId('node-content-editable');
+      const contentEditable = getByTestId('node-content-editable') as HTMLElement;
+
+      // Ensure the element is recognized as contentEditable in JSDOM
+      contentEditable.setAttribute('contenteditable', 'true');
+      Object.defineProperty(contentEditable, 'isContentEditable', {
+        value: true,
+        configurable: true,
+      });
+
       contentEditable.focus();
 
       // Simulate Delete key press while focused on contentEditable
       fireEvent.keyDown(contentEditable, { key: 'Delete' });
 
-      // Note: This currently fails due to isContentEditable not being properly detected in tests
-      // In real DOM, contentEditable elements have isContentEditable = true
-      expect(mockDeleteNode).toHaveBeenCalled(); // This is the current behavior, not ideal but acceptable
+      expect(mockDeleteNode).not.toHaveBeenCalled();
     });
 
     it('should NOT delete node when no node is selected', () => {
