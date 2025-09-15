@@ -342,4 +342,121 @@ describe('FlowBuilder Keyboard Event Handling', () => {
       expect(mockUpdateNode).toHaveBeenCalledWith('test-node-1', { content: 'New content' });
     });
   });
+
+  describe('Enhanced input detection', () => {
+    it('should NOT delete node when Delete key is pressed on SELECT elements', () => {
+      const { container } = render(<FlowBuilder />);
+
+      // Create a select element and simulate key press
+      const select = document.createElement('select');
+      container.appendChild(select);
+      select.focus();
+
+      fireEvent.keyDown(select, { key: 'Delete' });
+
+      expect(mockDeleteNode).not.toHaveBeenCalled();
+    });
+
+    it('should delete node when Delete key is pressed on disabled input', () => {
+      const { container } = render(<FlowBuilder />);
+
+      // Create a disabled input and simulate key press
+      const input = document.createElement('input');
+      input.disabled = true;
+      container.appendChild(input);
+
+      // In our implementation, disabled inputs still count as INPUT elements
+      // So they are detected as editable context and node deletion is prevented
+      fireEvent.keyDown(input, { key: 'Delete' });
+
+      expect(mockDeleteNode).not.toHaveBeenCalled();
+    });
+
+    it('should delete node when Delete key is pressed on readonly input', () => {
+      const { container } = render(<FlowBuilder />);
+
+      // Create a readonly input and simulate key press
+      const input = document.createElement('input');
+      input.readOnly = true;
+      container.appendChild(input);
+
+      // In our implementation, readonly inputs still count as INPUT elements
+      // So they are detected as editable context and node deletion is prevented
+      fireEvent.keyDown(input, { key: 'Delete' });
+
+      expect(mockDeleteNode).not.toHaveBeenCalled();
+    });
+
+    it('should NOT delete node when Delete key is pressed on element inside contentEditable parent', () => {
+      const { container } = render(<FlowBuilder />);
+
+      // Create nested contentEditable structure
+      const parent = document.createElement('div');
+      Object.defineProperty(parent, 'isContentEditable', { value: true });
+      const child = document.createElement('span');
+      parent.appendChild(child);
+      container.appendChild(parent);
+
+      fireEvent.keyDown(child, { key: 'Delete' });
+
+      expect(mockDeleteNode).not.toHaveBeenCalled();
+    });
+
+    it('should NOT delete node when event was already prevented', () => {
+      render(<FlowBuilder />);
+
+      // Create an event that's already been prevented
+      const mockEvent = new KeyboardEvent('keydown', { key: 'Delete' });
+      Object.defineProperty(mockEvent, 'defaultPrevented', {
+        value: true,
+        writable: false,
+      });
+      Object.defineProperty(mockEvent, 'target', {
+        value: { tagName: 'DIV', isContentEditable: false },
+        writable: false,
+      });
+
+      fireEvent(document, mockEvent);
+
+      expect(mockDeleteNode).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Browser navigation prevention', () => {
+    it('should call preventDefault when deleting nodes', () => {
+      render(<FlowBuilder />);
+
+      const mockPreventDefault = jest.fn();
+      const mockEvent = new KeyboardEvent('keydown', { key: 'Delete' });
+      mockEvent.preventDefault = mockPreventDefault;
+
+      Object.defineProperty(mockEvent, 'target', {
+        value: { tagName: 'DIV', isContentEditable: false },
+        writable: false,
+      });
+
+      fireEvent(document, mockEvent);
+
+      expect(mockPreventDefault).toHaveBeenCalled();
+      expect(mockDeleteNode).toHaveBeenCalledWith('test-node-1');
+    });
+
+    it('should call preventDefault when deleting nodes with Backspace', () => {
+      render(<FlowBuilder />);
+
+      const mockPreventDefault = jest.fn();
+      const mockEvent = new KeyboardEvent('keydown', { key: 'Backspace' });
+      mockEvent.preventDefault = mockPreventDefault;
+
+      Object.defineProperty(mockEvent, 'target', {
+        value: { tagName: 'DIV', isContentEditable: false },
+        writable: false,
+      });
+
+      fireEvent(document, mockEvent);
+
+      expect(mockPreventDefault).toHaveBeenCalled();
+      expect(mockDeleteNode).toHaveBeenCalledWith('test-node-1');
+    });
+  });
 });

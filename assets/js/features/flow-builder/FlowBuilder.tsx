@@ -563,15 +563,42 @@ function FlowBuilderInternal() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Check if user is typing in an input field
+      // Check if user is typing in an editable context
       const target = e.target as HTMLElement;
-      const isTypingInInput =
-        target &&
-        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+
+      // Comprehensive check for editable contexts
+      const isInEditableContext = () => {
+        if (!target) return false;
+
+        // Check direct element
+        if (
+          target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable
+        ) {
+          return true;
+        }
+
+        // Check for readonly/disabled states (these shouldn't prevent deletion)
+        if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+          if (target.readOnly || target.disabled) return false;
+        }
+
+        // Traverse up to check for contentEditable parents
+        let element = target.parentElement;
+        while (element) {
+          if (element.isContentEditable) return true;
+          element = element.parentElement;
+        }
+
+        return false;
+      };
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        // Only delete nodes if not typing in an input field
-        if (selectedNode && !isTypingInInput) {
+        // Only delete nodes if not in editable context and event wasn't handled
+        if (selectedNode && !isInEditableContext() && !e.defaultPrevented) {
+          e.preventDefault(); // Prevent browser navigation
           deleteNode(selectedNode.id);
         }
       }
