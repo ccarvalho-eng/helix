@@ -22,22 +22,20 @@ describe('Apollo Client', () => {
     const token = 'test-token-123';
     localStorage.setItem('token', token);
 
-    // Access the private link property to test auth link
-    const link = (client as any).link;
-    expect(link).toBeDefined();
+    // Verify client has link configured
+    expect(client.link).toBeDefined();
   });
 
   it('should not include authorization header when no token in localStorage', () => {
     // Ensure no token is set
     expect(localStorage.getItem('token')).toBeNull();
 
-    const link = (client as any).link;
-    expect(link).toBeDefined();
+    // Verify client has link configured
+    expect(client.link).toBeDefined();
   });
 
   it('should use correct GraphQL endpoint', () => {
-    // The httpLink should point to /api/graphql
-    const link = (client as any).link;
-    expect(link).toBeDefined();
+    // Verify client has link configured for GraphQL endpoint
+    expect(client.link).toBeDefined();
   });
 });
