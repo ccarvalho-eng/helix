@@ -3,8 +3,8 @@
 	"scripts": {
 		"prettier": "prettier --write \"assets/js/**/*.{js,ts,tsx}\"",
 		"prettier:check": "prettier --check \"assets/js/**/*.{js,ts,tsx}\"",
-		"lint": "eslint assets/js/features assets/js/shared --ext .js,.jsx,.ts,.tsx",
-		"lint:fix": "eslint assets/js/features assets/js/shared --ext .js,.jsx,.ts,.tsx --fix",
+		"lint": "eslint assets/js/features assets/js/shared assets/js/lib --ext .js,.jsx,.ts,.tsx",
+		"lint:fix": "eslint assets/js/features assets/js/shared assets/js/lib --ext .js,.jsx,.ts,.tsx --fix",
 		"typecheck": "tsc --noEmit",
 		"check": "npm run prettier:check && npm run lint && npm run typecheck",
 		"fix": "npm run prettier && npm run lint:fix && npm run typecheck",
