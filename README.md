@@ -27,7 +27,7 @@ mix phx.server
 
 Open [localhost:4000](http://localhost:4000) and start designing workflows.
 
-**Requirements:** Elixir 1.17+, Node.js 18+, PostgreSQL 14+
+**Requirements:** Elixir 1.17+, Erlang/OTP 26+, Node.js 18+, PostgreSQL 14+ (for development)
 
 ## What it does
 
