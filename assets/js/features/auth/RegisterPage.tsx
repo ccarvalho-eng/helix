@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { Cpu, Eye, EyeOff, Mail, Lock, GitFork, UsersRound, LayoutTemplate } from 'lucide-react';
+import {
+  Cpu,
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User,
+  GitFork,
+  UsersRound,
+  LayoutTemplate,
+} from 'lucide-react';
 import { ThemeToggle } from '../flow-builder/components/ThemeToggle';
 import { useAuth } from '../../shared/contexts/AuthContext';
 import { FormValidator } from '../../shared/utils/validation';
@@ -14,14 +24,16 @@ declare global {
   }
 }
 
-export const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+export const RegisterPage: React.FC = () => {
+  const { register, isLoading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [_fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +47,12 @@ export const LoginPage: React.FC = () => {
     }
 
     // Validate form
-    const validationErrors = FormValidator.validateLoginForm(email, password);
+    const validationErrors = FormValidator.validateRegisterForm(
+      email,
+      password,
+      firstName,
+      lastName
+    );
     if (validationErrors.length > 0) {
       const errors: Record<string, string> = {};
       let generalError = '';
@@ -58,15 +75,15 @@ export const LoginPage: React.FC = () => {
     }
 
     try {
-      // Clear previous errors only when attempting login
+      // Clear previous errors only when attempting registration
       setError('');
       setFieldErrors({});
 
-      await login({ email, password });
-      // Redirect to home page after successful login
+      await register({ email, password, firstName, lastName });
+      // Redirect to home page after successful registration
       window.location.href = '/';
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed';
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed';
       setError(errorMessage);
       setIsLoading(false);
       if (window.topbar) {
@@ -74,6 +91,8 @@ export const LoginPage: React.FC = () => {
       }
     }
   };
+
+  const loading = isLoading || authLoading;
 
   return (
     <div className='login-page'>
@@ -86,9 +105,10 @@ export const LoginPage: React.FC = () => {
         {/* Left side - Branding */}
         <div className='login-brand-section'>
           <div className='login-brand-content'>
-            <h2 className='login-brand-title'>Design AI Agent Workflows</h2>
+            <h2 className='login-brand-title'>Join the AI Revolution</h2>
             <p className='login-brand-subtitle'>
-              Build, collaborate, and deploy intelligent multi-agent systems with visual simplicity.
+              Create your account and start building intelligent multi-agent systems with visual
+              simplicity.
             </p>
 
             <div className='login-features'>
@@ -140,7 +160,7 @@ export const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right side - Login Form */}
+        {/* Right side - Register Form */}
         <div className='login-form-section'>
           <div className='login-form'>
             {/* Logo and Title */}
@@ -149,8 +169,8 @@ export const LoginPage: React.FC = () => {
                 <Cpu className='login-logo-icon' />
                 <span className='login-logo-text'>Helix</span>
               </div>
-              <h1 className='login-title'>Welcome back</h1>
-              <p className='login-subtitle'>Sign in to your account to continue</p>
+              <h1 className='login-title'>Create account</h1>
+              <p className='login-subtitle'>Sign up to get started with Helix</p>
             </div>
 
             {/* Error Message */}
@@ -160,8 +180,48 @@ export const LoginPage: React.FC = () => {
               </div>
             )}
 
-            {/* Login Form */}
+            {/* Register Form */}
             <form onSubmit={handleSubmit} className='login-form-content'>
+              {/* Name Fields */}
+              <div className='login-field-group'>
+                <div className='login-field'>
+                  <label htmlFor='firstName' className='login-label'>
+                    First name
+                  </label>
+                  <div className='login-input-wrapper'>
+                    <User className='login-input-icon' />
+                    <input
+                      id='firstName'
+                      type='text'
+                      value={firstName}
+                      onChange={e => setFirstName(e.target.value)}
+                      className='login-input'
+                      placeholder='Enter your first name'
+                      required
+                      autoComplete='given-name'
+                    />
+                  </div>
+                </div>
+                <div className='login-field'>
+                  <label htmlFor='lastName' className='login-label'>
+                    Last name
+                  </label>
+                  <div className='login-input-wrapper'>
+                    <User className='login-input-icon' />
+                    <input
+                      id='lastName'
+                      type='text'
+                      value={lastName}
+                      onChange={e => setLastName(e.target.value)}
+                      className='login-input'
+                      placeholder='Enter your last name'
+                      required
+                      autoComplete='family-name'
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Email Field */}
               <div className='login-field'>
                 <label htmlFor='email' className='login-label'>
@@ -174,13 +234,12 @@ export const LoginPage: React.FC = () => {
                     type='email'
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className={`login-input ${fieldErrors.email ? 'login-input--error' : ''}`}
+                    className='login-input'
                     placeholder='Enter your email'
                     required
                     autoComplete='email'
                   />
                 </div>
-                {fieldErrors.email && <p className='login-field-error'>{fieldErrors.email}</p>}
               </div>
 
               {/* Password Field */}
@@ -195,10 +254,11 @@ export const LoginPage: React.FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className={`login-input ${fieldErrors.password ? 'login-input--error' : ''}`}
+                    className='login-input'
                     placeholder='Enter your password'
                     required
-                    autoComplete='current-password'
+                    autoComplete='new-password'
+                    minLength={8}
                   />
                   <button
                     type='button'
@@ -209,43 +269,22 @@ export const LoginPage: React.FC = () => {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                {fieldErrors.password && (
-                  <p className='login-field-error'>{fieldErrors.password}</p>
-                )}
+                <p className='login-field-hint'>Minimum 8 characters</p>
               </div>
-
-              {/* Remember Me & Forgot Password - Commented out until implemented
-              <div className='login-options'>
-                <label htmlFor='remember-me' className='login-checkbox'>
-                  <input
-                    id='remember-me'
-                    type='checkbox'
-                    checked={rememberMe}
-                    onChange={e => setRememberMe(e.target.checked)}
-                    className='login-checkbox-input'
-                  />
-                  <span className='login-checkbox-checkmark'></span>
-                  <span className='login-checkbox-label'>Remember me</span>
-                </label>
-                <a href='#' className='login-forgot-link'>
-                  Forgot password?
-                </a>
-              </div>
-              */}
 
               {/* Submit Button */}
               <button
                 type='submit'
-                disabled={isLoading || !email || !password}
-                className={`login-submit ${isLoading ? 'login-submit--loading' : ''}`}
+                disabled={loading || !email || !password || !firstName || !lastName}
+                className={`login-submit ${loading ? 'login-submit--loading' : ''}`}
               >
-                {isLoading ? (
+                {loading ? (
                   <>
                     <div className='login-spinner'></div>
-                    Signing in...
+                    Creating account...
                   </>
                 ) : (
-                  'Sign in'
+                  'Create account'
                 )}
               </button>
             </form>
@@ -253,9 +292,9 @@ export const LoginPage: React.FC = () => {
             {/* Footer */}
             <div className='login-form-footer'>
               <p className='login-footer-text'>
-                Don't have an account?{' '}
-                <a href='/register' className='login-footer-link'>
-                  Sign up
+                Already have an account?{' '}
+                <a href='/login' className='login-footer-link'>
+                  Sign in
                 </a>
               </p>
             </div>

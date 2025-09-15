@@ -1,5 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { ApolloProvider } from '@apollo/client/react';
+import { client } from '../../../lib/apollo';
+import { AuthProvider } from '../../../shared/contexts/AuthContext';
 import { LoginPage } from '../LoginPage';
 
 // Mock the ThemeToggle component since it's imported
@@ -7,13 +10,20 @@ jest.mock('../../flow-builder/components/ThemeToggle', () => ({
   ThemeToggle: () => <div data-testid='theme-toggle'>Theme Toggle</div>,
 }));
 
+// Test wrapper with providers
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <ApolloProvider client={client}>
+    <AuthProvider>{children}</AuthProvider>
+  </ApolloProvider>
+);
+
 describe('LoginPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders login page with main sections', () => {
-    render(<LoginPage />);
+    render(<LoginPage />, { wrapper: TestWrapper });
 
     // Check branding section
     expect(screen.getByText('Design AI Agent Workflows')).toBeInTheDocument();
@@ -27,12 +37,12 @@ describe('LoginPage', () => {
   });
 
   it('renders theme toggle', () => {
-    render(<LoginPage />);
+    render(<LoginPage />, { wrapper: TestWrapper });
     expect(screen.getByTestId('theme-toggle')).toBeInTheDocument();
   });
 
   it('renders all feature items', () => {
-    render(<LoginPage />);
+    render(<LoginPage />, { wrapper: TestWrapper });
 
     expect(screen.getByText('Advanced Node System')).toBeInTheDocument();
     expect(screen.getByText('Live Collaboration')).toBeInTheDocument();
@@ -41,17 +51,15 @@ describe('LoginPage', () => {
   });
 
   it('renders login form elements', () => {
-    render(<LoginPage />);
+    render(<LoginPage />, { wrapper: TestWrapper });
 
     expect(screen.getByLabelText('Email address')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
-    expect(screen.getByText('Remember me')).toBeInTheDocument();
-    expect(screen.getByText('Forgot password?')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
   });
 
   it('handles email input', () => {
-    render(<LoginPage />);
+    render(<LoginPage />, { wrapper: TestWrapper });
     const emailInput = screen.getByLabelText('Email address') as HTMLInputElement;
 
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
@@ -59,7 +67,7 @@ describe('LoginPage', () => {
   });
 
   it('handles password input', () => {
-    render(<LoginPage />);
+    render(<LoginPage />, { wrapper: TestWrapper });
     const passwordInput = screen.getByLabelText('Password') as HTMLInputElement;
 
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
@@ -67,7 +75,7 @@ describe('LoginPage', () => {
   });
 
   it('toggles password visibility', () => {
-    render(<LoginPage />);
+    render(<LoginPage />, { wrapper: TestWrapper });
     const passwordInput = screen.getByLabelText('Password') as HTMLInputElement;
     const toggleButton = screen.getByLabelText('Show password');
 
@@ -78,25 +86,15 @@ describe('LoginPage', () => {
     expect(screen.getByLabelText('Hide password')).toBeInTheDocument();
   });
 
-  it('handles remember me checkbox', () => {
-    render(<LoginPage />);
-    const checkbox = screen.getByRole('checkbox') as HTMLInputElement;
-
-    expect(checkbox.checked).toBe(false);
-
-    fireEvent.click(checkbox);
-    expect(checkbox.checked).toBe(true);
-  });
-
   it('disables submit button when form is empty', () => {
-    render(<LoginPage />);
+    render(<LoginPage />, { wrapper: TestWrapper });
     const submitButton = screen.getByRole('button', { name: 'Sign in' });
 
     expect(submitButton).toBeDisabled();
   });
 
   it('enables submit button when form is filled', () => {
-    render(<LoginPage />);
+    render(<LoginPage />, { wrapper: TestWrapper });
     const emailInput = screen.getByLabelText('Email address');
     const passwordInput = screen.getByLabelText('Password');
     const submitButton = screen.getByRole('button', { name: 'Sign in' });
@@ -108,7 +106,7 @@ describe('LoginPage', () => {
   });
 
   it('shows loading state on form submission', async () => {
-    render(<LoginPage />);
+    render(<LoginPage />, { wrapper: TestWrapper });
     const emailInput = screen.getByLabelText('Email address');
     const passwordInput = screen.getByLabelText('Password');
     const submitButton = screen.getByRole('button', { name: 'Sign in' });
@@ -130,7 +128,7 @@ describe('LoginPage', () => {
   });
 
   it('renders footer with correct links', () => {
-    render(<LoginPage />);
+    render(<LoginPage />, { wrapper: TestWrapper });
 
     expect(screen.getByText(/© \d{4} Helix\. Built for the AI community\./)).toBeInTheDocument();
     expect(screen.getByText('Privacy Policy')).toBeInTheDocument();
@@ -139,12 +137,12 @@ describe('LoginPage', () => {
   });
 
   it('renders sign up link', () => {
-    render(<LoginPage />);
+    render(<LoginPage />, { wrapper: TestWrapper });
     expect(screen.getByText('Sign up')).toBeInTheDocument();
   });
 
   it('has proper form accessibility', () => {
-    render(<LoginPage />);
+    render(<LoginPage />, { wrapper: TestWrapper });
 
     const emailInput = screen.getByLabelText('Email address');
     const passwordInput = screen.getByLabelText('Password');
