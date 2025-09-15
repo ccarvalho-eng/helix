@@ -134,15 +134,6 @@ jest.mock('../components/DownloadButton', () => ({
   DownloadButton: () => <div data-testid='download-button' />,
 }));
 
-// Mock window location
-Object.defineProperty(window, 'location', {
-  value: {
-    pathname: '/flow/test-flow',
-    search: '',
-  },
-  writable: true,
-});
-
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
