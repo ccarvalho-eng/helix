@@ -14,7 +14,11 @@
 
 Create and collaborate on AI workflow diagrams with real-time editing. Built with Elixir/Phoenix and React.
 
-> **⚠️ Early Development**: Currently focused on visual design and planning. Workflows are stored in browser localStorage. PostgreSQL persistence and execution coming in future releases.
+> ⚠️ Early Development
+>
+> - Visual design and planning only — workflows are not executable yet.
+> - Workflows are stored in the browser's localStorage (no sync/backups). Clearing browser data or switching devices will lose unsaved workflows.
+> - Server-side persistence and execution are planned for future releases.
 
 ## Quick Start
 
