@@ -566,9 +566,8 @@ function FlowBuilderInternal() {
       // Check if user is typing in an input field
       const target = e.target as HTMLElement;
       const isTypingInInput =
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.contentEditable === 'true';
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
         // Only delete nodes if not typing in an input field

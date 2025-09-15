@@ -13,7 +13,7 @@ describe('FlowBuilder Keyboard Event Handling Logic', () => {
     config: {},
   };
 
-  // This mimics the keyboard event handler logic from FlowBuilder.tsx
+  // This mimics the improved keyboard event handler logic from FlowBuilder.tsx
   const handleKeyDown = (
     e: KeyboardEvent,
     selectedNode: typeof mockSelectedNode | null,
@@ -23,9 +23,8 @@ describe('FlowBuilder Keyboard Event Handling Logic', () => {
   ) => {
     const target = e.target as HTMLElement;
     const isTypingInInput =
-      target.tagName === 'INPUT' ||
-      target.tagName === 'TEXTAREA' ||
-      target.contentEditable === 'true';
+      target &&
+      (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
 
     if (e.key === 'Delete' || e.key === 'Backspace') {
       // Only delete nodes if not typing in an input field
@@ -122,7 +121,7 @@ describe('FlowBuilder Keyboard Event Handling Logic', () => {
     it('should NOT delete node when Delete key is pressed while typing in contentEditable element', () => {
       const mockEvent = new KeyboardEvent('keydown', { key: 'Delete' });
       Object.defineProperty(mockEvent, 'target', {
-        value: { tagName: 'DIV', contentEditable: 'true' },
+        value: { tagName: 'DIV', isContentEditable: true },
         writable: false,
       });
 
@@ -245,10 +244,39 @@ describe('FlowBuilder Keyboard Event Handling Logic', () => {
         writable: false,
       });
 
-      // Should not throw an error
+      // Should not throw an error and should delete node (since target exists but has no input properties)
       expect(() => {
         handleKeyDown(mockEvent, mockSelectedNode, mockDeleteNode, mockDuplicateNode);
       }).not.toThrow();
+      expect(mockDeleteNode).toHaveBeenCalledWith('test-node-1');
+    });
+
+    it('should handle null target gracefully', () => {
+      const mockEvent = new KeyboardEvent('keydown', { key: 'Delete' });
+      Object.defineProperty(mockEvent, 'target', {
+        value: null,
+        writable: false,
+      });
+
+      // Should not throw an error and should delete node (since null target means not in input)
+      expect(() => {
+        handleKeyDown(mockEvent, mockSelectedNode, mockDeleteNode, mockDuplicateNode);
+      }).not.toThrow();
+      expect(mockDeleteNode).toHaveBeenCalledWith('test-node-1');
+    });
+
+    it('should handle undefined target gracefully', () => {
+      const mockEvent = new KeyboardEvent('keydown', { key: 'Delete' });
+      Object.defineProperty(mockEvent, 'target', {
+        value: undefined,
+        writable: false,
+      });
+
+      // Should not throw an error and should delete node (since undefined target means not in input)
+      expect(() => {
+        handleKeyDown(mockEvent, mockSelectedNode, mockDeleteNode, mockDuplicateNode);
+      }).not.toThrow();
+      expect(mockDeleteNode).toHaveBeenCalledWith('test-node-1');
     });
   });
 });
