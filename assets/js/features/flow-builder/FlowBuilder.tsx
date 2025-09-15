@@ -563,8 +563,16 @@ function FlowBuilderInternal() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Check if user is typing in an input field
+      const target = e.target as HTMLElement;
+      const isTypingInInput =
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.contentEditable === 'true';
+
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (selectedNode) {
+        // Only delete nodes if not typing in an input field
+        if (selectedNode && !isTypingInInput) {
           deleteNode(selectedNode.id);
         }
       }
