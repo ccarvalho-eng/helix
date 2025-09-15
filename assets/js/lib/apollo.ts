@@ -20,12 +20,7 @@ const authLink = setContext((_, { headers }) => {
 export const client = new ApolloClient({
   link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
-  defaultOptions: {
-    watchQuery: {
-      errorPolicy: 'ignore',
-    },
-    query: {
-      errorPolicy: 'ignore',
-    },
-  },
+  // It's recommended to handle errors at the query level
+  // rather than setting a global 'ignore' policy.
+  // Removing defaultOptions will use the safer default 'none' policy.
 });
