@@ -5,10 +5,9 @@
 **Visual workflow editor for AI agent systems**
 
 [![GitHub release](https://img.shields.io/github/v/release/ccarvalho-eng/helix?style=flat-square)](https://github.com/ccarvalho-eng/helix/releases)
-[![CI](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/ci.yml?style=flat-square&logo=github-actions)](https://github.com/ccarvalho-eng/helix/actions)
-[![E2E Tests](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/nightly-e2e-tests.yml?style=flat-square&logo=playwright&label=E2E)](https://github.com/ccarvalho-eng/helix/actions)
-[![Coverage](https://img.shields.io/codecov/c/github/ccarvalho-eng/helix?style=flat-square)](https://codecov.io/gh/ccarvalho-eng/helix)
-[![Security](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/security.yml?style=flat-square&label=Security)](https://github.com/ccarvalho-eng/helix/actions)
+[![CI](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/ci.yml?style=flat-square&logo=github-actions)](https://github.com/ccarvalho-eng/helix/actions/workflows/ci.yml)
+[![E2E Tests](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/nightly-e2e-tests.yml?style=flat-square&logo=playwright&label=E2E)](https://github.com/ccarvalho-eng/helix/actions/workflows/nightly-e2e-tests.yml)
+[![Security](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/security.yml?style=flat-square&label=Security)](https://github.com/ccarvalho-eng/helix/actions/workflows/security.yml)
 
 </div>
 
