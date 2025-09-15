@@ -200,7 +200,7 @@ Currently, workflows are persisted in browser localStorage:
 
 ## Technology Stack
 
-- **Backend**: Elixir 1.17+, Phoenix Framework, Absinthe (GraphQL)
+- **Backend**: Elixir 1.17+, Phoenix Framework
 - **Frontend**: React, TypeScript, React Flow, TailwindCSS
 - **Database**: PostgreSQL 14+ (development setup)
 - **Real-time**: Phoenix Channels, WebSockets
