@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react';
 
 // Mock ReactFlow and its dependencies
 jest.mock('reactflow', () => ({
-  ReactFlow: ({ children, ...props }: any) => (
+  ReactFlow: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => (
     <div data-testid='reactflow' {...props}>
       {children}
     </div>
@@ -26,7 +26,17 @@ const mockDuplicateNode = jest.fn();
 const mockUpdateFlowTitle = jest.fn();
 const mockUpdateNode = jest.fn();
 
-let mockSelectedNode: any = null;
+type TestNode = {
+  id: string;
+  type: 'agent';
+  label: string;
+  description: string;
+  color: string;
+  borderColor: string;
+  config: Record<string, unknown>;
+};
+
+let mockSelectedNode: TestNode | null = null;
 
 const mockFlowManager = {
   currentFlow: { title: 'Test Flow', id: 'test-flow' },
@@ -76,7 +86,13 @@ jest.mock('../templates', () => ({
 
 // Mock the PropertiesPanel to include actual input elements for testing
 jest.mock('../components/properties', () => ({
-  PropertiesPanel: ({ selectedNode, onUpdateNode }: any) =>
+  PropertiesPanel: ({
+    selectedNode,
+    onUpdateNode
+  }: {
+    selectedNode: TestNode | null;
+    onUpdateNode: (_id: string, _updates: Record<string, unknown>) => void;
+  }) =>
     selectedNode ? (
       <div data-testid='properties-panel'>
         <input
@@ -119,8 +135,8 @@ jest.mock('../components/DownloadButton', () => ({
 }));
 
 // Mock window location
-delete (window as any).location;
-(window as any).location = { pathname: '/flow/test-flow', search: '' };
+delete (window as Window & typeof globalThis).location;
+(window as Window & typeof globalThis).location = { pathname: '/flow/test-flow', search: '' } as Location;
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
