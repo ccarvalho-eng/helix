@@ -24,7 +24,7 @@
 		"@types/react": "^19.1.12",
 		"@types/react-dom": "^19.1.8",
 		"graphql": "^16.11.0",
-		"html-to-image": "^1.11.11",
+		"html-to-image": "^1.11.13",
 		"lucide-react": "^0.542.0",
 		"phoenix": "^1.7.14",
 		"react": "^19.1.1",
