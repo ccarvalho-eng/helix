@@ -19,6 +19,6 @@ If you have added code that should be tested, add tests.
 
 Small pull requests are much easier to review and more likely to get merged. Make sure the PR does only one thing, otherwise please split it.
 
-Make sure all tests pass on Circle CI. PRs that break tests are unlikely to be merged.
+Make sure all checks pass on GitHub CI before submitting for review and after each new change.
 
 For more info, see the [Contributing Guide](../CONTRIBUTING.md).
