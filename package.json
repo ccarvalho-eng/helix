@@ -21,7 +21,7 @@
 	},
 	"dependencies": {
 		"@apollo/client": "^4.0.5",
-		"@types/react": "^19.1.12",
+		"@types/react": "^19.1.13",
 		"@types/react-dom": "^19.1.8",
 		"graphql": "^16.11.0",
 		"html-to-image": "^1.11.13",
