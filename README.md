@@ -73,4 +73,4 @@ Apache 2.0
 
 ---
 
-⭐ **[Star this repo](https://github.com/ccarvalho-eng/helix)** to support development and help others discover it!
+⭐ **[Star this repo](https://github.com/ccarvalho-eng/helix/stargazers)** to support development and help others discover it!
