@@ -3,8 +3,8 @@
 	"scripts": {
 		"prettier": "prettier --write \"assets/js/**/*.{js,ts,tsx}\"",
 		"prettier:check": "prettier --check \"assets/js/**/*.{js,ts,tsx}\"",
-		"lint": "eslint assets/js/features assets/js/shared --ext .js,.jsx,.ts,.tsx",
-		"lint:fix": "eslint assets/js/features assets/js/shared --ext .js,.jsx,.ts,.tsx --fix",
+		"lint": "eslint assets/js/features assets/js/shared assets/js/lib --ext .js,.jsx,.ts,.tsx",
+		"lint:fix": "eslint assets/js/features assets/js/shared assets/js/lib --ext .js,.jsx,.ts,.tsx --fix",
 		"typecheck": "tsc --noEmit",
 		"check": "npm run prettier:check && npm run lint && npm run typecheck",
 		"fix": "npm run prettier && npm run lint:fix && npm run typecheck",
@@ -15,11 +15,15 @@
 		"test:e2e:ui": "playwright test --ui",
 		"test:e2e:debug": "playwright test --debug",
 		"test:e2e:headed": "playwright test --headed",
-		"test:all": "npm run test && npm run test:e2e"
+		"test:all": "npm run test && npm run test:e2e",
+		"codegen": "graphql-codegen --config codegen.ts",
+		"codegen:watch": "graphql-codegen --config codegen.ts --watch"
 	},
 	"dependencies": {
+		"@apollo/client": "^4.0.5",
 		"@types/react": "^19.1.12",
 		"@types/react-dom": "^19.1.8",
+		"graphql": "^16.11.0",
 		"html-to-image": "^1.11.11",
 		"lucide-react": "^0.542.0",
 		"phoenix": "^1.7.14",
@@ -34,6 +38,10 @@
 		"@babel/preset-env": "^7.28.3",
 		"@babel/preset-react": "^7.27.1",
 		"@babel/preset-typescript": "^7.27.1",
+		"@graphql-codegen/cli": "^6.0.0",
+		"@graphql-codegen/typescript": "^5.0.0",
+		"@graphql-codegen/typescript-operations": "^5.0.0",
+		"@graphql-codegen/typescript-react-apollo": "^4.3.3",
 		"@playwright/test": "^1.55.0",
 		"@testing-library/jest-dom": "^6.8.0",
 		"@testing-library/react": "^16.3.0",

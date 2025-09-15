@@ -46,3 +46,6 @@ npm-debug.log
 # Frontend test coverage reports
 /coverage/
 
+# macOS
+.DS_Store
+
