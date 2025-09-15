@@ -3,10 +3,8 @@ import { render, fireEvent } from '@testing-library/react';
 
 // Mock ReactFlow and its dependencies
 jest.mock('reactflow', () => ({
-  ReactFlow: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => (
-    <div data-testid='reactflow' {...props}>
-      {children}
-    </div>
+  ReactFlow: ({ children }: { children?: React.ReactNode; [key: string]: unknown }) => (
+    <div data-testid='reactflow'>{children}</div>
   ),
   ReactFlowProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid='reactflow-provider'>{children}</div>
