@@ -17,7 +17,7 @@ Create and collaborate on AI workflow diagrams with real-time editing. Built wit
 > ⚠️ Early Development
 >
 > - Visual design and planning only — workflows are not executable yet.
-> - Workflows are stored in the browser's localStorage (no sync/backups). Clearing browser data or switching devices will lose unsaved workflows.
+> - Workflows are stored in the browser's localStorage (no sync/backups). Clearing browser data or switching devices will lose unsaved workflows. To avoid data loss, export your diagrams before clearing browser data or moving to a new device.
 > - Server-side persistence and execution are planned for future releases.
 
 ## Quick Start
