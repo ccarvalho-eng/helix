@@ -38,7 +38,11 @@ Open [localhost:4000](http://localhost:4000) and start designing workflows.
 - Drag and drop nodes to create workflow diagrams
 - Connect nodes to show how agents interact
 - Multiple people can edit the same workflow simultaneously
-- Changes sync in real-time via WebSockets with last-write-wins conflict resolution (concurrent edits may overwrite each other; disconnected clients' changes are not queued)
+- Real-time sync via WebSockets
+  - Last-write-wins: concurrent edits may overwrite each other
+  - No queuing: edits made while disconnected are lost and not replayed on reconnect
+  - No state resync: reconnecting clients do not receive missed changes
+  - Recommendation: coordinate edits or duplicate flows to avoid unintended overwrites
 - Sessions are managed by Elixir GenServers
 - Export diagrams as PNG images
 
