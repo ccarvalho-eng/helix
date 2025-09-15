@@ -88,7 +88,7 @@ jest.mock('../templates', () => ({
 jest.mock('../components/properties', () => ({
   PropertiesPanel: ({
     selectedNode,
-    onUpdateNode
+    onUpdateNode,
   }: {
     selectedNode: TestNode | null;
     onUpdateNode: (_id: string, _updates: Record<string, unknown>) => void;
@@ -135,8 +135,13 @@ jest.mock('../components/DownloadButton', () => ({
 }));
 
 // Mock window location
-delete (window as Window & typeof globalThis).location;
-(window as Window & typeof globalThis).location = { pathname: '/flow/test-flow', search: '' } as Location;
+Object.defineProperty(window, 'location', {
+  value: {
+    pathname: '/flow/test-flow',
+    search: '',
+  },
+  writable: true,
+});
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
