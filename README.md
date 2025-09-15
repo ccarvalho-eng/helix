@@ -4,7 +4,7 @@
 
 **Visual workflow editor for AI agent systems**
 
-Helix — from the Greek ἕλιξ, meaning “spiral” — mirrors the architecture of intelligent systems. Like a DNA helix, it represents intertwined layers of AI agents: autonomous, interdependent, evolving. Its design is a blueprint for complex workflows, where structure and adaptability coalesce, enabling agents to collaborate seamlessly while scaling in sophistication.
+Helix — from the Greek ἕλιξ, meaning “spiral” — mirrors the architecture of intelligent systems. Like a DNA helix, it represents intertwined layers of AI agents: autonomous, interdependent, evolving. 
 
 [![GitHub release](https://img.shields.io/github/v/release/ccarvalho-eng/helix?style=flat-square)](https://github.com/ccarvalho-eng/helix/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/ci.yml?style=flat-square&logo=github-actions)](https://github.com/ccarvalho-eng/helix/actions/workflows/ci.yml)
