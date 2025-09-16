@@ -141,7 +141,7 @@ export const RegisterPage: React.FC = () => {
                 <div className='login-feature-content'>
                   <h3 className='login-feature-title'>Professional Canvas</h3>
                   <p className='login-feature-description'>
-                    Drag-and-drop editor with minimap, properties, and beautiful themes
+                    Drag-and-drop editor with minimap, properties, and light/dark mode
                   </p>
                 </div>
               </div>
