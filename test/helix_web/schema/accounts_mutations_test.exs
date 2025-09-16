@@ -60,10 +60,10 @@ defmodule HelixWeb.Schema.AccountsMutationsTest do
                "errors" => [%{"message" => message}]
              } = response
 
-      assert message =~ "email:"
-      assert message =~ "password:"
-      assert message =~ "first_name:"
-      assert message =~ "last_name:"
+      assert message =~ "Email:"
+      assert message =~ "Password:"
+      assert message =~ "First name:"
+      assert message =~ "Last name:"
     end
 
     test "returns error with duplicate email", %{conn: conn} do
@@ -83,7 +83,7 @@ defmodule HelixWeb.Schema.AccountsMutationsTest do
                "errors" => [%{"message" => message}]
              } = response
 
-      assert message =~ "email: has already been taken"
+      assert message =~ "Email: Has already been taken"
     end
   end
 
@@ -263,7 +263,7 @@ defmodule HelixWeb.Schema.AccountsMutationsTest do
                "errors" => [%{"message" => message}]
              } = response
 
-      assert message =~ "password:"
+      assert message =~ "Password:"
     end
   end
 end

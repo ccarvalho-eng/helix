@@ -168,7 +168,7 @@ export class AuthService {
   }
 
   // Sanitize user data to prevent XSS attacks
-  private static sanitizeUser(user: Record<string, unknown>): User {
+  private static sanitizeUser(user: User): User {
     const sanitizeString = (str: string): string => {
       if (typeof str !== 'string') return '';
       return str

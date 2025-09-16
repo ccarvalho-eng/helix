@@ -6,7 +6,7 @@ interface PasswordStrengthProps {
 
 interface StrengthCheck {
   label: string;
-  test: (password: string) => boolean;
+  test: (_password: string) => boolean;
   met: boolean;
 }
 

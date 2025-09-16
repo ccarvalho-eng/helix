@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { ThemeToggle } from '../flow-builder/components/ThemeToggle';
 import { useAuth } from '../../shared/contexts/AuthContext';
-import { FormValidator } from '../../shared/utils/validation';
 import { PasswordStrength } from '../../shared/components/ui/PasswordStrength';
 
 // Extend Window interface to include topbar
@@ -177,7 +176,11 @@ export const RegisterPage: React.FC = () => {
             {/* Form-level Error Message */}
             {error && (
               <div className='login-form-error'>
-                <p className='login-form-error-text'>{error}</p>
+                {error.split('\n').map((errorLine, index) => (
+                  <p key={index} className='login-form-error-text'>
+                    {errorLine}
+                  </p>
+                ))}
               </div>
             )}
 
