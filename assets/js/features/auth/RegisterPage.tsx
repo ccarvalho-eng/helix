@@ -13,6 +13,7 @@ import {
 import { ThemeToggle } from '../flow-builder/components/ThemeToggle';
 import { useAuth } from '../../shared/contexts/AuthContext';
 import { FormValidator } from '../../shared/utils/validation';
+import { PasswordStrength } from '../../shared/components/ui/PasswordStrength';
 
 // Extend Window interface to include topbar
 declare global {
@@ -33,7 +34,7 @@ export const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [_fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,28 +47,28 @@ export const RegisterPage: React.FC = () => {
       window.topbar.show();
     }
 
-    // Validate form
-    const validationErrors = FormValidator.validateRegisterForm(
-      email,
-      password,
-      firstName,
-      lastName
-    );
-    if (validationErrors.length > 0) {
-      const errors: Record<string, string> = {};
-      let generalError = '';
+    // Client-side validation
+    const validationErrors: Record<string, string> = {};
 
-      validationErrors.forEach(err => {
-        errors[err.field] = err.message;
-        if (!generalError) {
-          generalError = err.message;
-        }
-      });
+    if (!firstName.trim()) {
+      validationErrors.firstName = 'Please enter your first name';
+    }
 
-      setFieldErrors(errors);
-      setError(generalError); // Show the first validation error as general error
+    if (!lastName.trim()) {
+      validationErrors.lastName = 'Please enter your last name';
+    }
+
+    if (!email.trim()) {
+      validationErrors.email = 'Please enter your email address';
+    }
+
+    if (!password.trim()) {
+      validationErrors.password = 'Please enter your password';
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
       setIsLoading(false);
-
       if (window.topbar) {
         window.topbar.hide();
       }
@@ -173,10 +174,10 @@ export const RegisterPage: React.FC = () => {
               <p className='login-subtitle'>Sign up to get started with Helix</p>
             </div>
 
-            {/* Error Message */}
+            {/* Form-level Error Message */}
             {error && (
-              <div className='login-error'>
-                <p className='login-error-text'>{error}</p>
+              <div className='login-form-error'>
+                <p className='login-form-error-text'>{error}</p>
               </div>
             )}
 
@@ -195,12 +196,15 @@ export const RegisterPage: React.FC = () => {
                       type='text'
                       value={firstName}
                       onChange={e => setFirstName(e.target.value)}
-                      className='login-input'
+                      className={`login-input ${fieldErrors.firstName ? 'login-input--error' : ''}`}
                       placeholder='Enter your first name'
                       required
                       autoComplete='given-name'
                     />
                   </div>
+                  {fieldErrors.firstName && (
+                    <p className='login-field-error'>{fieldErrors.firstName}</p>
+                  )}
                 </div>
                 <div className='login-field'>
                   <label htmlFor='lastName' className='login-label'>
@@ -213,12 +217,15 @@ export const RegisterPage: React.FC = () => {
                       type='text'
                       value={lastName}
                       onChange={e => setLastName(e.target.value)}
-                      className='login-input'
+                      className={`login-input ${fieldErrors.lastName ? 'login-input--error' : ''}`}
                       placeholder='Enter your last name'
                       required
                       autoComplete='family-name'
                     />
                   </div>
+                  {fieldErrors.lastName && (
+                    <p className='login-field-error'>{fieldErrors.lastName}</p>
+                  )}
                 </div>
               </div>
 
@@ -234,12 +241,13 @@ export const RegisterPage: React.FC = () => {
                     type='email'
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className='login-input'
+                    className={`login-input ${fieldErrors.email ? 'login-input--error' : ''}`}
                     placeholder='Enter your email'
                     required
                     autoComplete='email'
                   />
                 </div>
+                {fieldErrors.email && <p className='login-field-error'>{fieldErrors.email}</p>}
               </div>
 
               {/* Password Field */}
@@ -254,7 +262,7 @@ export const RegisterPage: React.FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className='login-input'
+                    className={`login-input ${fieldErrors.password ? 'login-input--error' : ''}`}
                     placeholder='Enter your password'
                     required
                     autoComplete='new-password'
@@ -269,7 +277,10 @@ export const RegisterPage: React.FC = () => {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                <p className='login-field-hint'>Minimum 8 characters</p>
+                {fieldErrors.password && (
+                  <p className='login-field-error'>{fieldErrors.password}</p>
+                )}
+                <PasswordStrength password={password} />
               </div>
 
               {/* Submit Button */}

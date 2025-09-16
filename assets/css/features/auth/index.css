@@ -1,2 +1,3 @@
 /* Auth feature styles */
 @import "./login.css";
+@import "../../shared/components/ui/password-strength.css";

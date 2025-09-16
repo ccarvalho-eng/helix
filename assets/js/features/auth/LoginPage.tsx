@@ -34,23 +34,20 @@ export const LoginPage: React.FC = () => {
       window.topbar.show();
     }
 
-    // Validate form
-    const validationErrors = FormValidator.validateLoginForm(email, password);
-    if (validationErrors.length > 0) {
-      const errors: Record<string, string> = {};
-      let generalError = '';
+    // Client-side validation
+    const validationErrors: Record<string, string> = {};
 
-      validationErrors.forEach(err => {
-        errors[err.field] = err.message;
-        if (!generalError) {
-          generalError = err.message;
-        }
-      });
+    if (!email.trim()) {
+      validationErrors.email = 'Please enter your email address';
+    }
 
-      setFieldErrors(errors);
-      setError(generalError); // Show the first validation error as general error
+    if (!password.trim()) {
+      validationErrors.password = 'Please enter your password';
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
       setIsLoading(false);
-
       if (window.topbar) {
         window.topbar.hide();
       }
@@ -153,10 +150,10 @@ export const LoginPage: React.FC = () => {
               <p className='login-subtitle'>Sign in to your account to continue</p>
             </div>
 
-            {/* Error Message */}
+            {/* Form-level Error Message */}
             {error && (
-              <div className='login-error'>
-                <p className='login-error-text'>{error}</p>
+              <div className='login-form-error'>
+                <p className='login-form-error-text'>{error}</p>
               </div>
             )}
 
@@ -248,6 +245,13 @@ export const LoginPage: React.FC = () => {
                   'Sign in'
                 )}
               </button>
+
+              {/* Flash Error Message */}
+              {error && (
+                <div className='login-flash-error'>
+                  <p className='login-flash-error-text'>{error}</p>
+                </div>
+              )}
             </form>
 
             {/* Footer */}
