@@ -245,13 +245,6 @@ export const LoginPage: React.FC = () => {
                   'Sign in'
                 )}
               </button>
-
-              {/* Flash Error Message */}
-              {error && (
-                <div className='login-flash-error'>
-                  <p className='login-flash-error-text'>{error}</p>
-                </div>
-              )}
             </form>
 
             {/* Footer */}
