@@ -143,15 +143,19 @@
   box-shadow: none;
 }
 
-/* Dark theme - Green focus for inputs */
+/* Dark theme - More visible input borders with green accent */
+[data-theme="dark"] .properties-panel__input {
+  border-color: rgba(var(--theme-syntax-green-rgb, 152, 195, 121), 0.2);
+}
+
+[data-theme="dark"] .properties-panel__input:hover {
+  border-color: rgba(var(--theme-syntax-green-rgb, 152, 195, 121), 0.3);
+}
+
 [data-theme="dark"] .properties-panel__input:focus {
   border-color: var(--theme-syntax-green);
   outline: none;
   box-shadow: none;
-}
-
-[data-theme="dark"] .properties-panel__input:hover {
-  border-color: var(--theme-syntax-green);
 }
 
 .properties-panel__textarea {

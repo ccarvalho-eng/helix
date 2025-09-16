@@ -326,7 +326,7 @@
 .login-input {
   width: 100%;
   padding: 0.75rem 0.75rem 0.75rem 2.5rem;
-  border: 1px solid rgba(var(--theme-input-border-rgb, 62, 68, 81), 0.3);
+  border: 1.5px solid var(--flow-builder-input-border);
   border-radius: 6px;
   font-size: 0.875rem;
   transition: all 0.15s ease;
@@ -355,6 +355,19 @@
   box-shadow: 0 0 0 2px rgba(var(--theme-syntax-green-rgb, 152, 195, 121), 0.1);
   transform: none;
   background: var(--theme-bg-primary);
+}
+
+/* Dark theme - exact same styling as properties panel */
+[data-theme='dark'] .login-input {
+  border-color: rgba(var(--theme-syntax-green-rgb, 152, 195, 121), 0.2);
+}
+
+[data-theme='dark'] .login-input:hover {
+  border-color: rgba(var(--theme-syntax-green-rgb, 152, 195, 121), 0.3);
+}
+
+[data-theme='dark'] .login-input:focus {
+  border-color: var(--theme-syntax-green);
 }
 
 .login-input-wrapper:focus-within .login-input-icon {

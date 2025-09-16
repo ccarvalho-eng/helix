@@ -357,6 +357,15 @@
 	box-shadow: none !important;
 }
 
+/* Dark theme - more visible search input borders */
+[data-theme="dark"] .home-workflows__search-input {
+	border-color: rgba(152, 195, 121, 0.2);
+}
+
+[data-theme="dark"] .home-workflows__search-input:hover {
+	border-color: rgba(152, 195, 121, 0.3);
+}
+
 [data-theme="dark"] .home-workflows__search-input:focus {
 	border-color: #98c379 !important;
 	box-shadow: none !important;
@@ -846,9 +855,13 @@
 	box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.1);
 }
 
-/* Dark theme - use green accent */
+/* Dark theme - more visible title input borders with green accent */
 [data-theme="dark"] .home-workflow-card__title-input {
-	border-color: var(--home-accent);
+	border-color: rgba(152, 195, 121, 0.3);
+}
+
+[data-theme="dark"] .home-workflow-card__title-input:hover {
+	border-color: rgba(152, 195, 121, 0.4);
 }
 
 [data-theme="dark"] .home-workflow-card__title-input:focus {
