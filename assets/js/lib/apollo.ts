@@ -42,25 +42,29 @@ const errorLink = onError((errorResponse: any) => {
   const { graphQLErrors, networkError } = errorResponse;
   if (graphQLErrors) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    graphQLErrors.forEach(({ message, locations, path }: { message: string; locations?: any; path?: any }) => {
-      console.error(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
+    graphQLErrors.forEach(
+      ({ message, locations, path }: { message: string; locations?: any; path?: any }) => {
+        console.error(
+          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+        );
 
-      // Handle authentication errors
-      if (message.includes('Unauthenticated') || message.includes('Not authenticated')) {
-        // Clear auth data and redirect to login
-        try {
-          localStorage.removeItem('helix_auth_token');
-          localStorage.removeItem('helix_token_expiry');
-          localStorage.removeItem('helix_user_data');
-          sessionStorage.clear();
-        } catch (error) {
-          console.error('Error clearing auth data:', error);
+        // Handle authentication errors
+        if (message.includes('Unauthenticated') || message.includes('Not authenticated')) {
+          // Clear auth data and redirect to login
+          try {
+            localStorage.removeItem('helix_auth_token');
+            localStorage.removeItem('helix_token_expiry');
+            localStorage.removeItem('helix_user_data');
+            sessionStorage.clear();
+          } catch (error) {
+            console.error('Error clearing auth data:', error);
+          }
+
+          // Redirect to login page
+          window.location.href = '/login';
         }
-
-        // Redirect to login page
-        window.location.href = '/login';
       }
-    });
+    );
   }
 
   if (networkError) {
