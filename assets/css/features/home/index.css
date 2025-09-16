@@ -183,15 +183,16 @@
 .home-header__logout-btn {
 	display: inline-flex;
 	align-items: center;
-	padding: 0.625rem 1rem;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
 	background: transparent;
 	color: var(--home-text-secondary);
 	border: 1px solid var(--home-border);
 	border-radius: 0.5rem;
-	font-size: 0.8rem;
-	font-weight: 500;
 	cursor: pointer;
 	transition: all 0.2s ease;
+	font-size: 0;
 }
 
 .home-header__logout-btn:hover {

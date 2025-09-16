@@ -156,6 +156,32 @@ body:has(.flow-builder) {
   gap: 16px;
 }
 
+.flow-builder__logout-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--flow-builder-button-bg);
+  border: 1px solid var(--flow-builder-button-border);
+  border-radius: 8px;
+  color: var(--flow-builder-button-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0;
+}
+
+.flow-builder__logout-btn:hover {
+  background: var(--flow-builder-button-hover-bg);
+  border-color: var(--flow-builder-button-hover-border);
+  color: var(--flow-builder-button-hover-text);
+}
+
+[data-theme="dark"] .flow-builder__logout-btn:hover {
+  border-color: var(--theme-syntax-green);
+  color: var(--theme-syntax-green);
+}
+
 .flow-builder__stats {
   display: flex;
   align-items: center;

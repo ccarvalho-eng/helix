@@ -10,6 +10,7 @@ import {
   Edit,
   Copy,
   Trash2,
+  LogOut,
 } from 'lucide-react';
 import { ThemeToggle } from '../flow-builder/components/ThemeToggle';
 import { useAuth } from '../../shared/contexts/AuthContext';
@@ -199,10 +200,15 @@ export const HomePage: React.FC = () => {
                 <Plus className='home-header__create-icon' />
                 New Flow
               </button>
-              <button onClick={handleLogout} className='home-header__logout-btn'>
-                Logout
-              </button>
               <ThemeToggle />
+              <button
+                onClick={handleLogout}
+                className='home-header__logout-btn'
+                title='Logout'
+                aria-label='Logout'
+              >
+                <LogOut size={16} />
+              </button>
             </div>
           </div>
         </div>

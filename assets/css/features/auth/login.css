@@ -747,7 +747,7 @@
 
 @media (max-width: 768px) {
   .login-container {
-    flex-direction: column;
+    flex-direction: column-reverse;
   }
 
   .login-theme-toggle {
@@ -758,7 +758,8 @@
   .login-brand-section {
     padding: 3rem 2rem;
     border-left: none;
-    border-bottom: 1px solid var(--theme-border-primary);
+    border-top: 1px solid var(--theme-border-primary);
+    border-bottom: none;
     text-align: center;
   }
 
