@@ -37,10 +37,12 @@ const authLink = setContext((_, { headers }) => {
 });
 
 // Error handling link for auth errors
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const errorLink = onError((errorResponse: any) => {
   const { graphQLErrors, networkError } = errorResponse;
   if (graphQLErrors) {
-    graphQLErrors.forEach(({ message, locations, path }: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    graphQLErrors.forEach(({ message, locations, path }: { message: string; locations?: any; path?: any }) => {
       console.error(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
 
       // Handle authentication errors

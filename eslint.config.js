@@ -5,6 +5,9 @@ import tsparser from "@typescript-eslint/parser";
 export default [
   js.configs.recommended,
   {
+    ignores: ["assets/js/generated/**"]
+  },
+  {
     files: ["assets/js/**/*.{js,ts,tsx}"],
     languageOptions: {
       parser: tsparser,
