@@ -58,7 +58,7 @@ describe('AuthContext', () => {
   });
 
   it('provides initial auth state', () => {
-    mockAuthService.getCurrentUser.mockReturnValue(null);
+    mockAuthService.getStoredUser.mockReturnValue(null);
     mockAuthService.isAuthenticated.mockReturnValue(false);
 
     render(
@@ -73,7 +73,7 @@ describe('AuthContext', () => {
 
   it('provides stored user when authenticated', () => {
     const mockUser = { id: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
-    mockAuthService.getCurrentUser.mockReturnValue(mockUser);
+    mockAuthService.getStoredUser.mockReturnValue(mockUser);
     mockAuthService.isAuthenticated.mockReturnValue(true);
 
     render(
@@ -88,7 +88,7 @@ describe('AuthContext', () => {
 
   it('handles login', async () => {
     const mockUser = { id: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
-    mockAuthService.getCurrentUser.mockReturnValue(null);
+    mockAuthService.getStoredUser.mockReturnValue(null);
     mockAuthService.isAuthenticated.mockReturnValue(false);
     mockAuthService.login.mockResolvedValue({ user: mockUser, token: 'mock-token' });
 
@@ -112,7 +112,7 @@ describe('AuthContext', () => {
 
   it('handles register', async () => {
     const mockUser = { id: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
-    mockAuthService.getCurrentUser.mockReturnValue(null);
+    mockAuthService.getStoredUser.mockReturnValue(null);
     mockAuthService.isAuthenticated.mockReturnValue(false);
     mockAuthService.register.mockResolvedValue({ user: mockUser, token: 'mock-token' });
 
@@ -138,7 +138,7 @@ describe('AuthContext', () => {
 
   it('handles logout', () => {
     const mockUser = { id: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
-    mockAuthService.getCurrentUser.mockReturnValue(mockUser);
+    mockAuthService.getStoredUser.mockReturnValue(mockUser);
     mockAuthService.isAuthenticated.mockReturnValue(true);
 
     render(

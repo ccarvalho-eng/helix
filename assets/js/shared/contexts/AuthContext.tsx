@@ -35,8 +35,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
 
-      // Check if we have a current user first
-      const storedUser = AuthService.getCurrentUser();
+      // Check if we have a stored user first
+      const storedUser = AuthService.getStoredUser();
       if (storedUser && AuthService.isAuthenticated()) {
         setUser(storedUser);
       }
