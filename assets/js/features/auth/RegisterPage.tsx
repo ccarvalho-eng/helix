@@ -85,6 +85,7 @@ export const RegisterPage: React.FC = () => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed';
       setError(errorMessage);
+    } finally {
       setIsLoading(false);
       if (window.topbar) {
         window.topbar.hide();

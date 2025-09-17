@@ -15,11 +15,14 @@ const authLink = setContext((_, { headers }) => {
     const expiry = localStorage.getItem('helix_token_expiry');
 
     // Check if token has expired
-    if (token && expiry && Date.now() > parseInt(expiry)) {
-      localStorage.removeItem('helix_auth_token');
-      localStorage.removeItem('helix_token_expiry');
-      localStorage.removeItem('helix_user_data');
-      token = null;
+    if (token && expiry) {
+      const expiryTimestamp = parseInt(expiry, 10);
+      if (!isNaN(expiryTimestamp) && Date.now() > expiryTimestamp) {
+        localStorage.removeItem('helix_auth_token');
+        localStorage.removeItem('helix_token_expiry');
+        localStorage.removeItem('helix_user_data');
+        token = null;
+      }
     }
   } catch (error) {
     console.error('Error accessing token:', error);
@@ -70,7 +73,7 @@ const errorLink = onError((errorResponse: any) => {
     console.error(`[Network error]: ${networkError}`);
 
     // Handle 401 Unauthorized
-    if (networkError.statusCode === 401) {
+    if ('statusCode' in networkError && networkError.statusCode === 401) {
       try {
         localStorage.removeItem('helix_auth_token');
         localStorage.removeItem('helix_token_expiry');
