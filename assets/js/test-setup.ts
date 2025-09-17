@@ -23,6 +23,21 @@ global.crypto = {
   randomUUID: jest.fn(() => 'mock-uuid-1234'),
 } as unknown as Crypto;
 
+// Suppress JSDOM navigation errors during tests
+const originalError = console.error;
+beforeAll(() => {
+  console.error = (...args: any[]) => {
+    if (args[0]?.includes?.('Not implemented: navigation')) {
+      return;
+    }
+    originalError.call(console, ...args);
+  };
+});
+
+afterAll(() => {
+  console.error = originalError;
+});
+
 // Reset mocks before each test
 beforeEach(() => {
   jest.clearAllMocks();

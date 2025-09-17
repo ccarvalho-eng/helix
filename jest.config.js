@@ -8,7 +8,8 @@ export default {
     '<rootDir>/assets/js/**/*.(test|spec).(ts|tsx)'
   ],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/assets/js/$1'
+    '^@/(.*)$': '<rootDir>/assets/js/$1',
+    '\\.(graphql)$': '<rootDir>/assets/js/__mocks__/graphqlMock.js'
   },
   collectCoverageFrom: [
     'assets/js/**/*.(ts|tsx)',

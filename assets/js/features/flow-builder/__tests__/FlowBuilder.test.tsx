@@ -149,6 +149,16 @@ Object.defineProperty(window, 'matchMedia', {
 
 import { FlowBuilder } from '../FlowBuilder';
 
+// Mock the useAuth hook
+jest.mock('../../../shared/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { id: '1', email: 'test@example.com' },
+    login: jest.fn(),
+    logout: jest.fn(),
+    register: jest.fn(),
+  }),
+}));
+
 describe('FlowBuilder Keyboard Event Handling', () => {
   const testNode = {
     id: 'test-node-1',
