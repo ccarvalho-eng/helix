@@ -27,7 +27,7 @@ global.crypto = {
 const originalError = console.error;
 beforeAll(() => {
   console.error = (...args: unknown[]) => {
-    if (args[0]?.includes?.('Not implemented: navigation')) {
+    if (typeof args[0] === 'string' && args[0].includes('Not implemented: navigation')) {
       return;
     }
     originalError.call(console, ...args);

@@ -333,7 +333,7 @@ describe('AuthService', () => {
     it('handles missing localStorage gracefully', () => {
       // Temporarily remove localStorage
       const originalLocalStorage = window.localStorage;
-      delete (window as Record<string, unknown>).localStorage;
+      delete (window as unknown as Record<string, unknown>).localStorage;
 
       expect(() => {
         AuthService.getToken();
@@ -352,7 +352,7 @@ describe('AuthService', () => {
     it('handles missing sessionStorage gracefully', () => {
       // Temporarily remove sessionStorage
       const originalSessionStorage = window.sessionStorage;
-      delete (window as Record<string, unknown>).sessionStorage;
+      delete (window as unknown as Record<string, unknown>).sessionStorage;
 
       expect(() => {
         AuthService.logout();
