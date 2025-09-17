@@ -26,7 +26,7 @@ global.crypto = {
 // Suppress JSDOM navigation errors during tests
 const originalError = console.error;
 beforeAll(() => {
-  console.error = (...args: any[]) => {
+  console.error = (...args: unknown[]) => {
     if (args[0]?.includes?.('Not implemented: navigation')) {
       return;
     }

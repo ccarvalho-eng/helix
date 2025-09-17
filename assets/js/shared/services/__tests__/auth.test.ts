@@ -306,9 +306,9 @@ describe('AuthService', () => {
       // This tests the sanitizeString function's type checking
       const userWithInvalidTypes = {
         id: '1',
-        email: null as any,
-        firstName: undefined as any,
-        lastName: 123 as any,
+        email: null as unknown,
+        firstName: undefined as unknown,
+        lastName: 123 as unknown,
       };
 
       // Ensure setItem doesn't throw
@@ -333,7 +333,7 @@ describe('AuthService', () => {
     it('handles missing localStorage gracefully', () => {
       // Temporarily remove localStorage
       const originalLocalStorage = window.localStorage;
-      delete (window as any).localStorage;
+      delete (window as Record<string, unknown>).localStorage;
 
       expect(() => {
         AuthService.getToken();
@@ -352,7 +352,7 @@ describe('AuthService', () => {
     it('handles missing sessionStorage gracefully', () => {
       // Temporarily remove sessionStorage
       const originalSessionStorage = window.sessionStorage;
-      delete (window as any).sessionStorage;
+      delete (window as Record<string, unknown>).sessionStorage;
 
       expect(() => {
         AuthService.logout();
