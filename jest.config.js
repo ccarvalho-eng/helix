@@ -16,7 +16,8 @@ export default {
     '!assets/js/**/*.d.ts',
     '!assets/js/test-setup.ts',
     '!assets/js/**/__tests__/**/*',
-    '!assets/js/**/*.stories.*'
+    '!assets/js/**/*.stories.*',
+    '!assets/js/generated/graphql.ts'
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
