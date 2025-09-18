@@ -20,6 +20,14 @@ export interface WebSocketCallbacks {
   onError?: (_error: unknown) => void;
 }
 
+const getSocketAuthParams = () => {
+  const token = localStorage.getItem('helix_auth_token');
+  if (token) {
+    return { token };
+  }
+  return {};
+};
+
 class WebSocketService {
   private socket: Socket | null = null;
   private channel: Channel | null = null;
@@ -38,7 +46,7 @@ class WebSocketService {
   connect() {
     try {
       this.socket = new Socket('/socket', {
-        params: {},
+        params: getSocketAuthParams(),
         logger: (kind: string, msg: string, data: unknown) => {
           console.debug(`🔌📝 Phoenix WebSocket ${kind}:`, msg, data);
         },

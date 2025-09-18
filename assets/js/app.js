@@ -38,7 +38,7 @@ let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('
 
 // Function to get auth token for WebSocket
 function getSocketParams() {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('helix_auth_token');
   return {
     _csrf_token: csrfToken,
     ...(token && { token }),
