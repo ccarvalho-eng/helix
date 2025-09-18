@@ -34,7 +34,7 @@ defmodule HelixWeb.UserSocket do
     end
   end
 
-  def connect(_params, socket, _connect_info) do
+  def connect(_params, _socket, _connect_info) do
     :error
   end
 
