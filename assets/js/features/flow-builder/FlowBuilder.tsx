@@ -124,7 +124,7 @@ function FlowNode({
     <div className={`flow-node ${selected ? 'flow-node--selected' : ''}`} style={nodeStyle}>
       {/* Node Resizer - only visible when selected */}
       <NodeResizer
-        color={theme === 'dark' ? '#98c379' : '#000000'}
+        color={theme === 'dark' ? 'var(--theme-syntax-green)' : 'var(--theme-text-primary)'}
         isVisible={selected}
         minWidth={parseInt(width)}
         minHeight={parseInt(height)}
@@ -931,7 +931,7 @@ function FlowBuilderInternal() {
               offsetScale={0.8}
             />
             <Background
-              color={theme === 'dark' ? '#4b5563' : '#6b7280'}
+              color={theme === 'dark' ? 'var(--theme-text-secondary)' : 'var(--theme-text-muted)'}
               gap={20}
               size={1}
               className='flow-canvas__background'

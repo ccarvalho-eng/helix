@@ -59,14 +59,13 @@ export function getFeaturedTemplates(): Template[] {
   }
 
   // If we don't have 3 different categories, fill with business-automation
-  while (featuredTemplates.length < 3) {
+  if (featuredTemplates.length < 3) {
     const businessTemplates = getTemplatesByCategory('business-automation');
     for (const template of businessTemplates) {
       if (!featuredTemplates.includes(template) && featuredTemplates.length < 3) {
         featuredTemplates.push(template);
       }
     }
-    break; // Prevent infinite loop
   }
 
   return featuredTemplates;
