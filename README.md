@@ -2,6 +2,12 @@
 
 # 🧬 Helix
 
+[![GitHub release](https://img.shields.io/github/v/release/ccarvalho-eng/helix?style=flat-square)](https://github.com/ccarvalho-eng/helix/releases)
+[![CI](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/ci.yml?style=flat-square&logo=github-actions)](https://github.com/ccarvalho-eng/helix/actions/workflows/ci.yml)
+[![E2E Tests](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/nightly-e2e-tests.yml?style=flat-square&logo=playwright&label=E2E)](https://github.com/ccarvalho-eng/helix/actions/workflows/nightly-e2e-tests.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/ccarvalho-eng/helix?style=flat-square)](https://codecov.io/gh/ccarvalho-eng/helix)
+[![Security](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/security.yml?style=flat-square&label=Security)](https://github.com/ccarvalho-eng/helix/actions/workflows/security.yml)
+
 **Visual workflow editor for AI agent systems**
 
 Helix — from the Greek ἕλιξ, meaning “spiral” — mirrors the architecture of intelligent systems. Like a DNA helix, it represents intertwined layers of AI agents: autonomous, interdependent, evolving. 
@@ -9,12 +15,6 @@ Helix — from the Greek ἕλιξ, meaning “spiral” — mirrors the archite
 <img width="1621" height="959" alt="Screenshot 2025-09-24 at 11 35 33" src="https://github.com/user-attachments/assets/541fec84-f229-4970-825f-99cca4205628" />
 
 <img width="1623" height="962" alt="Screenshot 2025-09-24 at 11 39 13" src="https://github.com/user-attachments/assets/0dd6a01f-d754-4017-a956-64ee3156f1e5" />
-
-[![GitHub release](https://img.shields.io/github/v/release/ccarvalho-eng/helix?style=flat-square)](https://github.com/ccarvalho-eng/helix/releases)
-[![CI](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/ci.yml?style=flat-square&logo=github-actions)](https://github.com/ccarvalho-eng/helix/actions/workflows/ci.yml)
-[![E2E Tests](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/nightly-e2e-tests.yml?style=flat-square&logo=playwright&label=E2E)](https://github.com/ccarvalho-eng/helix/actions/workflows/nightly-e2e-tests.yml)
-[![Coverage](https://img.shields.io/codecov/c/github/ccarvalho-eng/helix?style=flat-square)](https://codecov.io/gh/ccarvalho-eng/helix)
-[![Security](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/security.yml?style=flat-square&label=Security)](https://github.com/ccarvalho-eng/helix/actions/workflows/security.yml)
 
 </div>
 
