@@ -32,7 +32,11 @@ const nodeDefaults = {
 export function useFlowManager(flowId: string | null) {
   const [currentFlow, setCurrentFlow] = useState<FlowRegistryEntry | null>(null);
   const [isNewFlow, setIsNewFlow] = useState(false);
-  const [initialViewport, setInitialViewport] = useState({ x: 0, y: 0, zoom: 1 });
+  const [initialViewport, setInitialViewport] = useState({
+    x: 0,
+    y: 0,
+    zoom: 1,
+  });
 
   // Initialize with empty state, will be loaded in useEffect
   const [nodes, setNodes, onNodesChange] = useNodesState<AIFlowNode>([]);
@@ -44,8 +48,10 @@ export function useFlowManager(flowId: string | null) {
   const [isConnected, setIsConnected] = useState(false);
   const [connectedClients, setConnectedClients] = useState(0);
   const [isFlowReady, setIsFlowReady] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const isUpdatingFromRemote = useRef(false);
   const remoteUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load or create flow on mount
   useEffect(() => {
@@ -185,6 +191,58 @@ export function useFlowManager(flowId: string | null) {
     };
   }, [currentFlow, setNodes, setEdges]);
 
+  // Force save function for immediate saves
+  const forceSave = useCallback(() => {
+    if (currentFlow && reactFlowInstance) {
+      const viewport = reactFlowInstance.getViewport();
+      const flowData = { nodes, edges, viewport };
+
+      // Clear any pending save timeout
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+
+      // Save immediately
+      flowStorage.saveFlow(currentFlow.id, flowData);
+      setHasUnsavedChanges(false);
+
+      return true;
+    }
+    return false;
+  }, [currentFlow, nodes, edges, reactFlowInstance]);
+
+  // Page unload protection
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (currentFlow && hasUnsavedChanges) {
+        // Force immediate save
+        forceSave();
+
+        // Warn user about potential data loss
+        e.preventDefault();
+        const message = 'You have unsaved changes. Are you sure you want to leave?';
+        e.returnValue = message;
+        return message;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden && currentFlow && hasUnsavedChanges) {
+        // Immediately save when tab becomes hidden
+        forceSave();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [currentFlow, hasUnsavedChanges, forceSave]);
+
   // Track previous state to detect actual changes
   const prevFlowDataRef = useRef<FlowData | null>(null);
   const hasInitializedRef = useRef(false);
@@ -262,10 +320,29 @@ export function useFlowManager(flowId: string | null) {
             console.error('📡❌ Failed to broadcast flow changes:', error);
           });
         }
-      }, 500);
+      }, 100);
 
-      return () => clearTimeout(timeoutId);
+      // Store timeout reference for cleanup
+      saveTimeoutRef.current = timeoutId;
+      setHasUnsavedChanges(false); // Changes will be saved
+
+      return () => {
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+          saveTimeoutRef.current = null;
+        }
+      };
     }
+
+    // Mark as having unsaved changes immediately
+    setHasUnsavedChanges(true);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+    };
   }, [nodes, edges, currentFlow, reactFlowInstance]);
 
   // Mark as initialized after first load
@@ -553,6 +630,10 @@ export function useFlowManager(flowId: string | null) {
     isConnected,
     connectedClients,
     isFlowReady,
+
+    // Save state
+    hasUnsavedChanges,
+    forceSave,
 
     // Initial viewport
     initialViewport,
