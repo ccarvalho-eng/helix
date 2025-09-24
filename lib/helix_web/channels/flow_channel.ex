@@ -10,7 +10,7 @@ defmodule HelixWeb.FlowChannel do
 
   use HelixWeb, :channel
 
-  alias Helix.FlowSessionManager
+  alias Helix.Flows
   require Logger
 
   @impl true
@@ -30,9 +30,9 @@ defmodule HelixWeb.FlowChannel do
       client_id = generate_client_id()
 
       # Join the flow session
-      case FlowSessionManager.join_flow(flow_id, client_id) do
+      case Flows.join_flow(flow_id, client_id) do
         {:ok, client_count} ->
-          # Store client info in socket assigns
+          # Store client info in socket assigns and register for monitoring
           socket =
             socket
             |> assign(:flow_id, flow_id)
@@ -100,7 +100,7 @@ defmodule HelixWeb.FlowChannel do
     flow_id = socket.assigns.flow_id
 
     # Broadcast changes to other clients via the session manager
-    FlowSessionManager.broadcast_flow_change(flow_id, changes)
+    Flows.broadcast_flow_change(flow_id, changes)
 
     # Acknowledge receipt
     {:reply, {:ok, %{status: "broadcasted"}}, socket}
@@ -124,7 +124,7 @@ defmodule HelixWeb.FlowChannel do
     client_id = socket.assigns[:client_id]
 
     if flow_id && client_id do
-      case FlowSessionManager.leave_flow(flow_id, client_id) do
+      case Flows.leave_flow(flow_id, client_id) do
         {:ok, remaining_clients} ->
           # Broadcast that a client left using broadcast_from
           # This may fail if the channel is already terminating or never

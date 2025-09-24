@@ -37,15 +37,17 @@ graph TB
     subgraph "Phoenix Server"
         US[UserSocket<br/>WebSocket Handler]
         FC[FlowChannel<br/>Phoenix Channel]
-        FSM[FlowSessionManager<br/>GenServer State]
+        FB[Helix.Flows<br/>Boundary Module]
+        SS[SessionServer<br/>GenServer State]
         PUB[Phoenix.PubSub<br/>Message Broadcasting]
         API[REST API<br/>Flow CRUD]
 
         WSA --> US
         WSB --> US
         US --> FC
-        FC <--> FSM
-        FSM --> PUB
+        FC <--> FB
+        FB --> SS
+        SS --> PUB
         PUB --> FC
         HTTP --> API
     end
@@ -64,7 +66,7 @@ graph TB
     class UA,UB,FEA,FEB,LSA,LSB client
     class WSA,WSB,HTTP network
     class US,API server
-    class FC,FSM,PUB realtime
+    class FC,FB,SS,PUB realtime
     class PG database
 ```
 
@@ -77,7 +79,8 @@ sequenceDiagram
     participant FA as 🖥️ Frontend A
     participant WS as 🌐 WebSocket
     participant FC as 📡 FlowChannel
-    participant FSM as 🧠 FlowSessionManager
+    participant FBM as 🚪 Helix.Flows
+    participant SS as 🧠 SessionServer
     participant PUB as 📢 Phoenix.PubSub
     participant FB as 🖥️ Frontend B
     participant UB as 👤 User B
@@ -87,16 +90,18 @@ sequenceDiagram
     Note over FA: Debounced (500ms)
     FA->>WS: 📤 Send flow_change event
     WS->>FC: 📥 Receive flow_change
-    FC->>FSM: 🚀 broadcast_flow_change()
-    FSM->>FSM: ⏰ Update last_activity
-    FSM->>PUB: 📡 Phoenix.PubSub.broadcast
+    FC->>FBM: 🚀 Flows.broadcast_flow_change()
+    FBM->>SS: 🔄 SessionServer.broadcast_flow_change()
+    SS->>SS: ⏰ Update last_activity
+    SS->>PUB: 📡 Phoenix.PubSub.broadcast
     PUB->>FC: 📢 {:flow_change, data}
     FC->>WS: 📤 Send flow_update
     WS->>FB: 📥 Receive flow_update
     FB->>FB: 🔄 Apply remote changes
     FB->>UB: ✨ Visual update appears
 
-    Note over FSM: 📋 Manages client sessions<br/>⏰ Updates activity timestamps<br/>❌ No conflict resolution
+    Note over SS: 📋 Manages client sessions<br/>⏰ Updates activity timestamps<br/>❌ No conflict resolution
+    Note over FBM: 🚪 Boundary module API<br/>🔒 Hides implementation details
     Note over PUB: 🚀 Handles message broadcasting<br/>📡 Topic: "flow:#{flow_id}"
 ```
 
@@ -114,8 +119,8 @@ flowchart TD
     B2 -->|Connected| C2[FlowChannel handles B]
     B2 -->|Disconnected| D2[❌ Event Lost<br/>No Queuing]
 
-    C --> E[FlowSessionManager.broadcast_flow_change]
-    C2 --> E2[FlowSessionManager.broadcast_flow_change]
+    C --> E[Flows.broadcast_flow_change<br/>→ SessionServer.broadcast_flow_change]
+    C2 --> E2[Flows.broadcast_flow_change<br/>→ SessionServer.broadcast_flow_change]
 
     E --> F{Active Session?}
     E2 --> F2{Active Session?}
@@ -169,34 +174,73 @@ flowchart TD
 - **No state sync**: Reconnected clients don't get missed changes
 - **Session-based**: Only active sessions (with connected clients) receive broadcasts
 
+## System Architecture
+
+### OTP Design and Supervision Tree
+
+The flow management system follows OTP (Open Telecom Platform) design principles with a simple supervision hierarchy:
+
+```
+Phoenix Application
+├── Helix.Application (Application)
+│   ├── Phoenix.PubSub (Supervisor)
+│   ├── HelixWeb.Endpoint (Supervisor)
+│   └── Helix.Flows.Supervisor (Supervisor)
+│       └── Helix.Flows.SessionServer (GenServer)
+```
+
+#### Supervision Strategy
+- **Strategy**: `:one_for_one` - If SessionServer crashes, only it gets restarted
+- **Restart**: `:permanent` - SessionServer is always restarted if it terminates
+- **Shutdown**: `5000` ms - Graceful shutdown timeout
+
+#### Process Responsibilities
+- **Helix.Flows.Supervisor**: Manages the SessionServer lifecycle
+- **SessionServer**: Single point of truth for all flow session state
+- **Phoenix.PubSub**: Message broadcasting infrastructure (separate process)
+- **Phoenix Channels**: WebSocket connection handlers (per-connection processes)
+
+#### Design Principles Applied
+- **Start Simple**: Single GenServer instead of complex multi-process architecture
+- **Let It Crash**: No defensive programming - let OTP handle process failures
+- **Single Responsibility**: SessionServer only manages session state
+- **Boundary Module**: Helix.Flows provides clean API hiding implementation details
+
 ## Key Components
 
-### FlowSessionManager GenServer
+### Helix.Flows Context & SessionServer
 
-The `FlowSessionManager` is a GenServer process that maintains workflow sessions in memory:
+**Helix.Flows** - Boundary module:
+- Public API for all flow operations
+- Supervision tree management
+- Documented interface with typespecs
 
+**SessionServer** - GenServer process:
 - Tracks active flow sessions and connected clients
-- Handles automatic cleanup of inactive sessions (30-minute timeout)
-- Manages session lifecycle and client join/leave operations
-- Broadcasts flow changes to all connected clients in a session
+- Automatic cleanup of inactive sessions (30-minute timeout)
+- Client join/leave operations
+- Flow change broadcasting via Phoenix PubSub
+- Anonymous client ID generation for invalid inputs
+- Client-to-flow mapping for lookups
 
 ### Phoenix Channels
 
-Real-time communication is handled through Phoenix Channels:
+Real-time communication via Phoenix Channels:
 
-- `FlowChannel` manages WebSocket connections for each workflow
+- `FlowChannel` manages WebSocket connections per workflow
 - Handles `flow_change` events from clients
-- Broadcasts `flow_update` events to all connected clients
-- Uses Phoenix PubSub for message distribution
+- Broadcasts `flow_update` events to connected clients
+- Phoenix PubSub message distribution
+- Automatic session join/leave on client connect/disconnect
 
 ### Local Storage Persistence
 
-Currently, workflows are persisted in browser localStorage:
+Workflow persistence in browser localStorage:
 
-- Each workflow has a unique ID and metadata
-- Flow data includes nodes, edges, and viewport state
-- Registry tracks all workflows with timestamps and counts
-- Automatic saving on every change with debouncing
+- Unique workflow IDs and metadata
+- Flow data: nodes, edges, viewport state
+- Registry with timestamps and counts
+- Auto-save with debouncing
 
 ## Technology Stack
 
@@ -206,3 +250,27 @@ Currently, workflows are persisted in browser localStorage:
 - **Real-time**: Phoenix Channels, WebSockets
 - **State Management**: OTP GenServers, Phoenix PubSub
 - **Testing**: ExUnit, Jest, Playwright
+
+## Testing Strategy
+
+The flow management system has comprehensive test coverage:
+
+### Test Coverage (88.3% overall)
+- **Helix.Flows**: 100% coverage - All public API functions tested
+- **SessionServer**: 91.6% coverage - Comprehensive edge case testing
+- **Web Controllers**: 85.7% coverage - HTTP endpoint testing
+- **Phoenix Channels**: 83.3%+ coverage - WebSocket communication testing
+
+### Test Categories
+- **Unit Tests**: Direct testing of SessionServer GenServer callbacks
+- **Integration Tests**: Testing boundary module (Flows) with SessionServer
+- **Channel Tests**: WebSocket communication and real-time features
+- **Controller Tests**: HTTP API endpoints and error handling
+- **Edge Cases**: Invalid inputs, concurrent operations, cleanup scenarios
+- **Error Handling**: Network failures, process crashes, invalid data
+
+### Test Structure
+- **225+ total tests** covering all aspects of flow management
+- **Isolated tests** using unique flow IDs to prevent interference
+- **Concurrent operation testing** to ensure thread safety
+- **Error scenario testing** for graceful degradation

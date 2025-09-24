@@ -1,7 +1,7 @@
 defmodule HelixWeb.FlowController do
   use HelixWeb, :controller
 
-  alias Helix.FlowSessionManager
+  alias Helix.Flows
 
   def index(conn, _params) do
     render(conn, :index, layout: {HelixWeb.Layouts, :flow})
@@ -21,7 +21,7 @@ defmodule HelixWeb.FlowController do
     # Extract flow changes from request body, defaulting to empty map
     changes = Map.get(params, "changes", %{})
 
-    FlowSessionManager.broadcast_flow_change(flow_id, changes)
+    Flows.broadcast_flow_change(flow_id, changes)
 
     conn
     |> put_status(:ok)
@@ -33,7 +33,7 @@ defmodule HelixWeb.FlowController do
   Get the current status of a flow session
   """
   def status(conn, %{"id" => flow_id}) do
-    flow_status = FlowSessionManager.get_flow_status(flow_id)
+    flow_status = Flows.get_flow_status(flow_id)
 
     conn
     |> put_status(:ok)

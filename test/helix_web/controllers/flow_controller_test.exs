@@ -1,11 +1,11 @@
 defmodule HelixWeb.FlowControllerTest do
   use HelixWeb.ConnCase, async: true
 
-  alias Helix.FlowSessionManager
+  alias Helix.Flows
 
   setup do
-    # Ensure FlowSessionManager is started, but don't fail if already started
-    case start_supervised({FlowSessionManager, []}) do
+    # Ensure Flows is started, but don't fail if already started
+    case start_supervised({Flows, []}) do
       {:ok, _pid} -> :ok
       {:error, {:already_started, _pid}} -> :ok
     end
@@ -54,7 +54,7 @@ defmodule HelixWeb.FlowControllerTest do
       }
 
       # First, ensure there's an active session by joining a flow
-      FlowSessionManager.join_flow(flow_id, "test-client")
+      Flows.join_flow(flow_id, "test-client")
 
       # Subscribe to PubSub to verify broadcast
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
@@ -161,7 +161,7 @@ defmodule HelixWeb.FlowControllerTest do
       }
 
       # First, ensure there's an active session by joining a flow
-      FlowSessionManager.join_flow(flow_id, "test-client")
+      Flows.join_flow(flow_id, "test-client")
 
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
 
@@ -224,7 +224,7 @@ defmodule HelixWeb.FlowControllerTest do
       client_id = "test-client"
 
       # Join a client to make the flow active
-      {:ok, client_count} = FlowSessionManager.join_flow(flow_id, client_id)
+      {:ok, client_count} = Flows.join_flow(flow_id, client_id)
 
       conn = get(conn, ~p"/api/flows/#{flow_id}/status")
 
@@ -242,20 +242,20 @@ defmodule HelixWeb.FlowControllerTest do
       assert json_response(conn1, 200)["client_count"] == 0
 
       # Add clients
-      FlowSessionManager.join_flow(flow_id, "client-1")
-      FlowSessionManager.join_flow(flow_id, "client-2")
+      Flows.join_flow(flow_id, "client-1")
+      Flows.join_flow(flow_id, "client-2")
 
       conn2 = get(conn, ~p"/api/flows/#{flow_id}/status")
       assert json_response(conn2, 200)["client_count"] == 2
 
       # Remove one client
-      FlowSessionManager.leave_flow(flow_id, "client-1")
+      Flows.leave_flow(flow_id, "client-1")
 
       conn3 = get(conn, ~p"/api/flows/#{flow_id}/status")
       assert json_response(conn3, 200)["client_count"] == 1
 
       # Remove last client
-      FlowSessionManager.leave_flow(flow_id, "client-2")
+      Flows.leave_flow(flow_id, "client-2")
 
       conn4 = get(conn, ~p"/api/flows/#{flow_id}/status")
 
@@ -279,7 +279,7 @@ defmodule HelixWeb.FlowControllerTest do
     test "returns consistent last_activity timestamp", %{conn: conn} do
       flow_id = "timestamp-flow"
 
-      FlowSessionManager.join_flow(flow_id, "client-1")
+      Flows.join_flow(flow_id, "client-1")
 
       conn1 = get(conn, ~p"/api/flows/#{flow_id}/status")
       response1 = json_response(conn1, 200)
@@ -295,7 +295,7 @@ defmodule HelixWeb.FlowControllerTest do
 
       # Wait to ensure timestamp will be different, then broadcast activity
       :timer.sleep(1001)
-      FlowSessionManager.broadcast_flow_change(flow_id, %{})
+      Flows.broadcast_flow_change(flow_id, %{})
 
       conn3 = get(conn, ~p"/api/flows/#{flow_id}/status")
       response3 = json_response(conn3, 200)
@@ -354,7 +354,7 @@ defmodule HelixWeb.FlowControllerTest do
       assert json_response(conn1, 200)["active"] == false
 
       # Add a client to make it active
-      FlowSessionManager.join_flow(flow_id, "client-1")
+      Flows.join_flow(flow_id, "client-1")
 
       # Now should be active
       conn2 = get(conn, ~p"/api/flows/#{flow_id}/status")
@@ -382,9 +382,9 @@ defmodule HelixWeb.FlowControllerTest do
       flow2_id = "independent-flow-2"
 
       # Set up different states for each flow
-      FlowSessionManager.join_flow(flow1_id, "client-1")
-      FlowSessionManager.join_flow(flow2_id, "client-2a")
-      FlowSessionManager.join_flow(flow2_id, "client-2b")
+      Flows.join_flow(flow1_id, "client-1")
+      Flows.join_flow(flow2_id, "client-2a")
+      Flows.join_flow(flow2_id, "client-2b")
 
       # Check individual statuses
       conn1 = get(conn, ~p"/api/flows/#{flow1_id}/status")

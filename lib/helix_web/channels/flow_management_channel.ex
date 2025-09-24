@@ -9,7 +9,7 @@ defmodule HelixWeb.FlowManagementChannel do
 
   use HelixWeb, :channel
 
-  alias Helix.FlowSessionManager
+  alias Helix.Flows
   require Logger
 
   @impl true
@@ -30,7 +30,7 @@ defmodule HelixWeb.FlowManagementChannel do
     Logger.info("Received flow deletion notification for flow: #{flow_id}")
 
     # Force close any active sessions for this flow
-    case FlowSessionManager.force_close_flow_session(flow_id) do
+    case Flows.force_close_flow_session(flow_id) do
       {:ok, closed_clients} ->
         Logger.info("Closed flow session #{flow_id} with #{closed_clients} active clients")
 

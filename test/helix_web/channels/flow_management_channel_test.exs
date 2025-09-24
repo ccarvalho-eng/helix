@@ -2,14 +2,14 @@ defmodule HelixWeb.FlowManagementChannelTest do
   use HelixWeb.ChannelCase, async: false
   import ExUnit.CaptureLog
 
-  alias Helix.FlowSessionManager
+  alias Helix.Flows
   alias HelixWeb.FlowManagementChannel
 
   @moduletag :authenticated_socket
 
   setup do
-    # Start FlowSessionManager for tests
-    pid = start_supervised({FlowSessionManager, []})
+    # Start Flows for tests
+    pid = start_supervised({Flows, []})
 
     on_exit(fn ->
       case pid do
@@ -47,11 +47,11 @@ defmodule HelixWeb.FlowManagementChannelTest do
       flow_id = test_flow_id("delete-test-flow")
 
       # Set up an active flow session first
-      FlowSessionManager.join_flow(flow_id, "test-client-1")
-      FlowSessionManager.join_flow(flow_id, "test-client-2")
+      Flows.join_flow(flow_id, "test-client-1")
+      Flows.join_flow(flow_id, "test-client-2")
 
       # Verify session is active
-      assert %{active: true, client_count: 2} = FlowSessionManager.get_flow_status(flow_id)
+      assert %{active: true, client_count: 2} = Flows.get_flow_status(flow_id)
 
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowManagementChannel, "flow_management")
 
@@ -65,7 +65,7 @@ defmodule HelixWeb.FlowManagementChannelTest do
       }
 
       # Verify session was closed
-      assert %{active: false, client_count: 0} = FlowSessionManager.get_flow_status(flow_id)
+      assert %{active: false, client_count: 0} = Flows.get_flow_status(flow_id)
     end
 
     test "handles flow deletion when no active session exists", %{socket: socket} do
@@ -87,10 +87,10 @@ defmodule HelixWeb.FlowManagementChannelTest do
       flow_id = test_flow_id("single-client-flow")
 
       # Set up a single client session
-      FlowSessionManager.join_flow(flow_id, "lone-client")
+      Flows.join_flow(flow_id, "lone-client")
 
       # Verify session is active
-      assert %{active: true, client_count: 1} = FlowSessionManager.get_flow_status(flow_id)
+      assert %{active: true, client_count: 1} = Flows.get_flow_status(flow_id)
 
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowManagementChannel, "flow_management")
 
@@ -104,7 +104,7 @@ defmodule HelixWeb.FlowManagementChannelTest do
       }
 
       # Verify session was closed
-      assert %{active: false, client_count: 0} = FlowSessionManager.get_flow_status(flow_id)
+      assert %{active: false, client_count: 0} = Flows.get_flow_status(flow_id)
     end
 
     test "rejects flow_deleted with invalid payload - missing flow_id", %{socket: socket} do
@@ -149,8 +149,8 @@ defmodule HelixWeb.FlowManagementChannelTest do
   end
 
   describe "error handling during flow deletion" do
-    test "handles FlowSessionManager errors gracefully", %{socket: socket} do
-      # This test simulates a scenario where FlowSessionManager might fail
+    test "handles Flows errors gracefully", %{socket: socket} do
+      # This test simulates a scenario where Flows might fail
       # We'll test with a flow_id that might cause issues
       # Empty string might cause issues
       flow_id = ""
@@ -161,7 +161,7 @@ defmodule HelixWeb.FlowManagementChannelTest do
       ref = push(socket, "flow_deleted", %{"flow_id" => flow_id})
 
       # Should handle the error and return appropriate response
-      # The exact response depends on how FlowSessionManager handles empty flow_ids
+      # The exact response depends on how Flows handles empty flow_ids
       assert_reply ref, result, _payload
       assert result in [:ok, :error]
     end
@@ -231,19 +231,19 @@ defmodule HelixWeb.FlowManagementChannelTest do
     end
   end
 
-  describe "integration with FlowSessionManager" do
+  describe "integration with Flows" do
     test "multiple flow deletions work independently", %{socket: socket} do
       flow_id_1 = test_flow_id("multi-delete-1")
       flow_id_2 = test_flow_id("multi-delete-2")
 
       # Set up sessions for both flows
-      FlowSessionManager.join_flow(flow_id_1, "client-1")
-      FlowSessionManager.join_flow(flow_id_1, "client-2")
-      FlowSessionManager.join_flow(flow_id_2, "client-3")
+      Flows.join_flow(flow_id_1, "client-1")
+      Flows.join_flow(flow_id_1, "client-2")
+      Flows.join_flow(flow_id_2, "client-3")
 
       # Verify both sessions are active
-      assert %{active: true, client_count: 2} = FlowSessionManager.get_flow_status(flow_id_1)
-      assert %{active: true, client_count: 1} = FlowSessionManager.get_flow_status(flow_id_2)
+      assert %{active: true, client_count: 2} = Flows.get_flow_status(flow_id_1)
+      assert %{active: true, client_count: 1} = Flows.get_flow_status(flow_id_2)
 
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowManagementChannel, "flow_management")
 
@@ -256,8 +256,8 @@ defmodule HelixWeb.FlowManagementChannelTest do
       }
 
       # Verify first flow is closed, second is still active
-      assert %{active: false, client_count: 0} = FlowSessionManager.get_flow_status(flow_id_1)
-      assert %{active: true, client_count: 1} = FlowSessionManager.get_flow_status(flow_id_2)
+      assert %{active: false, client_count: 0} = Flows.get_flow_status(flow_id_1)
+      assert %{active: true, client_count: 1} = Flows.get_flow_status(flow_id_2)
 
       # Delete second flow
       ref2 = push(socket, "flow_deleted", %{"flow_id" => flow_id_2})
@@ -268,16 +268,16 @@ defmodule HelixWeb.FlowManagementChannelTest do
       }
 
       # Verify both flows are now closed
-      assert %{active: false, client_count: 0} = FlowSessionManager.get_flow_status(flow_id_1)
-      assert %{active: false, client_count: 0} = FlowSessionManager.get_flow_status(flow_id_2)
+      assert %{active: false, client_count: 0} = Flows.get_flow_status(flow_id_1)
+      assert %{active: false, client_count: 0} = Flows.get_flow_status(flow_id_2)
     end
 
     test "handles concurrent flow deletions", %{socket: socket} do
       flow_id = test_flow_id("concurrent-delete-flow")
 
       # Set up a session
-      FlowSessionManager.join_flow(flow_id, "client-1")
-      FlowSessionManager.join_flow(flow_id, "client-2")
+      Flows.join_flow(flow_id, "client-1")
+      Flows.join_flow(flow_id, "client-2")
 
       {:ok, _reply, socket1} =
         subscribe_and_join(socket, FlowManagementChannel, "flow_management")
@@ -300,7 +300,7 @@ defmodule HelixWeb.FlowManagementChannelTest do
       assert clients1 + clients2 == 2
 
       # Session should be closed
-      assert %{active: false, client_count: 0} = FlowSessionManager.get_flow_status(flow_id)
+      assert %{active: false, client_count: 0} = Flows.get_flow_status(flow_id)
     end
   end
 
