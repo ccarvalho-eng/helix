@@ -106,11 +106,11 @@
 	bottom: 0;
 	background-image: radial-gradient(
 		circle at 1px 1px,
-		rgba(var(--theme-text-primary-rgb, 171, 178, 191), 0.25) 1px,
+		#374151 1px,
 		transparent 0
 	);
 	background-size: 20px 20px;
-	opacity: 1;
+	opacity: 0.3;
 }
 
 .login-brand-content {
@@ -646,11 +646,11 @@
 [data-theme="light"] .login-brand-section::before {
 	background-image: radial-gradient(
 		circle at 1px 1px,
-		rgba(0, 0, 0, 0.12) 1px,
+		#9ca3af 1px,
 		transparent 0
 	);
 	background-size: 20px 20px;
-	opacity: 1;
+	opacity: 0.3;
 }
 
 [data-theme="light"] .login-feature {

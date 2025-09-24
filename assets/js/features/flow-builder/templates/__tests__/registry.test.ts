@@ -118,21 +118,20 @@ describe('Template Registry', () => {
   });
 
   describe('getFeaturedTemplates', () => {
-    it('should return business automation templates', () => {
+    it('should return templates from different categories', () => {
       const featured = getFeaturedTemplates();
       expect(Array.isArray(featured)).toBe(true);
-      expect(featured.length).toBeGreaterThan(0);
+      expect(featured.length).toBe(3);
 
-      featured.forEach(template => {
-        expect(template.category).toBe('business-automation');
-      });
+      // Should have templates from different categories for diversity
+      const categories = featured.map(template => template.category);
+      const uniqueCategories = [...new Set(categories)];
+      expect(uniqueCategories.length).toBeGreaterThan(1);
     });
 
-    it('should return the same as getTemplatesByCategory for business-automation', () => {
+    it('should return exactly 3 featured templates', () => {
       const featured = getFeaturedTemplates();
-      const businessTemplates = getTemplatesByCategory('business-automation');
-
-      expect(featured).toEqual(businessTemplates);
+      expect(featured.length).toBe(3);
     });
   });
 

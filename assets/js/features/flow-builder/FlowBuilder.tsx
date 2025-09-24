@@ -124,10 +124,21 @@ function FlowNode({
     <div className={`flow-node ${selected ? 'flow-node--selected' : ''}`} style={nodeStyle}>
       {/* Node Resizer - only visible when selected */}
       <NodeResizer
-        color={theme === 'dark' ? '#98c379' : '#000000'}
+        color={theme === 'dark' ? 'var(--theme-syntax-green)' : 'var(--theme-text-primary)'}
         isVisible={selected}
         minWidth={parseInt(width)}
         minHeight={parseInt(height)}
+        handleStyle={{
+          width: '6px',
+          height: '6px',
+          border: '1px solid',
+          borderRadius: '1px',
+        }}
+        lineStyle={{
+          borderWidth: '1px',
+          borderStyle: 'dashed',
+          opacity: 0.6,
+        }}
       />
 
       {/* React Flow Handles for connections - Left and Right only */}
@@ -331,13 +342,29 @@ function ReactFlowNodePalette({
         <h4 className='react-flow-node-palette__templates-title'>Templates</h4>
         {(() => {
           const getTemplateIcon = (category: string) => {
+            // Map template categories to meaningful icons
             switch (category) {
+              case 'business-automation':
+                return Settings; // Keep Settings for business automation
+              case 'customer-service':
+                return Users;
+              case 'content-creation':
+                return FileText;
+              case 'data-analysis':
+                return BarChart3;
+              case 'healthcare':
+                return Heart;
+              case 'finance':
+                return DollarSign;
+              case 'e-commerce':
+                return ShoppingCart;
+              // Legacy support
               case 'technology':
                 return Settings;
               case 'gaming':
                 return Gamepad2;
               default:
-                return Circle;
+                return Settings; // Default to Settings icon for workflows
             }
           };
 
@@ -734,48 +761,60 @@ function FlowBuilderInternal() {
               <DownloadButton
                 filename={currentFlow?.title.toLowerCase().replace(/\s+/g, '-') || 'flow-diagram'}
               />
+              <ThemeToggle />
+              <button
+                className='flow-builder__logout-btn'
+                onClick={handleLogout}
+                title='Logout'
+                aria-label='Logout'
+              >
+                <LogOut size={16} />
+              </button>
             </>
           )}
 
-          {/* Mobile stats toggle */}
-          <button
-            className={`flow-builder__mobile-stats-toggle ${isMobileStatsOpen ? 'flow-builder__mobile-stats-toggle--active' : ''}`}
-            onClick={() => setIsMobileStatsOpen(!isMobileStatsOpen)}
-            aria-label='Toggle stats and controls'
-          >
-            <BarChart3 size={14} />
-            <span>
-              {nodes.length}n {edges.length}c
-            </span>
-            {isMobileStatsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-          </button>
-
-          <ThemeToggle />
-
-          {/* Mobile burgers */}
-          <button
-            className='flow-builder__burger flow-builder__burger--left'
-            aria-label='Toggle node palette'
-            onClick={() => setIsPaletteOpen(v => !v)}
-          >
-            <Menu size={18} />
-          </button>
-          <button
-            className='flow-builder__burger flow-builder__burger--right'
-            aria-label='Toggle properties'
-            onClick={() => setIsPropertiesOpen(v => !v)}
-          >
-            <Sliders size={18} />
-          </button>
-
-          <button
-            className='flow-builder__logout-btn'
-            onClick={handleLogout}
-            title='Logout'
-            aria-label='Logout'
-          >
-            <LogOut size={16} />
-          </button>
+          {/* Mobile controls */}
+          {isMobile && (
+            <>
+              <button
+                className='flow-builder__burger flow-builder__burger--left'
+                aria-label='Toggle node palette'
+                onClick={() => setIsPaletteOpen(v => !v)}
+              >
+                <Menu size={18} />
+              </button>
+              <button
+                className='flow-builder__burger flow-builder__burger--right'
+                aria-label='Toggle properties'
+                onClick={() => setIsPropertiesOpen(v => !v)}
+              >
+                <Sliders size={18} />
+              </button>
+              <button
+                className={`flow-builder__mobile-stats-toggle ${isMobileStatsOpen ? 'flow-builder__mobile-stats-toggle--active' : ''}`}
+                onClick={() => setIsMobileStatsOpen(!isMobileStatsOpen)}
+                aria-label='Toggle stats and controls'
+              >
+                <BarChart3 size={14} />
+                <span>
+                  {nodes.length}n {edges.length}c
+                </span>
+                {isMobileStatsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </button>
+              <DownloadButton
+                filename={currentFlow?.title.toLowerCase().replace(/\s+/g, '-') || 'flow-diagram'}
+              />
+              <ThemeToggle />
+              <button
+                className='flow-builder__logout-btn'
+                onClick={handleLogout}
+                title='Logout'
+                aria-label='Logout'
+              >
+                <LogOut size={16} />
+              </button>
+            </>
+          )}
         </div>
 
         {/* Mobile expandable stats/controls */}
@@ -804,11 +843,6 @@ function FlowBuilderInternal() {
                 </div>
               )}
             </div>
-
-            {/* Download button */}
-            <DownloadButton
-              filename={currentFlow?.title.toLowerCase().replace(/\s+/g, '-') || 'flow-diagram'}
-            />
           </div>
         )}
       </div>
@@ -879,26 +913,29 @@ function FlowBuilderInternal() {
                 height: 120,
                 width: 200,
                 backgroundColor:
-                  theme === 'dark' ? 'var(--theme-bg-secondary, #21252b)' : '#ffffff',
-                border: `1px solid ${theme === 'dark' ? 'var(--theme-border-primary, #3e4451)' : '#e5e7eb'}`,
-                borderRadius: '8px',
-                boxShadow:
+                  theme === 'dark' ? 'var(--theme-bg-secondary)' : 'var(--flow-builder-bg)',
+                border:
                   theme === 'dark'
-                    ? 'var(--theme-shadow, 0 4px 12px rgba(0, 0, 0, 0.3))'
-                    : '0 2px 8px rgba(0, 0, 0, 0.1)',
+                    ? '1px solid var(--theme-border-primary)'
+                    : '1px solid var(--flow-builder-border)',
+                borderRadius: '8px',
+                boxShadow: theme === 'dark' ? 'var(--theme-shadow)' : 'var(--flow-builder-shadow)',
               }}
-              nodeColor={theme === 'dark' ? 'var(--theme-bg-tertiary, #32363e)' : '#f8f9fa'}
-              nodeStrokeColor={
-                theme === 'dark' ? 'var(--theme-border-primary, #3e4451)' : '#dee2e6'
-              }
-              nodeBorderRadius={4}
-              maskColor={theme === 'dark' ? 'rgba(40, 44, 52, 0.8)' : 'rgba(255, 255, 255, 0.8)'}
+              nodeColor={theme === 'dark' ? '#4b5563' : '#e5e7eb'}
+              nodeStrokeColor={theme === 'dark' ? '#6b7280' : '#d1d5db'}
+              nodeBorderRadius={3}
+              maskColor={theme === 'dark' ? 'rgba(17, 24, 39, 0.75)' : 'rgba(249, 250, 251, 0.75)'}
               zoomable
               pannable
               position='bottom-right'
               offsetScale={0.8}
             />
-            <Background color='#f3f4f6' gap={20} size={1} className='flow-canvas__background' />
+            <Background
+              color={theme === 'dark' ? 'var(--theme-text-secondary)' : 'var(--theme-text-muted)'}
+              gap={20}
+              size={1}
+              className='flow-canvas__background'
+            />
           </ReactFlow>
         </div>
 
@@ -1066,7 +1103,7 @@ function FlowBuilderInternal() {
                     case 'e-commerce':
                       return ShoppingCart;
                     default:
-                      return Circle;
+                      return Settings; // Default to Settings instead of Circle
                   }
                 };
                 const IconComponent = getTemplateIcon(template.category);
