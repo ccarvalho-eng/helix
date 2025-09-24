@@ -331,13 +331,29 @@ function ReactFlowNodePalette({
         <h4 className='react-flow-node-palette__templates-title'>Templates</h4>
         {(() => {
           const getTemplateIcon = (category: string) => {
+            // Map template categories to meaningful icons
             switch (category) {
+              case 'business-automation':
+                return Settings; // Keep Settings for business automation
+              case 'customer-service':
+                return Users;
+              case 'content-creation':
+                return FileText;
+              case 'data-analysis':
+                return BarChart3;
+              case 'healthcare':
+                return Heart;
+              case 'finance':
+                return DollarSign;
+              case 'e-commerce':
+                return ShoppingCart;
+              // Legacy support
               case 'technology':
                 return Settings;
               case 'gaming':
                 return Gamepad2;
               default:
-                return Circle;
+                return Settings; // Default to Settings icon for workflows
             }
           };
 
@@ -1066,7 +1082,7 @@ function FlowBuilderInternal() {
                     case 'e-commerce':
                       return ShoppingCart;
                     default:
-                      return Circle;
+                      return Settings; // Default to Settings instead of Circle
                   }
                 };
                 const IconComponent = getTemplateIcon(template.category);

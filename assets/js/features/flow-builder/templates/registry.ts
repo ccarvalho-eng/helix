@@ -44,6 +44,30 @@ export function getTemplatesByCategory(category: TemplateCategory): Template[] {
 }
 
 export function getFeaturedTemplates(): Template[] {
-  // Show business automation templates on the main page
-  return getTemplatesByCategory('business-automation');
+  // Show one template from different categories to demonstrate variety
+  const allTemplates = Object.values(templateRegistry);
+  const featuredTemplates: Template[] = [];
+
+  // Get one from each category to showcase different icons
+  const seenCategories = new Set<TemplateCategory>();
+
+  for (const template of allTemplates) {
+    if (!seenCategories.has(template.category) && featuredTemplates.length < 3) {
+      featuredTemplates.push(template);
+      seenCategories.add(template.category);
+    }
+  }
+
+  // If we don't have 3 different categories, fill with business-automation
+  while (featuredTemplates.length < 3) {
+    const businessTemplates = getTemplatesByCategory('business-automation');
+    for (const template of businessTemplates) {
+      if (!featuredTemplates.includes(template) && featuredTemplates.length < 3) {
+        featuredTemplates.push(template);
+      }
+    }
+    break; // Prevent infinite loop
+  }
+
+  return featuredTemplates;
 }
