@@ -1,8 +1,8 @@
 defmodule HelixWeb.UtilsTest do
   use ExUnit.Case, async: true
   import Ecto.Changeset
-  alias HelixWeb.Utils
   alias Helix.Accounts.User
+  alias HelixWeb.Utils
 
   describe "format_changeset_errors/1" do
     test "formats single field error" do

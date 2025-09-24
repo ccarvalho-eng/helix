@@ -3,7 +3,9 @@ defmodule HelixWeb.FlowManagementChannelTest do
   import ExUnit.CaptureLog
 
   alias Helix.FlowSessionManager
-  alias HelixWeb.{FlowManagementChannel, UserSocket}
+  alias HelixWeb.FlowManagementChannel
+
+  @moduletag :authenticated_socket
 
   setup do
     # Start FlowSessionManager for tests
@@ -19,10 +21,7 @@ defmodule HelixWeb.FlowManagementChannelTest do
       end
     end)
 
-    # Create a socket
-    {:ok, socket} = connect(UserSocket, %{}, connect_info: %{})
-
-    {:ok, socket: socket}
+    :ok
   end
 
   describe "joining flow management channel" do
@@ -284,7 +283,7 @@ defmodule HelixWeb.FlowManagementChannelTest do
         subscribe_and_join(socket, FlowManagementChannel, "flow_management")
 
       # Create second management channel connection
-      {:ok, socket2} = connect(UserSocket, %{}, connect_info: %{})
+      socket2 = HelixWeb.ChannelCase.create_authenticated_socket()
 
       {:ok, _reply, socket2} =
         subscribe_and_join(socket2, FlowManagementChannel, "flow_management")
