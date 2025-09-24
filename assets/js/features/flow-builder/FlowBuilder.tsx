@@ -895,20 +895,19 @@ function FlowBuilderInternal() {
                 height: 120,
                 width: 200,
                 backgroundColor:
-                  theme === 'dark' ? 'var(--theme-bg-secondary, #21252b)' : '#ffffff',
-                border: `1px solid ${theme === 'dark' ? 'var(--theme-border-primary, #3e4451)' : '#e5e7eb'}`,
+                  theme === 'dark' ? 'var(--theme-bg-secondary)' : 'var(--flow-builder-bg)',
+                border: theme === 'dark'
+                  ? '1px solid var(--theme-border-primary)'
+                  : '1px solid var(--flow-builder-border)',
                 borderRadius: '8px',
-                boxShadow:
-                  theme === 'dark'
-                    ? 'var(--theme-shadow, 0 4px 12px rgba(0, 0, 0, 0.3))'
-                    : '0 2px 8px rgba(0, 0, 0, 0.1)',
+                boxShadow: theme === 'dark'
+                  ? 'var(--theme-shadow)'
+                  : 'var(--flow-builder-shadow)',
               }}
-              nodeColor={theme === 'dark' ? 'var(--theme-bg-tertiary, #32363e)' : '#f8f9fa'}
-              nodeStrokeColor={
-                theme === 'dark' ? 'var(--theme-border-primary, #3e4451)' : '#dee2e6'
-              }
-              nodeBorderRadius={4}
-              maskColor={theme === 'dark' ? 'rgba(40, 44, 52, 0.8)' : 'rgba(255, 255, 255, 0.8)'}
+              nodeColor={theme === 'dark' ? '#4b5563' : '#e5e7eb'}
+              nodeStrokeColor={theme === 'dark' ? '#6b7280' : '#d1d5db'}
+              nodeBorderRadius={3}
+              maskColor={theme === 'dark' ? 'rgba(17, 24, 39, 0.75)' : 'rgba(249, 250, 251, 0.75)'}
               zoomable
               pannable
               position='bottom-right'

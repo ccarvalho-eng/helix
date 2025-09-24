@@ -16,52 +16,64 @@
   bottom: 24px;
   left: 24px;
   background: var(--flow-builder-bg);
-  border: 1.5px solid var(--flow-builder-border);
-  border-radius: 10px;
+  border: 1px solid var(--flow-builder-border);
+  border-radius: 8px;
   padding: 4px;
-  backdrop-filter: blur(8px);
+  box-shadow: var(--flow-builder-shadow);
+  transition: all 0.2s ease;
 }
 
 /* Style individual control buttons */
 .flow-canvas__controls button {
-  width: 28px !important;
-  height: 28px !important;
-  border-radius: 6px !important;
-  background: var(--flow-builder-button-hover-bg) !important;
-  border: 1px solid var(--flow-builder-border) !important;
-  color: var(--flow-builder-text-primary) !important;
-  margin: 2px !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 4px !important;
+  background: var(--flow-builder-button-bg) !important;
+  border: 1px solid var(--flow-builder-button-border) !important;
+  color: var(--flow-builder-button-text) !important;
+  margin: 2px 2px 4px 2px !important;
   transition: all 0.2s ease !important;
-  font-size: 12px !important;
-  font-weight: 600 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .flow-canvas__controls button:hover {
-  background: var(--flow-builder-text-primary) !important;
-  color: var(--flow-builder-bg) !important;
+  background: var(--flow-builder-button-hover-bg) !important;
+  border-color: var(--flow-builder-border) !important;
   transform: scale(1.05) !important;
-}
-
-.flow-canvas__controls button:hover svg {
-  color: var(--flow-builder-bg) !important;
-  fill: var(--flow-builder-bg) !important;
-  stroke: var(--flow-builder-bg) !important;
-}
-
-[data-theme="dark"] .flow-canvas__controls button:hover {
-  background: var(--theme-syntax-green) !important;
-  color: var(--theme-bg-primary) !important;
-  border-color: var(--theme-syntax-green) !important;
-}
-
-[data-theme="dark"] .flow-canvas__controls button:hover svg {
-  color: var(--theme-bg-primary) !important;
-  fill: var(--theme-bg-primary) !important;
-  stroke: var(--theme-bg-primary) !important;
 }
 
 .flow-canvas__controls button:active {
   transform: scale(0.95) !important;
+  transition: transform 0.1s ease !important;
+}
+
+/* Dark theme styling */
+[data-theme="dark"] .flow-canvas__controls {
+  background: var(--theme-bg-secondary);
+  border: 1px solid var(--theme-border-primary);
+  box-shadow: var(--theme-shadow);
+}
+
+[data-theme="dark"] .flow-canvas__controls button {
+  background: var(--theme-bg-tertiary) !important;
+  border: 1px solid var(--theme-border-primary) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+[data-theme="dark"] .flow-canvas__controls button:hover {
+  background: var(--theme-bg-quaternary) !important;
+  border-color: var(--theme-syntax-green) !important;
+  color: var(--theme-syntax-green) !important;
+}
+
+[data-theme="dark"] .flow-canvas__controls button:hover svg {
+  color: var(--theme-syntax-green) !important;
+  fill: var(--theme-syntax-green) !important;
+  stroke: var(--theme-syntax-green) !important;
 }
 
 /* Canvas locked state visual feedback */
