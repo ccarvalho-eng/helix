@@ -55,7 +55,7 @@
 	--home-button-hover: var(--theme-button-hover);
 	--home-button-secondary: var(--theme-bg-secondary);
 	--home-button-secondary-hover: var(--theme-bg-tertiary);
-	--home-border-dashed: var(--theme-border-secondary);
+	--home-border-dashed: #6b7280;
 	--home-border-dashed-hover: var(--theme-border-primary);
 	--home-accent: var(--theme-syntax-green);
 	--home-accent-hover: #7fb069;
@@ -624,7 +624,7 @@
 
 /* Empty state card */
 .home-empty-card {
-	border: 2px dashed var(--home-border-dashed);
+	border: 1.7px dashed var(--home-border-dashed);
 	border-radius: 0.75rem;
 	padding: 1.25rem;
 	text-align: center;
@@ -636,10 +636,12 @@
 .home-empty-card:hover {
 	border-color: var(--home-text-primary);
 	border-style: solid;
+	border-width: 1px;
 }
 
 [data-theme="dark"] .home-empty-card:hover {
 	border-color: var(--home-accent);
+	border-width: 1px;
 }
 
 .home-empty-card__icon {
