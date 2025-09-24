@@ -45,13 +45,13 @@ defmodule Helix.Flows do
   @doc """
   Start the flows supervision tree
   """
-  def start_link(_opts \\ []) do
+  @spec start_link(keyword()) :: Supervisor.on_start()
+  def start_link(opts \\ []) do
     children = [
-      # Simple GenServer that maintains session state
       {SessionServer, []}
     ]
 
-    Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__.Supervisor)
+    Supervisor.start_link(children, Keyword.merge([strategy: :one_for_one, name: __MODULE__.Supervisor], opts))
   end
 
   # Public API - delegates to the appropriate process
