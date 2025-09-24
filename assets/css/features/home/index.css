@@ -199,12 +199,16 @@
 	background: var(--home-bg-subtle);
 	color: var(--home-text-primary);
 	border-color: var(--home-text-primary);
+	transform: translateY(-1px);
+	box-shadow: var(--home-shadow-md);
 }
 
 [data-theme="dark"] .home-header__logout-btn:hover {
 	background: var(--home-bg-muted);
-	border-color: var(--home-accent);
-	color: var(--home-accent);
+	border-color: var(--theme-syntax-green);
+	color: var(--theme-syntax-green);
+	transform: translateY(-1px);
+	box-shadow: var(--home-shadow-md);
 }
 
 /* Main Content */

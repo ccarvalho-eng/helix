@@ -761,48 +761,60 @@ function FlowBuilderInternal() {
               <DownloadButton
                 filename={currentFlow?.title.toLowerCase().replace(/\s+/g, '-') || 'flow-diagram'}
               />
+              <ThemeToggle />
+              <button
+                className='flow-builder__logout-btn'
+                onClick={handleLogout}
+                title='Logout'
+                aria-label='Logout'
+              >
+                <LogOut size={16} />
+              </button>
             </>
           )}
 
-          {/* Mobile stats toggle */}
-          <button
-            className={`flow-builder__mobile-stats-toggle ${isMobileStatsOpen ? 'flow-builder__mobile-stats-toggle--active' : ''}`}
-            onClick={() => setIsMobileStatsOpen(!isMobileStatsOpen)}
-            aria-label='Toggle stats and controls'
-          >
-            <BarChart3 size={14} />
-            <span>
-              {nodes.length}n {edges.length}c
-            </span>
-            {isMobileStatsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-          </button>
-
-          <ThemeToggle />
-
-          {/* Mobile burgers */}
-          <button
-            className='flow-builder__burger flow-builder__burger--left'
-            aria-label='Toggle node palette'
-            onClick={() => setIsPaletteOpen(v => !v)}
-          >
-            <Menu size={18} />
-          </button>
-          <button
-            className='flow-builder__burger flow-builder__burger--right'
-            aria-label='Toggle properties'
-            onClick={() => setIsPropertiesOpen(v => !v)}
-          >
-            <Sliders size={18} />
-          </button>
-
-          <button
-            className='flow-builder__logout-btn'
-            onClick={handleLogout}
-            title='Logout'
-            aria-label='Logout'
-          >
-            <LogOut size={16} />
-          </button>
+          {/* Mobile controls */}
+          {isMobile && (
+            <>
+              <button
+                className='flow-builder__burger flow-builder__burger--left'
+                aria-label='Toggle node palette'
+                onClick={() => setIsPaletteOpen(v => !v)}
+              >
+                <Menu size={18} />
+              </button>
+              <button
+                className='flow-builder__burger flow-builder__burger--right'
+                aria-label='Toggle properties'
+                onClick={() => setIsPropertiesOpen(v => !v)}
+              >
+                <Sliders size={18} />
+              </button>
+              <button
+                className={`flow-builder__mobile-stats-toggle ${isMobileStatsOpen ? 'flow-builder__mobile-stats-toggle--active' : ''}`}
+                onClick={() => setIsMobileStatsOpen(!isMobileStatsOpen)}
+                aria-label='Toggle stats and controls'
+              >
+                <BarChart3 size={14} />
+                <span>
+                  {nodes.length}n {edges.length}c
+                </span>
+                {isMobileStatsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </button>
+              <DownloadButton
+                filename={currentFlow?.title.toLowerCase().replace(/\s+/g, '-') || 'flow-diagram'}
+              />
+              <ThemeToggle />
+              <button
+                className='flow-builder__logout-btn'
+                onClick={handleLogout}
+                title='Logout'
+                aria-label='Logout'
+              >
+                <LogOut size={16} />
+              </button>
+            </>
+          )}
         </div>
 
         {/* Mobile expandable stats/controls */}
@@ -831,11 +843,6 @@ function FlowBuilderInternal() {
                 </div>
               )}
             </div>
-
-            {/* Download button */}
-            <DownloadButton
-              filename={currentFlow?.title.toLowerCase().replace(/\s+/g, '-') || 'flow-diagram'}
-            />
           </div>
         )}
       </div>
