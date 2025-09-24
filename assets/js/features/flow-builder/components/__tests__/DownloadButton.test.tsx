@@ -33,11 +33,17 @@ describe('DownloadButton', () => {
     mockUseThemeContext.mockReturnValue({ theme: 'light' });
   });
 
-  it('renders download button with correct text', () => {
+  it('renders download button with correct icon', () => {
     render(<DownloadButton />);
 
-    expect(screen.getByRole('button')).toBeInTheDocument();
-    expect(screen.getByText('Download')).toBeInTheDocument();
+    const button = screen.getByRole('button');
+    expect(button).toBeInTheDocument();
+    expect(button).toHaveAttribute('aria-label', 'Download flow as PNG');
+    expect(button).toHaveAttribute('title', 'Export flow as PNG image');
+
+    // Check that it has the image icon (svg)
+    const icon = button.querySelector('svg');
+    expect(icon).toBeInTheDocument();
   });
 
   it('renders with custom filename prop', () => {
@@ -117,8 +123,14 @@ describe('DownloadButton', () => {
 
     render(<DownloadButton />);
 
-    expect(screen.getByText('Downloading...')).toBeInTheDocument();
-    expect(screen.getByRole('button')).toBeDisabled();
+    const button = screen.getByRole('button');
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-label', 'Downloading...');
+    expect(button).toHaveAttribute('title', 'Downloading...');
+
+    // Should show loading spinner icon instead of image icon
+    const icon = button.querySelector('svg');
+    expect(icon).toBeInTheDocument();
   });
 
   it('has correct aria-label when downloading', () => {
