@@ -97,8 +97,8 @@ defmodule Helix.Flows.SessionServer do
   @impl true
   def init(_state) do
     # Schedule periodic cleanup
-    schedule_cleanup()
-    {:ok, %{sessions: %{}, client_flows: %{}}}
+    cleanup_timer = schedule_cleanup()
+    {:ok, %{sessions: %{}, client_flows: %{}, cleanup_timer: cleanup_timer}}
   end
 
   @impl true
@@ -151,7 +151,15 @@ defmodule Helix.Flows.SessionServer do
 
   @impl true
   def handle_call({:get_flow_status, flow_id}, _from, state) do
-    case Map.get(state.sessions, flow_id) do
+    # Normalize flow_id the same way other functions do, but don't return error
+    # for invalid IDs - just treat them as non-existent flows
+    normalized_flow_id =
+      case validate_flow_id(flow_id) do
+        {:ok, validated_id} -> validated_id
+        {:error, _} -> flow_id  # Use original ID for lookup, will return inactive
+      end
+
+    case Map.get(state.sessions, normalized_flow_id) do
       nil ->
         {:reply, %{active: false, client_count: 0}, state}
 
@@ -239,9 +247,19 @@ defmodule Helix.Flows.SessionServer do
       log_cleanup_results(inactive_flows)
     end
 
-    schedule_cleanup()
+    # Schedule next cleanup and update timer reference
+    new_cleanup_timer = schedule_cleanup()
 
-    {:noreply, %{state | sessions: new_sessions, client_flows: new_client_flows}}
+    {:noreply, %{state | sessions: new_sessions, client_flows: new_client_flows, cleanup_timer: new_cleanup_timer}}
+  end
+
+  @impl true
+  def terminate(_reason, state) do
+    # Cancel cleanup timer to prevent timer leaks
+    if state.cleanup_timer do
+      Process.cancel_timer(state.cleanup_timer)
+    end
+    :ok
   end
 
   # Private functions
