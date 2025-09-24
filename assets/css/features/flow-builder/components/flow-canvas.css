@@ -95,9 +95,9 @@
 }
 
 .flow-canvas__background {
-	opacity: 0.9;
+	opacity: 1.6;
 }
 
 [data-theme="dark"] .flow-canvas__background {
-	opacity: 0.9;
+	opacity: 1.6;
 }

@@ -931,7 +931,7 @@ function FlowBuilderInternal() {
               offsetScale={0.8}
             />
             <Background
-              color={theme === 'dark' ? '#374151' : '#9ca3af'}
+              color={theme === 'dark' ? '#4b5563' : '#6b7280'}
               gap={20}
               size={1}
               className='flow-canvas__background'

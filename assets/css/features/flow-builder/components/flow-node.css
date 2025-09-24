@@ -1,7 +1,7 @@
 /* Custom Flow Node */
 .flow-node {
   background: var(--node-bg-color);
-  border: 1.5px solid var(--node-border-color, var(--flow-builder-border));
+  border: 0.5px solid var(--node-border-color, var(--flow-builder-border));
   border-radius: 14px;
   padding: 14px;
   display: flex;
@@ -22,7 +22,7 @@
 /* Dark theme - Remove background colors and enhance borders */
 [data-theme="dark"] .flow-node {
   background: transparent;
-  border: 2px solid var(--theme-border-primary);
+  border: 0.5px solid #6b7280;
   backdrop-filter: blur(12px);
 }
 
@@ -36,11 +36,11 @@
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.15),
     0 1px 3px rgba(0, 0, 0, 0.1);
-  border-width: 2px;
+  border: 0.5px solid #d1d5db;
 }
 
 [data-theme="light"] .flow-node:hover {
-  border: 1px solid #000000;
+  border: 1px solid #9ca3af;
 }
 
 /* Selected state - no visual changes to node, only bezier handles show */
