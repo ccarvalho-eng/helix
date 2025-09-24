@@ -190,17 +190,20 @@ Phoenix Application
 ```
 
 #### Supervision Strategy
+
 - **Strategy**: `:one_for_one` - If SessionServer crashes, only it gets restarted
 - **Restart**: `:permanent` - SessionServer is always restarted if it terminates
 - **Shutdown**: `5000` ms - Graceful shutdown timeout
 
 #### Process Responsibilities
+
 - **Helix.Flows.Supervisor**: Manages the SessionServer lifecycle
 - **SessionServer**: Single point of truth for all flow session state
 - **Phoenix.PubSub**: Message broadcasting infrastructure (separate process)
 - **Phoenix Channels**: WebSocket connection handlers (per-connection processes)
 
 #### Design Principles Applied
+
 - **Start Simple**: Single GenServer instead of complex multi-process architecture
 - **Let It Crash**: No defensive programming - let OTP handle process failures
 - **Single Responsibility**: SessionServer only manages session state
@@ -211,11 +214,13 @@ Phoenix Application
 ### Helix.Flows Context & SessionServer
 
 **Helix.Flows** - Boundary module:
+
 - Public API for all flow operations
 - Supervision tree management
 - Documented interface with typespecs
 
 **SessionServer** - GenServer process:
+
 - Tracks active flow sessions and connected clients
 - Automatic cleanup of inactive sessions (30-minute timeout)
 - Client join/leave operations
@@ -241,36 +246,3 @@ Workflow persistence in browser localStorage:
 - Flow data: nodes, edges, viewport state
 - Registry with timestamps and counts
 - Auto-save with debouncing
-
-## Technology Stack
-
-- **Backend**: Elixir 1.17+, Phoenix Framework
-- **Frontend**: React, TypeScript, React Flow, TailwindCSS
-- **Database**: PostgreSQL 14+ (development setup)
-- **Real-time**: Phoenix Channels, WebSockets
-- **State Management**: OTP GenServers, Phoenix PubSub
-- **Testing**: ExUnit, Jest, Playwright
-
-## Testing Strategy
-
-The flow management system has comprehensive test coverage:
-
-### Test Coverage (88.3% overall)
-- **Helix.Flows**: 100% coverage - All public API functions tested
-- **SessionServer**: 91.6% coverage - Comprehensive edge case testing
-- **Web Controllers**: 85.7% coverage - HTTP endpoint testing
-- **Phoenix Channels**: 83.3%+ coverage - WebSocket communication testing
-
-### Test Categories
-- **Unit Tests**: Direct testing of SessionServer GenServer callbacks
-- **Integration Tests**: Testing boundary module (Flows) with SessionServer
-- **Channel Tests**: WebSocket communication and real-time features
-- **Controller Tests**: HTTP API endpoints and error handling
-- **Edge Cases**: Invalid inputs, concurrent operations, cleanup scenarios
-- **Error Handling**: Network failures, process crashes, invalid data
-
-### Test Structure
-- **225+ total tests** covering all aspects of flow management
-- **Isolated tests** using unique flow IDs to prevent interference
-- **Concurrent operation testing** to ensure thread safety
-- **Error scenario testing** for graceful degradation
