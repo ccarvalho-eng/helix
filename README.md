@@ -6,6 +6,8 @@
 
 Helix — from the Greek ἕλιξ, meaning “spiral” — mirrors the architecture of intelligent systems. Like a DNA helix, it represents intertwined layers of AI agents: autonomous, interdependent, evolving. 
 
+<img width="1624" height="961" alt="Screenshot 2025-09-24 at 03 43 52" src="https://github.com/user-attachments/assets/4097e3eb-112f-44a4-aca8-343b4c876712" />
+
 [![GitHub release](https://img.shields.io/github/v/release/ccarvalho-eng/helix?style=flat-square)](https://github.com/ccarvalho-eng/helix/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/ci.yml?style=flat-square&logo=github-actions)](https://github.com/ccarvalho-eng/helix/actions/workflows/ci.yml)
 [![E2E Tests](https://img.shields.io/github/actions/workflow/status/ccarvalho-eng/helix/nightly-e2e-tests.yml?style=flat-square&logo=playwright&label=E2E)](https://github.com/ccarvalho-eng/helix/actions/workflows/nightly-e2e-tests.yml)
