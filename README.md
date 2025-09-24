@@ -12,8 +12,6 @@
 
 Helix — from the Greek ἕλιξ, meaning “spiral” — mirrors the architecture of intelligent systems. Like a DNA helix, it represents intertwined layers of AI agents: autonomous, interdependent, evolving. 
 
-<img width="1621" height="959" alt="Screenshot 2025-09-24 at 11 35 33" src="https://github.com/user-attachments/assets/541fec84-f229-4970-825f-99cca4205628" />
-
 <img width="1623" height="962" alt="Screenshot 2025-09-24 at 11 39 13" src="https://github.com/user-attachments/assets/0dd6a01f-d754-4017-a956-64ee3156f1e5" />
 
 </div>
