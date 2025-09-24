@@ -51,7 +51,10 @@ defmodule Helix.Flows do
       {SessionServer, []}
     ]
 
-    Supervisor.start_link(children, Keyword.merge([strategy: :one_for_one, name: __MODULE__.Supervisor], opts))
+    Supervisor.start_link(
+      children,
+      Keyword.merge([strategy: :one_for_one, name: __MODULE__.Supervisor], opts)
+    )
   end
 
   # Public API - delegates to the appropriate process
