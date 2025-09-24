@@ -18,6 +18,9 @@
 // Initialize theme before any React components load
 import './shared/utils/theme-init.js';
 
+// Initialize topbar for loading indication
+import topbar from 'topbar';
+
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import 'phoenix_html';
 // Establish Phoenix Socket and LiveView configuration.
@@ -32,10 +35,39 @@ import './apps/home';
 import './apps/auth';
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('content');
+
+// Function to get auth token for WebSocket
+function getSocketParams() {
+  const token = localStorage.getItem('helix_auth_token');
+  return {
+    _csrf_token: csrfToken,
+    ...(token && { token }),
+  };
+}
+
+// Configure topbar
+topbar.config({
+  barColors: { 0: '#98c379', 0.5: '#7fb069', 1.0: '#5a9b4d' }, // Green gradient
+  shadowColor: 'rgba(0, 0, 0, .5)',
+  barThickness: 4,
+  className: 'topbar',
+});
+
 let liveSocket = new LiveSocket('/live', Socket, {
   longPollFallbackMs: 2500,
-  params: { _csrf_token: csrfToken },
+  params: getSocketParams,
 });
+
+// Show loading bar on page transitions
+window.addEventListener('phx:page-loading-start', () => topbar.show());
+window.addEventListener('phx:page-loading-stop', () => topbar.hide());
+
+// Also show on regular navigation events
+window.addEventListener('beforeunload', () => topbar.show());
+window.addEventListener('load', () => topbar.hide());
+
+// Expose topbar globally for manual control in React apps
+window.topbar = topbar;
 
 // connect if there are any LiveViews on the page
 liveSocket.connect();

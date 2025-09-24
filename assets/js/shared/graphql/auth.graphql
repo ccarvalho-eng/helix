@@ -1,0 +1,32 @@
+mutation Login($input: LoginInput!) {
+  login(input: $input) {
+    user {
+      id
+      email
+      firstName
+      lastName
+    }
+    token
+  }
+}
+
+mutation Register($input: RegisterInput!) {
+  register(input: $input) {
+    user {
+      id
+      email
+      firstName
+      lastName
+    }
+    token
+  }
+}
+
+query Me {
+  me {
+    id
+    email
+    firstName
+    lastName
+  }
+}

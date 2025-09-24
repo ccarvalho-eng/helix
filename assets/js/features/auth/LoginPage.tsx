@@ -1,25 +1,74 @@
 import React, { useState } from 'react';
 import { Cpu, Eye, EyeOff, Mail, Lock, GitFork, UsersRound, LayoutTemplate } from 'lucide-react';
 import { ThemeToggle } from '../flow-builder/components/ThemeToggle';
+import { useAuth } from '../../shared/contexts/AuthContext';
+
+// Extend Window interface to include topbar
+declare global {
+  interface Window {
+    topbar?: {
+      show: () => void;
+      hide: () => void;
+    };
+  }
+}
 
 export const LoginPage: React.FC = () => {
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Don't clear error immediately - preserve it until we know the outcome
     setIsLoading(true);
 
-    // Simulate login process
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Show topbar loading indicator
+    if (window.topbar) {
+      window.topbar.show();
+    }
 
-    // Here you would integrate with your GraphQL authentication
-    console.log('Login attempt:', { email: email.substring(0, 3) + '***', rememberMe });
+    // Client-side validation
+    const validationErrors: Record<string, string> = {};
 
-    setIsLoading(false);
+    if (!email.trim()) {
+      validationErrors.email = 'Please enter your email address';
+    }
+
+    if (!password.trim()) {
+      validationErrors.password = 'Please enter your password';
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
+      setIsLoading(false);
+      if (window.topbar) {
+        window.topbar.hide();
+      }
+      return;
+    }
+
+    try {
+      // Clear previous errors only when attempting login
+      setError('');
+      setFieldErrors({});
+
+      await login({ email, password });
+      // Redirect to dashboard after successful login
+      window.location.href = '/dashboard';
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Login failed';
+      setError(errorMessage);
+      setIsLoading(false);
+      if (window.topbar) {
+        window.topbar.hide();
+      }
+    }
   };
 
   return (
@@ -68,7 +117,7 @@ export const LoginPage: React.FC = () => {
                 <div className='login-feature-content'>
                   <h3 className='login-feature-title'>Professional Canvas</h3>
                   <p className='login-feature-description'>
-                    Drag-and-drop editor with minimap, properties, and beautiful themes
+                    Drag-and-drop editor with minimap, properties, and light/dark mode
                   </p>
                 </div>
               </div>
@@ -100,6 +149,17 @@ export const LoginPage: React.FC = () => {
               <p className='login-subtitle'>Sign in to your account to continue</p>
             </div>
 
+            {/* Form-level Error Message */}
+            {error && (
+              <div className='login-form-error'>
+                {error.split('\n').map((errorLine, index) => (
+                  <p key={index} className='login-form-error-text'>
+                    {errorLine}
+                  </p>
+                ))}
+              </div>
+            )}
+
             {/* Login Form */}
             <form onSubmit={handleSubmit} className='login-form-content'>
               {/* Email Field */}
@@ -114,12 +174,13 @@ export const LoginPage: React.FC = () => {
                     type='email'
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className='login-input'
+                    className={`login-input ${fieldErrors.email ? 'login-input--error' : ''}`}
                     placeholder='Enter your email'
                     required
                     autoComplete='email'
                   />
                 </div>
+                {fieldErrors.email && <p className='login-field-error'>{fieldErrors.email}</p>}
               </div>
 
               {/* Password Field */}
@@ -134,7 +195,7 @@ export const LoginPage: React.FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className='login-input'
+                    className={`login-input ${fieldErrors.password ? 'login-input--error' : ''}`}
                     placeholder='Enter your password'
                     required
                     autoComplete='current-password'
@@ -148,9 +209,12 @@ export const LoginPage: React.FC = () => {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {fieldErrors.password && (
+                  <p className='login-field-error'>{fieldErrors.password}</p>
+                )}
               </div>
 
-              {/* Remember Me & Forgot Password */}
+              {/* Remember Me & Forgot Password - Commented out until implemented
               <div className='login-options'>
                 <label htmlFor='remember-me' className='login-checkbox'>
                   <input
@@ -167,6 +231,7 @@ export const LoginPage: React.FC = () => {
                   Forgot password?
                 </a>
               </div>
+              */}
 
               {/* Submit Button */}
               <button
@@ -189,7 +254,7 @@ export const LoginPage: React.FC = () => {
             <div className='login-form-footer'>
               <p className='login-footer-text'>
                 Don't have an account?{' '}
-                <a href='#' className='login-footer-link'>
+                <a href='/register' className='login-footer-link'>
                   Sign up
                 </a>
               </p>

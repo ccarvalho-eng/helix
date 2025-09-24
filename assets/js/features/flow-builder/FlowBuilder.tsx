@@ -20,6 +20,7 @@ import { TemplateType, getFeaturedTemplates, getTemplatesByCategory } from './te
 import { Template } from './types';
 import { PropertiesPanel } from './components/properties';
 import { ErrorBoundary } from '../../shared/components/ui/ErrorBoundary';
+import { useAuth } from '../../shared/contexts/AuthContext';
 import { ThemeProvider, useThemeContext } from './contexts/ThemeContext';
 import { ThemeToggle } from './components/ThemeToggle';
 import { Modal } from './components/Modal';
@@ -50,6 +51,7 @@ import {
   Heart,
   DollarSign,
   ShoppingCart,
+  LogOut,
 } from 'lucide-react';
 
 type ReactFlowAINode = OriginalAIFlowNode;
@@ -407,6 +409,7 @@ const getFlowIdFromUrl = (): string | null => {
 
 function FlowBuilderInternal() {
   const { theme = 'light' } = useThemeContext() ?? { theme: 'light' };
+  const { logout } = useAuth();
   const flowId = getFlowIdFromUrl();
 
   const {
@@ -485,6 +488,11 @@ function FlowBuilderInternal() {
     }
     setIsEditingTitle(false);
     setEditingTitle('');
+  };
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = '/login';
   };
 
   const handleCancelEditingTitle = () => {
@@ -758,6 +766,15 @@ function FlowBuilderInternal() {
             onClick={() => setIsPropertiesOpen(v => !v)}
           >
             <Sliders size={18} />
+          </button>
+
+          <button
+            className='flow-builder__logout-btn'
+            onClick={handleLogout}
+            title='Logout'
+            aria-label='Logout'
+          >
+            <LogOut size={16} />
           </button>
         </div>
 

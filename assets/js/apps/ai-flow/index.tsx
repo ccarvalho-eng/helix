@@ -1,5 +1,8 @@
 import React from 'react';
 import { createRoot, Root } from 'react-dom/client';
+import { ApolloProvider } from '@apollo/client/react';
+import { client } from '../../lib/apollo';
+import { AuthProvider } from '../../shared/contexts/AuthContext';
 import { FlowBuilder } from '../../features/flow-builder';
 
 // Error Boundary for proper React error handling
@@ -39,7 +42,11 @@ class AIFlowErrorBoundary extends React.Component<
 function AIFlowApp(): React.ReactElement {
   return (
     <AIFlowErrorBoundary>
-      <FlowBuilder />
+      <ApolloProvider client={client}>
+        <AuthProvider>
+          <FlowBuilder />
+        </AuthProvider>
+      </ApolloProvider>
     </AIFlowErrorBoundary>
   );
 }

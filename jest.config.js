@@ -8,14 +8,16 @@ export default {
     '<rootDir>/assets/js/**/*.(test|spec).(ts|tsx)'
   ],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/assets/js/$1'
+    '^@/(.*)$': '<rootDir>/assets/js/$1',
+    '\\.(graphql)$': '<rootDir>/assets/js/__mocks__/graphqlMock.js'
   },
   collectCoverageFrom: [
     'assets/js/**/*.(ts|tsx)',
     '!assets/js/**/*.d.ts',
     '!assets/js/test-setup.ts',
     '!assets/js/**/__tests__/**/*',
-    '!assets/js/**/*.stories.*'
+    '!assets/js/**/*.stories.*',
+    '!assets/js/generated/graphql.ts'
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],

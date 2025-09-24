@@ -16,8 +16,25 @@ defmodule HelixWeb.Utils do
   def format_changeset_errors(changeset) do
     changeset
     |> Ecto.Changeset.traverse_errors(&translate_error/1)
-    |> Enum.map_join("; ", fn {field, errors} ->
-      "#{field}: #{Enum.join(errors, ", ")}"
+    |> Enum.map_join("\n", fn {field, errors} ->
+      field_name =
+        case field do
+          :email -> "Email"
+          :password -> "Password"
+          :first_name -> "First name"
+          :last_name -> "Last name"
+          field -> String.capitalize(to_string(field))
+        end
+
+      formatted_errors =
+        Enum.map_join(errors, ", ", fn error ->
+          # Remove field name prefix if it exists in the error message
+          error
+          |> String.replace(~r/^#{String.downcase(field_name)}\s+/, "")
+          |> String.capitalize()
+        end)
+
+      "#{field_name}: #{formatted_errors}"
     end)
   end
 

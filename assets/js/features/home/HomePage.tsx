@@ -10,18 +10,37 @@ import {
   Edit,
   Copy,
   Trash2,
+  LogOut,
 } from 'lucide-react';
 import { ThemeToggle } from '../flow-builder/components/ThemeToggle';
+import { useAuth } from '../../shared/contexts/AuthContext';
+import { ProtectedRoute } from '../../shared/components/ProtectedRoute';
 import { flowStorage } from '../../shared/services/flowStorage';
 import { FlowRegistryEntry } from '../../shared/types/flow';
 import { websocketService } from '../../shared/services/websocketService';
 
+// Extend Window interface to include topbar
+declare global {
+  interface Window {
+    topbar?: {
+      show: () => void;
+      hide: () => void;
+    };
+  }
+}
+
 export const HomePage: React.FC = () => {
+  const { logout } = useAuth();
   const [flows, setFlows] = useState<FlowRegistryEntry[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingFlowId, setEditingFlowId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = '/login';
+  };
 
   // Load flows on component mount
   useEffect(() => {
@@ -165,266 +184,278 @@ export const HomePage: React.FC = () => {
   });
 
   return (
-    <div className='home-page'>
-      {/* Header with Logo and Navigation */}
-      <div className='home-header'>
-        <div className='home-header__content'>
-          <div className='home-header__brand'>
-            <Cpu className='home-header__logo' />
-            <h1 className='home-header__title'>Helix</h1>
-            <span className='home-header__subtitle'>AI Flow Builder</span>
-          </div>
-
-          <div className='home-header__actions'>
-            <button onClick={handleCreateWorkflow} className='home-header__create-btn'>
-              <Plus className='home-header__create-icon' />
-              New Flow
-            </button>
-            <ThemeToggle />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className='home-main'>
-        <div className='home-main__content'>
-          {/* Quick Actions */}
-          <div className='home-quick-actions'>
-            <button onClick={handleCreateWorkflow} className='home-quick-action'>
-              <Plus className='home-quick-action__icon' />
-              <div className='home-quick-action__content'>
-                <h3 className='home-quick-action__title'>Create New Flow</h3>
-                <p className='home-quick-action__desc'>Start building a new workflow diagram</p>
-              </div>
-            </button>
-
-            <button className='home-quick-action' onClick={handleBrowseTemplates}>
-              <FolderOpen className='home-quick-action__icon' />
-              <div className='home-quick-action__content'>
-                <h3 className='home-quick-action__title'>Browse Templates</h3>
-                <p className='home-quick-action__desc'>Choose from pre-built workflow templates</p>
-              </div>
-            </button>
-          </div>
-
-          {/* Workflow Management Section */}
-          <div className='home-workflows'>
-            <div className='home-workflows__header'>
-              <div className='home-workflows__title-section'>
-                <h2 className='home-workflows__title'>My Workflows</h2>
-                <span className='home-workflows__count'>
-                  {searchQuery.trim() ? (
-                    <>
-                      {filteredFlows.length} of {flows.length} flows
-                      {filteredFlows.length !== flows.length && (
-                        <span className='home-workflows__search-indicator'> (filtered)</span>
-                      )}
-                    </>
-                  ) : (
-                    `${flows.length} flows`
-                  )}
-                </span>
-              </div>
-
-              <div className='home-workflows__controls'>
-                <div className='home-workflows__search'>
-                  <Search className='home-workflows__search-icon' />
-                  <input
-                    type='text'
-                    placeholder='Search workflows...'
-                    className='home-workflows__search-input'
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                <button className='home-workflows__filter-btn'>
-                  <Filter className='home-workflows__filter-icon' />
-                  Filter
-                </button>
-              </div>
+    <ProtectedRoute>
+      <div className='home-page'>
+        {/* Header with Logo and Navigation */}
+        <div className='home-header'>
+          <div className='home-header__content'>
+            <div className='home-header__brand'>
+              <Cpu className='home-header__logo' />
+              <h1 className='home-header__title'>Helix</h1>
+              <span className='home-header__subtitle'>AI Flow Builder</span>
             </div>
 
-            <div className='home-workflows__grid'>
-              {filteredFlows.length === 0 && searchQuery.trim() ? (
-                <div className='home-search-empty'>
-                  <Search className='home-search-empty__icon' />
-                  <h3 className='home-search-empty__title'>No flows found</h3>
-                  <p className='home-search-empty__text'>
-                    No flows match "{searchQuery}". Try searching for:
+            <div className='home-header__actions'>
+              <button onClick={handleCreateWorkflow} className='home-header__create-btn'>
+                <Plus className='home-header__create-icon' />
+                New Flow
+              </button>
+              <ThemeToggle />
+              <button
+                onClick={handleLogout}
+                className='home-header__logout-btn'
+                title='Logout'
+                aria-label='Logout'
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className='home-main'>
+          <div className='home-main__content'>
+            {/* Quick Actions */}
+            <div className='home-quick-actions'>
+              <button onClick={handleCreateWorkflow} className='home-quick-action'>
+                <Plus className='home-quick-action__icon' />
+                <div className='home-quick-action__content'>
+                  <h3 className='home-quick-action__title'>Create New Flow</h3>
+                  <p className='home-quick-action__desc'>Start building a new workflow diagram</p>
+                </div>
+              </button>
+
+              <button className='home-quick-action' onClick={handleBrowseTemplates}>
+                <FolderOpen className='home-quick-action__icon' />
+                <div className='home-quick-action__content'>
+                  <h3 className='home-quick-action__title'>Browse Templates</h3>
+                  <p className='home-quick-action__desc'>
+                    Choose from pre-built workflow templates
                   </p>
-                  <ul className='home-search-empty__suggestions'>
-                    <li>Flow titles or partial names</li>
-                    <li>Node counts (e.g., "3", "5 nodes")</li>
-                    <li>Connection counts (e.g., "2", "4 connections")</li>
-                    <li>Creation dates (e.g., "today", "week", "recent")</li>
-                  </ul>
-                  <button className='home-search-empty__clear' onClick={() => setSearchQuery('')}>
-                    Clear search
+                </div>
+              </button>
+            </div>
+
+            {/* Workflow Management Section */}
+            <div className='home-workflows'>
+              <div className='home-workflows__header'>
+                <div className='home-workflows__title-section'>
+                  <h2 className='home-workflows__title'>My Workflows</h2>
+                  <span className='home-workflows__count'>
+                    {searchQuery.trim() ? (
+                      <>
+                        {filteredFlows.length} of {flows.length} flows
+                        {filteredFlows.length !== flows.length && (
+                          <span className='home-workflows__search-indicator'> (filtered)</span>
+                        )}
+                      </>
+                    ) : (
+                      `${flows.length} flows`
+                    )}
+                  </span>
+                </div>
+
+                <div className='home-workflows__controls'>
+                  <div className='home-workflows__search'>
+                    <Search className='home-workflows__search-icon' />
+                    <input
+                      type='text'
+                      placeholder='Search workflows...'
+                      className='home-workflows__search-input'
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <button className='home-workflows__filter-btn'>
+                    <Filter className='home-workflows__filter-icon' />
+                    Filter
                   </button>
                 </div>
-              ) : (
-                filteredFlows.map(flow => (
-                  <div
-                    key={flow.id}
-                    className='home-workflow-card'
-                    onClick={() => handleOpenFlow(flow.id)}
-                  >
-                    <div className='home-workflow-card__header'>
-                      <div className='home-workflow-card__info'>
-                        {editingFlowId === flow.id ? (
-                          <div className='home-workflow-card__title-edit'>
-                            <input
-                              type='text'
-                              value={editingTitle}
-                              onChange={e => setEditingTitle(e.target.value)}
-                              onBlur={handleSaveTitle}
-                              onKeyDown={e => {
-                                if (e.key === 'Enter') handleSaveTitle();
-                                if (e.key === 'Escape') handleCancelEdit();
-                              }}
-                              className='home-workflow-card__title-input'
-                              autoFocus
-                              onClick={e => e.stopPropagation()}
-                            />
+              </div>
+
+              <div className='home-workflows__grid'>
+                {filteredFlows.length === 0 && searchQuery.trim() ? (
+                  <div className='home-search-empty'>
+                    <Search className='home-search-empty__icon' />
+                    <h3 className='home-search-empty__title'>No flows found</h3>
+                    <p className='home-search-empty__text'>
+                      No flows match "{searchQuery}". Try searching for:
+                    </p>
+                    <ul className='home-search-empty__suggestions'>
+                      <li>Flow titles or partial names</li>
+                      <li>Node counts (e.g., "3", "5 nodes")</li>
+                      <li>Connection counts (e.g., "2", "4 connections")</li>
+                      <li>Creation dates (e.g., "today", "week", "recent")</li>
+                    </ul>
+                    <button className='home-search-empty__clear' onClick={() => setSearchQuery('')}>
+                      Clear search
+                    </button>
+                  </div>
+                ) : (
+                  filteredFlows.map(flow => (
+                    <div
+                      key={flow.id}
+                      className='home-workflow-card'
+                      onClick={() => handleOpenFlow(flow.id)}
+                    >
+                      <div className='home-workflow-card__header'>
+                        <div className='home-workflow-card__info'>
+                          {editingFlowId === flow.id ? (
+                            <div className='home-workflow-card__title-edit'>
+                              <input
+                                type='text'
+                                value={editingTitle}
+                                onChange={e => setEditingTitle(e.target.value)}
+                                onBlur={handleSaveTitle}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter') handleSaveTitle();
+                                  if (e.key === 'Escape') handleCancelEdit();
+                                }}
+                                className='home-workflow-card__title-input'
+                                autoFocus
+                                onClick={e => e.stopPropagation()}
+                              />
+                            </div>
+                          ) : (
+                            <h3 className='home-workflow-card__title'>{flow.title}</h3>
+                          )}
+                          <div className='home-workflow-card__meta'>
+                            <Clock className='home-workflow-card__meta-icon' />
+                            <span>{formatDate(flow.lastModified)}</span>
                           </div>
-                        ) : (
-                          <h3 className='home-workflow-card__title'>{flow.title}</h3>
-                        )}
-                        <div className='home-workflow-card__meta'>
-                          <Clock className='home-workflow-card__meta-icon' />
-                          <span>{formatDate(flow.lastModified)}</span>
+                        </div>
+                        <div className='home-workflow-card__menu-container'>
+                          <button
+                            className='home-workflow-card__gear'
+                            type='button'
+                            aria-label='Flow options'
+                            onClick={e => {
+                              e.stopPropagation();
+                              const dropdown = e.currentTarget.nextElementSibling as HTMLElement;
+                              // Close other dropdowns
+                              document
+                                .querySelectorAll('.home-workflow-card__dropdown.show')
+                                .forEach(d => {
+                                  if (d !== dropdown) d.classList.remove('show');
+                                });
+                              dropdown.classList.toggle('show');
+                            }}
+                          >
+                            <Settings className='home-workflow-card__gear-icon' />
+                          </button>
+                          <div className='home-workflow-card__dropdown'>
+                            <button
+                              className='home-workflow-card__dropdown-item'
+                              onClick={e => {
+                                e.stopPropagation();
+                                handleEditTitle(flow);
+                                e.currentTarget.parentElement?.classList.remove('show');
+                              }}
+                            >
+                              <Edit size={16} />
+                              Rename
+                            </button>
+                            <button
+                              className='home-workflow-card__dropdown-item'
+                              onClick={e => {
+                                e.stopPropagation();
+                                handleDuplicateFlow(flow.id);
+                                e.currentTarget.parentElement?.classList.remove('show');
+                              }}
+                            >
+                              <Copy size={16} />
+                              Duplicate
+                            </button>
+                            <button
+                              className='home-workflow-card__dropdown-item home-workflow-card__dropdown-item--danger'
+                              onClick={e => {
+                                e.stopPropagation();
+                                setShowDeleteConfirm(flow.id);
+                                e.currentTarget.parentElement?.classList.remove('show');
+                              }}
+                            >
+                              <Trash2 size={16} />
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       </div>
-                      <div className='home-workflow-card__menu-container'>
-                        <button
-                          className='home-workflow-card__gear'
-                          type='button'
-                          aria-label='Flow options'
-                          onClick={e => {
-                            e.stopPropagation();
-                            const dropdown = e.currentTarget.nextElementSibling as HTMLElement;
-                            // Close other dropdowns
-                            document
-                              .querySelectorAll('.home-workflow-card__dropdown.show')
-                              .forEach(d => {
-                                if (d !== dropdown) d.classList.remove('show');
-                              });
-                            dropdown.classList.toggle('show');
-                          }}
-                        >
-                          <Settings className='home-workflow-card__gear-icon' />
-                        </button>
-                        <div className='home-workflow-card__dropdown'>
-                          <button
-                            className='home-workflow-card__dropdown-item'
-                            onClick={e => {
-                              e.stopPropagation();
-                              handleEditTitle(flow);
-                              e.currentTarget.parentElement?.classList.remove('show');
-                            }}
-                          >
-                            <Edit size={16} />
-                            Rename
-                          </button>
-                          <button
-                            className='home-workflow-card__dropdown-item'
-                            onClick={e => {
-                              e.stopPropagation();
-                              handleDuplicateFlow(flow.id);
-                              e.currentTarget.parentElement?.classList.remove('show');
-                            }}
-                          >
-                            <Copy size={16} />
-                            Duplicate
-                          </button>
-                          <button
-                            className='home-workflow-card__dropdown-item home-workflow-card__dropdown-item--danger'
-                            onClick={e => {
-                              e.stopPropagation();
-                              setShowDeleteConfirm(flow.id);
-                              e.currentTarget.parentElement?.classList.remove('show');
-                            }}
-                          >
-                            <Trash2 size={16} />
-                            Delete
-                          </button>
+
+                      <div className='home-workflow-card__body'>
+                        <p className='home-workflow-card__description'>
+                          AI workflow with {flow.nodeCount || 0} nodes and{' '}
+                          {flow.connectionCount || 0} connections
+                        </p>
+
+                        <div className='home-workflow-card__footer'>
+                          <div className='home-workflow-card__stats'>
+                            <span className='home-workflow-card__stat'>
+                              {flow.nodeCount || 0} nodes
+                            </span>
+                            <span className='home-workflow-card__stat'>
+                              {flow.connectionCount || 0} connections
+                            </span>
+                            <span className='home-workflow-card__stat'>Active</span>
+                          </div>
+                          <div className='home-workflow-card__status home-workflow-card__status--active'></div>
                         </div>
                       </div>
                     </div>
+                  ))
+                )}
 
-                    <div className='home-workflow-card__body'>
-                      <p className='home-workflow-card__description'>
-                        AI workflow with {flow.nodeCount || 0} nodes and {flow.connectionCount || 0}{' '}
-                        connections
+                {/* Create New Flow Card - only show when not filtering or when there are results */}
+                {(!searchQuery.trim() || filteredFlows.length > 0) && (
+                  <div className='home-empty-card' onClick={handleCreateWorkflow}>
+                    <Plus className='home-empty-card__icon' />
+                    <h3 className='home-empty-card__title'>Create New Workflow</h3>
+                    <p className='home-empty-card__text'>
+                      Design a new flow diagram to automate your processes
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Delete Confirmation Modal */}
+              {showDeleteConfirm && (
+                <div className='home-modal-backdrop' onClick={() => setShowDeleteConfirm(null)}>
+                  <div className='home-modal' onClick={e => e.stopPropagation()}>
+                    <div className='home-modal__header'>
+                      <h3 className='home-modal__title'>Delete Workflow</h3>
+                      <button
+                        className='home-modal__close'
+                        onClick={() => setShowDeleteConfirm(null)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className='home-modal__body'>
+                      <p>
+                        Are you sure you want to delete this workflow? This action cannot be undone.
                       </p>
-
-                      <div className='home-workflow-card__footer'>
-                        <div className='home-workflow-card__stats'>
-                          <span className='home-workflow-card__stat'>
-                            {flow.nodeCount || 0} nodes
-                          </span>
-                          <span className='home-workflow-card__stat'>
-                            {flow.connectionCount || 0} connections
-                          </span>
-                          <span className='home-workflow-card__stat'>Active</span>
-                        </div>
-                        <div className='home-workflow-card__status home-workflow-card__status--active'></div>
-                      </div>
+                    </div>
+                    <div className='home-modal__footer'>
+                      <button
+                        className='home-modal__button home-modal__button--secondary'
+                        onClick={() => setShowDeleteConfirm(null)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className='home-modal__button home-modal__button--danger'
+                        onClick={() => handleDeleteFlow(showDeleteConfirm)}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
-                ))
-              )}
-
-              {/* Create New Flow Card - only show when not filtering or when there are results */}
-              {(!searchQuery.trim() || filteredFlows.length > 0) && (
-                <div className='home-empty-card' onClick={handleCreateWorkflow}>
-                  <Plus className='home-empty-card__icon' />
-                  <h3 className='home-empty-card__title'>Create New Workflow</h3>
-                  <p className='home-empty-card__text'>
-                    Design a new flow diagram to automate your processes
-                  </p>
                 </div>
               )}
             </div>
-
-            {/* Delete Confirmation Modal */}
-            {showDeleteConfirm && (
-              <div className='home-modal-backdrop' onClick={() => setShowDeleteConfirm(null)}>
-                <div className='home-modal' onClick={e => e.stopPropagation()}>
-                  <div className='home-modal__header'>
-                    <h3 className='home-modal__title'>Delete Workflow</h3>
-                    <button
-                      className='home-modal__close'
-                      onClick={() => setShowDeleteConfirm(null)}
-                    >
-                      ×
-                    </button>
-                  </div>
-                  <div className='home-modal__body'>
-                    <p>
-                      Are you sure you want to delete this workflow? This action cannot be undone.
-                    </p>
-                  </div>
-                  <div className='home-modal__footer'>
-                    <button
-                      className='home-modal__button home-modal__button--secondary'
-                      onClick={() => setShowDeleteConfirm(null)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className='home-modal__button home-modal__button--danger'
-                      onClick={() => handleDeleteFlow(showDeleteConfirm)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 };

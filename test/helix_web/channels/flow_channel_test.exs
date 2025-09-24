@@ -2,7 +2,9 @@ defmodule HelixWeb.FlowChannelTest do
   use HelixWeb.ChannelCase, async: false
 
   alias Helix.FlowSessionManager
-  alias HelixWeb.{FlowChannel, UserSocket}
+  alias HelixWeb.FlowChannel
+
+  @moduletag :authenticated_socket
 
   setup do
     # Start FlowSessionManager for tests
@@ -18,10 +20,7 @@ defmodule HelixWeb.FlowChannelTest do
       end
     end)
 
-    # Create a socket
-    {:ok, socket} = connect(UserSocket, %{}, connect_info: %{})
-
-    {:ok, socket: socket}
+    :ok
   end
 
   # Helper function to generate unique test flow IDs
@@ -58,7 +57,7 @@ defmodule HelixWeb.FlowChannelTest do
       {:ok, _reply1, _socket1} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
 
       # Second client joins
-      {:ok, socket2} = connect(UserSocket, %{}, connect_info: %{})
+      socket2 = HelixWeb.ChannelCase.create_authenticated_socket()
       {:ok, _reply2, _socket2} = subscribe_and_join(socket2, FlowChannel, "flow:#{flow_id}")
 
       # Both should receive client_joined broadcasts
@@ -75,7 +74,7 @@ defmodule HelixWeb.FlowChannelTest do
 
       {:ok, _reply1, socket1} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
 
-      {:ok, socket2} = connect(UserSocket, %{}, connect_info: %{})
+      socket2 = HelixWeb.ChannelCase.create_authenticated_socket()
       {:ok, _reply2, socket2} = subscribe_and_join(socket2, FlowChannel, "flow:#{flow_id}")
 
       assert socket1.assigns.client_id != socket2.assigns.client_id
@@ -95,7 +94,7 @@ defmodule HelixWeb.FlowChannelTest do
       {:ok, _reply1, socket1} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
 
       # Client 2 joins
-      {:ok, socket2} = connect(UserSocket, %{}, connect_info: %{})
+      socket2 = HelixWeb.ChannelCase.create_authenticated_socket()
       {:ok, _reply2, _socket2} = subscribe_and_join(socket2, FlowChannel, "flow:#{flow_id}")
 
       # Clear any join broadcasts
@@ -207,7 +206,7 @@ defmodule HelixWeb.FlowChannelTest do
       flow_id = test_flow_id("multi-disconnect-test")
       # Two clients join
       {:ok, _reply1, socket1} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
-      {:ok, socket2} = connect(UserSocket, %{}, connect_info: %{})
+      socket2 = HelixWeb.ChannelCase.create_authenticated_socket()
       {:ok, _reply2, _socket2} = subscribe_and_join(socket2, FlowChannel, "flow:#{flow_id}")
       # Verify both clients are active
       assert %{active: true, client_count: 2} =
@@ -258,7 +257,7 @@ defmodule HelixWeb.FlowChannelTest do
       sessions = FlowSessionManager.get_active_sessions()
       assert %{^flow_id => %{client_count: 1}} = sessions
       # Another client joins
-      {:ok, socket2} = connect(UserSocket, %{}, connect_info: %{})
+      socket2 = HelixWeb.ChannelCase.create_authenticated_socket()
       {:ok, _reply, _socket2} = subscribe_and_join(socket2, FlowChannel, "flow:#{flow_id}")
       # Count should update
       sessions = FlowSessionManager.get_active_sessions()
@@ -383,7 +382,7 @@ defmodule HelixWeb.FlowChannelTest do
 
       # Two clients join the same flow
       {:ok, _reply1, _socket1} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
-      {:ok, socket2} = connect(UserSocket, %{}, connect_info: %{})
+      socket2 = HelixWeb.ChannelCase.create_authenticated_socket()
       {:ok, _reply2, _socket2} = subscribe_and_join(socket2, FlowChannel, "flow:#{flow_id}")
 
       # Clear join broadcasts

@@ -36,7 +36,7 @@ config :esbuild,
   version: "0.17.11",
   helix: [
     args:
-      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/* --loader:.js=jsx --loader:.ts=tsx --loader:.tsx=tsx),
+      ~w(js/app.js --bundle --target=es2020 --outdir=../priv/static/assets --external:/fonts/* --external:/images/* --loader:.js=jsx --loader:.ts=tsx --loader:.tsx=tsx),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]

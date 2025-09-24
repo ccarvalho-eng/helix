@@ -17,6 +17,14 @@ defmodule HelixWeb.ChannelCase do
 
   use ExUnit.CaseTemplate
 
+  import Phoenix.ChannelTest
+
+  alias Helix.Accounts.Guardian
+  alias Helix.AccountsFixtures
+  alias HelixWeb.UserSocket
+
+  @endpoint HelixWeb.Endpoint
+
   using do
     quote do
       # Import conveniences for testing with channels
@@ -30,6 +38,24 @@ defmodule HelixWeb.ChannelCase do
 
   setup tags do
     Helix.DataCase.setup_sandbox(tags)
-    :ok
+
+    if tags[:authenticated_socket] do
+      user = AccountsFixtures.user_fixture()
+      {:ok, token, _claims} = Guardian.encode_and_sign(user)
+      {:ok, socket} = connect(UserSocket, %{"token" => token}, connect_info: %{})
+      {:ok, socket: socket, user: user, token: token}
+    else
+      :ok
+    end
+  end
+
+  @doc """
+  Helper function to create an authenticated socket for tests that need multiple sockets
+  """
+  def create_authenticated_socket do
+    user = AccountsFixtures.user_fixture()
+    {:ok, token, _claims} = Guardian.encode_and_sign(user)
+    {:ok, socket} = connect(UserSocket, %{"token" => token}, connect_info: %{})
+    socket
   end
 end

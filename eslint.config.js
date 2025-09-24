@@ -5,6 +5,9 @@ import tsparser from "@typescript-eslint/parser";
 export default [
   js.configs.recommended,
   {
+    ignores: ["assets/js/generated/**"]
+  },
+  {
     files: ["assets/js/**/*.{js,ts,tsx}"],
     languageOptions: {
       parser: tsparser,
@@ -13,6 +16,7 @@ export default [
         document: "readonly",
         console: "readonly",
         localStorage: "readonly",
+        sessionStorage: "readonly",
         setTimeout: "readonly",
         clearTimeout: "readonly",
         NodeJS: "readonly",
@@ -20,6 +24,7 @@ export default [
         KeyboardEvent: "readonly",
         queueMicrotask: "readonly",
         crypto: "readonly",
+        process: "readonly",
         // Jest globals
         describe: "readonly",
         it: "readonly",

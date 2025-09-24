@@ -1,13 +1,20 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { LoginPage } from '../../features/auth/LoginPage';
+import { ApolloProvider } from '@apollo/client/react';
+import { client } from '../../lib/apollo';
+import { AuthRouter } from '../../features/auth/AuthRouter';
+import { AuthProvider } from '../../shared/contexts/AuthContext';
 import { ThemeProvider } from '../../features/flow-builder/contexts/ThemeContext';
 
 function AuthApp() {
   return (
-    <ThemeProvider>
-      <LoginPage />
-    </ThemeProvider>
+    <ApolloProvider client={client}>
+      <ThemeProvider>
+        <AuthProvider>
+          <AuthRouter />
+        </AuthProvider>
+      </ThemeProvider>
+    </ApolloProvider>
   );
 }
 
