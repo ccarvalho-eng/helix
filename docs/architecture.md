@@ -168,8 +168,10 @@ flowchart TD
 
 ## Conflict Resolution Strategy
 
-- **Input validation**: Flow IDs are validated and normalized (trimmed) before processing
-- **Error handling**: Invalid inputs return appropriate error responses rather than crashing
+- **Input validation**: Flow IDs are trimmed and validated before processing
+- **Error handling**:
+  - Join/leave/force-close with invalid flow IDs return `{:error, :invalid_flow_id}`
+  - Status checks with invalid flow IDs return an inactive status (no error)
 - **Last-Write-Wins**: Concurrent changes overwrite each other (no operational transforms)
 - **No queuing**: Disconnected events are lost (not queued for later)
 - **No state sync**: Reconnected clients don't get missed changes
