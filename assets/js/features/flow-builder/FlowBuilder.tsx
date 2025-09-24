@@ -128,6 +128,17 @@ function FlowNode({
         isVisible={selected}
         minWidth={parseInt(width)}
         minHeight={parseInt(height)}
+        handleStyle={{
+          width: '6px',
+          height: '6px',
+          border: '1px solid',
+          borderRadius: '1px',
+        }}
+        lineStyle={{
+          borderWidth: '1px',
+          borderStyle: 'dashed',
+          opacity: 0.6,
+        }}
       />
 
       {/* React Flow Handles for connections - Left and Right only */}
@@ -896,13 +907,12 @@ function FlowBuilderInternal() {
                 width: 200,
                 backgroundColor:
                   theme === 'dark' ? 'var(--theme-bg-secondary)' : 'var(--flow-builder-bg)',
-                border: theme === 'dark'
-                  ? '1px solid var(--theme-border-primary)'
-                  : '1px solid var(--flow-builder-border)',
+                border:
+                  theme === 'dark'
+                    ? '1px solid var(--theme-border-primary)'
+                    : '1px solid var(--flow-builder-border)',
                 borderRadius: '8px',
-                boxShadow: theme === 'dark'
-                  ? 'var(--theme-shadow)'
-                  : 'var(--flow-builder-shadow)',
+                boxShadow: theme === 'dark' ? 'var(--theme-shadow)' : 'var(--flow-builder-shadow)',
               }}
               nodeColor={theme === 'dark' ? '#4b5563' : '#e5e7eb'}
               nodeStrokeColor={theme === 'dark' ? '#6b7280' : '#d1d5db'}
@@ -913,7 +923,12 @@ function FlowBuilderInternal() {
               position='bottom-right'
               offsetScale={0.8}
             />
-            <Background color='#f3f4f6' gap={20} size={1} className='flow-canvas__background' />
+            <Background
+              color={theme === 'dark' ? '#374151' : '#9ca3af'}
+              gap={20}
+              size={1}
+              className='flow-canvas__background'
+            />
           </ReactFlow>
         </div>
 

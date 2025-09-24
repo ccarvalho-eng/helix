@@ -1,99 +1,103 @@
 /* Canvas */
 .flow-canvas {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  position: relative;
+	flex: 1;
+	width: 100%;
+	height: 100%;
+	position: relative;
 }
 
 .flow-canvas__reactflow {
-  width: 100%;
-  height: 100%;
-  background: var(--flow-builder-bg);
+	width: 100%;
+	height: 100%;
+	background: var(--flow-builder-bg);
 }
 
 .flow-canvas__controls {
-  bottom: 24px;
-  left: 24px;
-  background: var(--flow-builder-bg);
-  border: 1px solid var(--flow-builder-border);
-  border-radius: 8px;
-  padding: 4px;
-  box-shadow: var(--flow-builder-shadow);
-  transition: all 0.2s ease;
+	bottom: 24px;
+	left: 24px;
+	background: var(--flow-builder-bg);
+	border: 1px solid var(--flow-builder-border);
+	border-radius: 8px;
+	padding: 4px;
+	box-shadow: var(--flow-builder-shadow);
+	transition: all 0.2s ease;
 }
 
 /* Style individual control buttons */
 .flow-canvas__controls button {
-  width: 24px !important;
-  height: 24px !important;
-  border-radius: 4px !important;
-  background: var(--flow-builder-button-bg) !important;
-  border: 1px solid var(--flow-builder-button-border) !important;
-  color: var(--flow-builder-button-text) !important;
-  margin: 2px 2px 4px 2px !important;
-  transition: all 0.2s ease !important;
-  font-size: 11px !important;
-  font-weight: 500 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+	width: 24px !important;
+	height: 24px !important;
+	border-radius: 4px !important;
+	background: var(--flow-builder-button-bg) !important;
+	border: 1px solid var(--flow-builder-button-border) !important;
+	color: var(--flow-builder-button-text) !important;
+	margin: 2px 2px 4px 2px !important;
+	transition: all 0.2s ease !important;
+	font-size: 11px !important;
+	font-weight: 500 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
 }
 
 .flow-canvas__controls button:hover {
-  background: var(--flow-builder-button-hover-bg) !important;
-  border-color: var(--flow-builder-border) !important;
-  transform: scale(1.05) !important;
+	background: var(--flow-builder-button-hover-bg) !important;
+	border-color: var(--flow-builder-border) !important;
+	transform: scale(1.05) !important;
 }
 
 .flow-canvas__controls button:active {
-  transform: scale(0.95) !important;
-  transition: transform 0.1s ease !important;
+	transform: scale(0.95) !important;
+	transition: transform 0.1s ease !important;
 }
 
 /* Dark theme styling */
 [data-theme="dark"] .flow-canvas__controls {
-  background: var(--theme-bg-secondary);
-  border: 1px solid var(--theme-border-primary);
-  box-shadow: var(--theme-shadow);
+	background: var(--theme-bg-secondary);
+	border: 1px solid var(--theme-border-primary);
+	box-shadow: var(--theme-shadow);
 }
 
 [data-theme="dark"] .flow-canvas__controls button {
-  background: var(--theme-bg-tertiary) !important;
-  border: 1px solid var(--theme-border-primary) !important;
-  color: var(--theme-text-primary) !important;
+	background: var(--theme-bg-tertiary) !important;
+	border: 1px solid var(--theme-border-primary) !important;
+	color: var(--theme-text-primary) !important;
 }
 
 [data-theme="dark"] .flow-canvas__controls button:hover {
-  background: var(--theme-bg-quaternary) !important;
-  border-color: var(--theme-syntax-green) !important;
-  color: var(--theme-syntax-green) !important;
+	background: var(--theme-bg-quaternary) !important;
+	border-color: var(--theme-syntax-green) !important;
+	color: var(--theme-syntax-green) !important;
 }
 
 [data-theme="dark"] .flow-canvas__controls button:hover svg {
-  color: var(--theme-syntax-green) !important;
-  fill: var(--theme-syntax-green) !important;
-  stroke: var(--theme-syntax-green) !important;
+	color: var(--theme-syntax-green) !important;
+	fill: var(--theme-syntax-green) !important;
+	stroke: var(--theme-syntax-green) !important;
 }
 
 /* Canvas locked state visual feedback */
 .flow-canvas__reactflow--locked {
-  cursor: not-allowed;
+	cursor: not-allowed;
 }
 
 .flow-canvas__reactflow--locked .react-flow__node {
-  cursor: not-allowed !important;
+	cursor: not-allowed !important;
 }
 
 .flow-canvas__reactflow--locked .react-flow__edge {
-  cursor: not-allowed !important;
+	cursor: not-allowed !important;
 }
 
 /* Hide React Flow attribution */
 .react-flow__attribution {
-  display: none !important;
+	display: none !important;
 }
 
 .flow-canvas__background {
-  opacity: 0.4;
+	opacity: 0.9;
+}
+
+[data-theme="dark"] .flow-canvas__background {
+	opacity: 0.9;
 }

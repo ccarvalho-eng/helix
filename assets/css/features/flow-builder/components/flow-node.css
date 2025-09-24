@@ -27,13 +27,25 @@
 }
 
 [data-theme="dark"] .flow-node:hover {
-  border-color: var(--theme-syntax-green);
+  border: 1px solid var(--theme-syntax-green);
   background: rgba(152, 195, 121, 0.05);
 }
 
 /* Light theme keeps original backgrounds */
 [data-theme="light"] .flow-node {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+  border-width: 2px;
+}
+
+[data-theme="light"] .flow-node:hover {
+  border: 1px solid #000000;
+}
+
+/* Selected state - no visual changes to node, only bezier handles show */
+.flow-node--selected {
+  /* No styling - selection is indicated only by the bezier resize handles */
 }
 
 .flow-node__icon {
