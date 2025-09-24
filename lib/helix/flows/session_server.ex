@@ -207,30 +207,38 @@ defmodule Helix.Flows.SessionServer do
 
   @impl true
   def handle_cast({:broadcast_flow_change, flow_id, changes}, state) do
-    case Map.get(state.sessions, flow_id) do
-      nil ->
-        Logger.warning("Attempted to broadcast changes to non-existent flow session: #{flow_id}")
+    # Validate and normalize flow_id to ensure consistency
+    case validate_flow_id(flow_id) do
+      {:ok, validated_flow_id} ->
+        case Map.get(state.sessions, validated_flow_id) do
+          nil ->
+            Logger.warning("Attempted to broadcast changes to non-existent flow session: #{validated_flow_id}")
+            {:noreply, state}
+
+          session ->
+            updated_session = %{
+              session
+              | last_activity: System.system_time(:second)
+            }
+
+            new_sessions = Map.put(state.sessions, validated_flow_id, updated_session)
+
+            Phoenix.PubSub.broadcast(
+              Helix.PubSub,
+              "flow:#{validated_flow_id}",
+              {:flow_change, changes}
+            )
+
+            Logger.debug(
+              "Broadcasted flow changes for #{validated_flow_id} to #{MapSet.size(session.clients)} clients"
+            )
+
+            {:noreply, %{state | sessions: new_sessions}}
+        end
+
+      {:error, _reason} ->
+        Logger.warning("Attempted to broadcast changes with invalid flow_id: #{inspect(flow_id)}")
         {:noreply, state}
-
-      session ->
-        updated_session = %{
-          session
-          | last_activity: System.system_time(:second)
-        }
-
-        new_sessions = Map.put(state.sessions, flow_id, updated_session)
-
-        Phoenix.PubSub.broadcast(
-          Helix.PubSub,
-          "flow:#{flow_id}",
-          {:flow_change, changes}
-        )
-
-        Logger.debug(
-          "Broadcasted flow changes for #{flow_id} to #{MapSet.size(session.clients)} clients"
-        )
-
-        {:noreply, %{state | sessions: new_sessions}}
     end
   end
 

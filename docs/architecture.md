@@ -168,8 +168,9 @@ flowchart TD
 
 ## Conflict Resolution Strategy
 
-- **No validation**: All changes are accepted and broadcasted immediately
-- **Last-Write-Wins**: Concurrent changes overwrite each other
+- **Input validation**: Flow IDs are validated and normalized (trimmed) before processing
+- **Error handling**: Invalid inputs return appropriate error responses rather than crashing
+- **Last-Write-Wins**: Concurrent changes overwrite each other (no operational transforms)
 - **No queuing**: Disconnected events are lost (not queued for later)
 - **No state sync**: Reconnected clients don't get missed changes
 - **Session-based**: Only active sessions (with connected clients) receive broadcasts
@@ -185,7 +186,7 @@ Phoenix Application
 ├── Helix.Application (Application)
 │   ├── Phoenix.PubSub (Supervisor)
 │   ├── HelixWeb.Endpoint (Supervisor)
-│   └── Helix.Flows.Supervisor (Supervisor)
+│   └── Helix.Flows (Supervisor)
 │       └── Helix.Flows.SessionServer (GenServer)
 ```
 
@@ -197,7 +198,7 @@ Phoenix Application
 
 #### Process Responsibilities
 
-- **Helix.Flows.Supervisor**: Manages the SessionServer lifecycle
+- **Helix.Flows**: OTP Supervisor managing the SessionServer lifecycle
 - **SessionServer**: Single point of truth for all flow session state
 - **Phoenix.PubSub**: Message broadcasting infrastructure (separate process)
 - **Phoenix Channels**: WebSocket connection handlers (per-connection processes)
@@ -227,6 +228,9 @@ Phoenix Application
 - Flow change broadcasting via Phoenix PubSub
 - Anonymous client ID generation for invalid inputs
 - Client-to-flow mapping for lookups
+- Flow ID validation and normalization (trimming whitespace)
+- Proper timer management with cleanup on termination
+- Comprehensive error handling with input validation
 
 ### Phoenix Channels
 
@@ -237,6 +241,8 @@ Real-time communication via Phoenix Channels:
 - Broadcasts `flow_update` events to connected clients
 - Phoenix PubSub message distribution
 - Automatic session join/leave on client connect/disconnect
+- Flow ID normalization and validation delegation to Flows context
+- Proper error handling with specific error responses for invalid flow IDs
 
 ### Local Storage Persistence
 

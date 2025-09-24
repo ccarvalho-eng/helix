@@ -15,20 +15,23 @@ defmodule HelixWeb.FlowChannel do
 
   @impl true
   def join("flow:" <> flow_id, _payload, socket) do
+    # Normalize flow_id by trimming it for consistency
+    normalized_flow_id = String.trim(flow_id)
+
     # Generate a unique client ID for this connection
     client_id = generate_client_id()
 
     # Join the flow session - let Flows context handle validation
-    case Flows.join_flow(flow_id, client_id) do
+    case Flows.join_flow(normalized_flow_id, client_id) do
       {:ok, client_count} ->
         # Store client info in socket assigns and register for monitoring
         socket =
           socket
-          |> assign(:flow_id, String.trim(flow_id))
+          |> assign(:flow_id, normalized_flow_id)
           |> assign(:client_id, client_id)
 
         Logger.debug(
-          "Client #{client_id} joined flow channel #{String.trim(flow_id)}. " <>
+          "Client #{client_id} joined flow channel #{normalized_flow_id}. " <>
             "Total clients: #{client_count}"
         )
 
@@ -42,7 +45,7 @@ defmodule HelixWeb.FlowChannel do
         {:error, %{reason: "Invalid flow identifier"}}
 
       {:error, reason} ->
-        Logger.error("Failed to join flow #{flow_id}: #{inspect(reason)}")
+        Logger.error("Failed to join flow #{normalized_flow_id}: #{inspect(reason)}")
         {:error, %{reason: "Failed to join flow session"}}
     end
   end
