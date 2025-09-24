@@ -30,22 +30,28 @@ defmodule HelixWeb.FlowChannel do
       client_id = generate_client_id()
 
       # Join the flow session
-      {:ok, client_count} = Flows.join_flow(flow_id, client_id)
-      # Store client info in socket assigns and register for monitoring
-      socket =
-        socket
-        |> assign(:flow_id, flow_id)
-        |> assign(:client_id, client_id)
+      case Flows.join_flow(flow_id, client_id) do
+        {:ok, client_count} ->
+          # Store client info in socket assigns and register for monitoring
+          socket =
+            socket
+            |> assign(:flow_id, flow_id)
+            |> assign(:client_id, client_id)
 
-      Logger.info(
-        "Client #{client_id} joined flow channel #{flow_id}. " <>
-          "Total clients: #{client_count}"
-      )
+          Logger.debug(
+            "Client #{client_id} joined flow channel #{flow_id}. " <>
+              "Total clients: #{client_count}"
+          )
 
-      # Send join confirmation with current client count
-      send(self(), {:after_join, client_count})
+          # Send join confirmation with current client count
+          send(self(), {:after_join, client_count})
 
-      {:ok, socket}
+          {:ok, socket}
+
+        {:error, reason} ->
+          Logger.error("Failed to join flow #{flow_id}: #{inspect(reason)}")
+          {:error, %{reason: "Failed to join flow session"}}
+      end
     end
   end
 
@@ -118,27 +124,32 @@ defmodule HelixWeb.FlowChannel do
     client_id = socket.assigns[:client_id]
 
     if flow_id && client_id do
-      {:ok, remaining_clients} = Flows.leave_flow(flow_id, client_id)
-      # Broadcast that a client left using broadcast_from
-      # This may fail if the channel is already terminating or never
-      # properly joined
-      try do
-        broadcast_from(socket, "client_left", %{
-          client_count: remaining_clients,
-          flow_id: flow_id
-        })
-      rescue
-        RuntimeError ->
-          Logger.debug(
-            "Could not broadcast client_left during termination - " <>
-              "socket not joined"
-          )
-      catch
-        :exit, _ ->
-          Logger.debug(
-            "Could not broadcast client_left during termination - " <>
-              "channel already closed"
-          )
+      case Flows.leave_flow(flow_id, client_id) do
+        {:ok, remaining_clients} ->
+          # Broadcast that a client left using broadcast_from
+          # This may fail if the channel is already terminating or never
+          # properly joined
+          try do
+            broadcast_from(socket, "client_left", %{
+              client_count: remaining_clients,
+              flow_id: flow_id
+            })
+          rescue
+            RuntimeError ->
+              Logger.debug(
+                "Could not broadcast client_left during termination - " <>
+                  "socket not joined"
+              )
+          catch
+            :exit, _ ->
+              Logger.debug(
+                "Could not broadcast client_left during termination - " <>
+                  "channel already closed"
+              )
+          end
+
+        {:error, reason} ->
+          Logger.warning("Failed to leave flow #{flow_id} during termination: #{inspect(reason)}")
       end
     end
 

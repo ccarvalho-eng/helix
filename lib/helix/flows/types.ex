@@ -14,5 +14,5 @@ defmodule Helix.Flows.Types do
   @type flow_status :: active_status() | inactive_status()
 
   @type sessions_map :: %{flow_id() => session_info()}
-  @type operation_result :: {:ok, client_count()}
+  @type operation_result :: {:ok, client_count()} | {:error, term()}
 end

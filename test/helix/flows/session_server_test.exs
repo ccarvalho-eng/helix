@@ -512,14 +512,14 @@ defmodule Helix.Flows.SessionServerTest do
 
   describe "error handling and edge cases" do
     test "handles invalid flow_ids gracefully" do
-      # Test with various invalid flow IDs
-      assert {:ok, 1} = SessionServer.join_flow("", "client-1")
-      assert {:ok, 1} = SessionServer.join_flow("   ", "client-2")
-      assert {:ok, 0} = SessionServer.leave_flow("", "client-1")
+      # Test with various invalid flow IDs - they should now return errors
+      assert {:error, :invalid_flow_id} = SessionServer.join_flow("", "client-1")
+      assert {:error, :invalid_flow_id} = SessionServer.join_flow("   ", "client-2")
+      assert {:error, :invalid_flow_id} = SessionServer.leave_flow("", "client-1")
+      assert {:error, :invalid_flow_id} = SessionServer.force_close_flow_session("")
 
-      # Status should work with any flow ID
+      # Status should work with any flow ID (no validation needed for status check)
       assert %{active: false, client_count: 0} = SessionServer.get_flow_status("")
-      assert {:ok, 0} = SessionServer.force_close_flow_session("")
     end
 
     test "handles extremely long flow and client IDs" do

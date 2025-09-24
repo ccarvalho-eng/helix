@@ -16,36 +16,77 @@ defmodule Helix.Flows.SessionServer do
 
   # Client API
 
+  @doc """
+  Start the SessionServer GenServer.
+  """
   @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
 
+  @doc """
+  Join a client to a flow session.
+
+  Returns `{:ok, client_count}` where client_count is the total number of clients
+  currently connected to the flow.
+  """
   @spec join_flow(flow_id(), client_id()) :: operation_result()
   def join_flow(flow_id, client_id) do
     GenServer.call(__MODULE__, {:join_flow, flow_id, client_id})
   end
 
+  @doc """
+  Remove a client from a flow session.
+
+  Returns `{:ok, client_count}` where client_count is the remaining number of clients
+  connected to the flow after removal.
+  """
   @spec leave_flow(flow_id(), client_id()) :: operation_result()
   def leave_flow(flow_id, client_id) do
     GenServer.call(__MODULE__, {:leave_flow, flow_id, client_id})
   end
 
+  @doc """
+  Get the status of a flow session.
+
+  Returns either:
+  - `%{active: false, client_count: 0}` if the flow doesn't exist
+  - `%{active: true, client_count: count, last_activity: timestamp}` if active
+  """
   @spec get_flow_status(flow_id()) :: flow_status()
   def get_flow_status(flow_id) do
     GenServer.call(__MODULE__, {:get_flow_status, flow_id})
   end
 
+  @doc """
+  Broadcast changes to all clients connected to a flow.
+
+  Publishes a `{:flow_change, changes}` message to all subscribers of the flow's PubSub topic.
+  Updates the flow's last_activity timestamp.
+  """
   @spec broadcast_flow_change(flow_id(), map()) :: :ok
   def broadcast_flow_change(flow_id, changes) do
     GenServer.cast(__MODULE__, {:broadcast_flow_change, flow_id, changes})
   end
 
+  @doc """
+  Get a map of all active flow sessions.
+
+  Returns a map where keys are flow IDs and values contain session information
+  including client count and last activity timestamp.
+  """
   @spec get_active_sessions() :: sessions_map()
   def get_active_sessions do
     GenServer.call(__MODULE__, :get_active_sessions)
   end
 
+  @doc """
+  Force close a flow session and remove all connected clients.
+
+  Broadcasts a `{:flow_deleted, flow_id}` message to notify clients.
+  Returns `{:ok, client_count}` where client_count is the number of clients
+  that were disconnected.
+  """
   @spec force_close_flow_session(flow_id()) :: operation_result()
   def force_close_flow_session(flow_id) do
     GenServer.call(__MODULE__, {:force_close_flow_session, flow_id})
@@ -62,37 +103,49 @@ defmodule Helix.Flows.SessionServer do
 
   @impl true
   def handle_call({:join_flow, flow_id, client_id}, _from, state) do
-    safe_client_id = ensure_valid_client_id(client_id)
+    case validate_flow_id(flow_id) do
+      {:ok, validated_flow_id} ->
+        safe_client_id = ensure_valid_client_id(client_id)
 
-    {client_count, new_sessions, new_client_flows} =
-      add_client_to_session(state, flow_id, safe_client_id)
+        {client_count, new_sessions, new_client_flows} =
+          add_client_to_session(state, validated_flow_id, safe_client_id)
 
-    Logger.info(
-      "Client #{safe_client_id} joined flow #{flow_id}. Active clients: #{client_count}"
-    )
-
-    {:reply, {:ok, client_count},
-     %{state | sessions: new_sessions, client_flows: new_client_flows}}
-  end
-
-  @impl true
-  def handle_call({:leave_flow, flow_id, client_id}, _from, state) do
-    new_client_flows = Map.delete(state.client_flows, client_id)
-
-    case Map.get(state.sessions, flow_id) do
-      nil ->
-        {:reply, {:ok, 0}, %{state | client_flows: new_client_flows}}
-
-      session ->
-        {client_count, new_sessions} =
-          remove_client_from_session(state.sessions, flow_id, session, client_id)
-
-        Logger.info(
-          "Client #{client_id} left flow #{flow_id}. Remaining clients: #{client_count}"
+        Logger.debug(
+          "Client #{safe_client_id} joined flow #{validated_flow_id}. Active clients: #{client_count}"
         )
 
         {:reply, {:ok, client_count},
          %{state | sessions: new_sessions, client_flows: new_client_flows}}
+
+      {:error, reason} ->
+        {:reply, {:error, reason}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:leave_flow, flow_id, client_id}, _from, state) do
+    case validate_flow_id(flow_id) do
+      {:ok, validated_flow_id} ->
+        new_client_flows = Map.delete(state.client_flows, client_id)
+
+        case Map.get(state.sessions, validated_flow_id) do
+          nil ->
+            {:reply, {:ok, 0}, %{state | client_flows: new_client_flows}}
+
+          session ->
+            {client_count, new_sessions} =
+              remove_client_from_session(state.sessions, validated_flow_id, session, client_id)
+
+            Logger.debug(
+              "Client #{client_id} left flow #{validated_flow_id}. Remaining clients: #{client_count}"
+            )
+
+            {:reply, {:ok, client_count},
+             %{state | sessions: new_sessions, client_flows: new_client_flows}}
+        end
+
+      {:error, reason} ->
+        {:reply, {:error, reason}, state}
     end
   end
 
@@ -120,19 +173,27 @@ defmodule Helix.Flows.SessionServer do
 
   @impl true
   def handle_call({:force_close_flow_session, flow_id}, _from, state) do
-    case Map.get(state.sessions, flow_id) do
-      nil ->
-        {:reply, {:ok, 0}, state}
+    case validate_flow_id(flow_id) do
+      {:ok, validated_flow_id} ->
+        case Map.get(state.sessions, validated_flow_id) do
+          nil ->
+            {:reply, {:ok, 0}, state}
 
-      session ->
-        client_count = MapSet.size(session.clients)
-        {new_sessions, new_client_flows} = force_close_session(state, flow_id)
-        broadcast_flow_deletion(flow_id)
+          session ->
+            client_count = MapSet.size(session.clients)
+            {new_sessions, new_client_flows} = force_close_session(state, validated_flow_id)
+            broadcast_flow_deletion(validated_flow_id)
 
-        Logger.info("Force closed flow session #{flow_id} with #{client_count} clients")
+            Logger.info(
+              "Force closed flow session #{validated_flow_id} with #{client_count} clients"
+            )
 
-        {:reply, {:ok, client_count},
-         %{state | sessions: new_sessions, client_flows: new_client_flows}}
+            {:reply, {:ok, client_count},
+             %{state | sessions: new_sessions, client_flows: new_client_flows}}
+        end
+
+      {:error, reason} ->
+        {:reply, {:error, reason}, state}
     end
   end
 
@@ -185,11 +246,23 @@ defmodule Helix.Flows.SessionServer do
 
   # Private functions
 
+  defp validate_flow_id(flow_id) when is_binary(flow_id) do
+    trimmed = String.trim(flow_id)
+
+    if byte_size(trimmed) == 0 do
+      {:error, :invalid_flow_id}
+    else
+      {:ok, trimmed}
+    end
+  end
+
+  defp validate_flow_id(_), do: {:error, :invalid_flow_id}
+
   defp ensure_valid_client_id(client_id) do
     case client_id do
       id when is_binary(id) ->
         trimmed = String.trim(id)
-        if byte_size(trimmed) > 0, do: id, else: generate_anonymous_id()
+        if byte_size(trimmed) > 0, do: trimmed, else: generate_anonymous_id()
 
       _ ->
         generate_anonymous_id()
