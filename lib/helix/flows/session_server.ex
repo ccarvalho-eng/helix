@@ -156,7 +156,8 @@ defmodule Helix.Flows.SessionServer do
     normalized_flow_id =
       case validate_flow_id(flow_id) do
         {:ok, validated_id} -> validated_id
-        {:error, _} -> flow_id  # Use original ID for lookup, will return inactive
+        # Use original ID for lookup, will return inactive
+        {:error, _} -> flow_id
       end
 
     case Map.get(state.sessions, normalized_flow_id) do
@@ -212,7 +213,10 @@ defmodule Helix.Flows.SessionServer do
       {:ok, validated_flow_id} ->
         case Map.get(state.sessions, validated_flow_id) do
           nil ->
-            Logger.warning("Attempted to broadcast changes to non-existent flow session: #{validated_flow_id}")
+            Logger.warning(
+              "Attempted to broadcast changes to non-existent flow session: #{validated_flow_id}"
+            )
+
             {:noreply, state}
 
           session ->
@@ -258,7 +262,13 @@ defmodule Helix.Flows.SessionServer do
     # Schedule next cleanup and update timer reference
     new_cleanup_timer = schedule_cleanup()
 
-    {:noreply, %{state | sessions: new_sessions, client_flows: new_client_flows, cleanup_timer: new_cleanup_timer}}
+    {:noreply,
+     %{
+       state
+       | sessions: new_sessions,
+         client_flows: new_client_flows,
+         cleanup_timer: new_cleanup_timer
+     }}
   end
 
   @impl true
@@ -267,6 +277,7 @@ defmodule Helix.Flows.SessionServer do
     if state.cleanup_timer do
       Process.cancel_timer(state.cleanup_timer)
     end
+
     :ok
   end
 
