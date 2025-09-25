@@ -14,6 +14,8 @@ defmodule Helix.Application do
       {Phoenix.PubSub, name: Helix.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: Helix.Finch},
+      # Start the Task.Supervisor for supervised background tasks
+      {Task.Supervisor, name: Helix.TaskSupervisor},
       # Start the Registry for session processes
       {Registry, keys: :unique, name: Helix.Flows.Registry},
       # Start the DynamicSupervisor for session processes

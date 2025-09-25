@@ -14,8 +14,8 @@ defmodule Helix.Flows.SupervisionTest do
       flow_id = "crash-recovery-test-#{System.unique_integer([:positive])}"
 
       # Join clients to create state
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-1")
-      assert {:ok, 2} = SessionServer.join_flow(flow_id, "client-2")
+      assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "client-1")
+      assert {:ok, 2, _id2} = SessionServer.join_flow(flow_id, "client-2")
 
       # Verify state exists
       assert %{active: true, client_count: 2} = SessionServer.get_flow_status(flow_id)
@@ -33,7 +33,7 @@ defmodule Helix.Flows.SupervisionTest do
       assert %{active: false, client_count: 0} = SessionServer.get_flow_status(flow_id)
 
       # Should be able to join again with fresh state
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "new-client")
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "new-client")
       assert %{active: true, client_count: 1} = SessionServer.get_flow_status(flow_id)
     end
 
@@ -42,7 +42,7 @@ defmodule Helix.Flows.SupervisionTest do
 
       # Start multiple sessions
       Enum.each(flow_ids, fn flow_id ->
-        assert {:ok, 1} = SessionServer.join_flow(flow_id, "client")
+        assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client")
       end)
 
       # Get all PIDs
@@ -60,14 +60,14 @@ defmodule Helix.Flows.SupervisionTest do
 
       # All sessions should be restartable
       Enum.each(flow_ids, fn flow_id ->
-        assert {:ok, 1} = SessionServer.join_flow(flow_id, "new-client")
+        assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "new-client")
         assert %{active: true, client_count: 1} = SessionServer.get_flow_status(flow_id)
       end)
     end
 
     test "registry cleanup on abnormal termination" do
       flow_id = "registry-cleanup-test-#{System.unique_integer([:positive])}"
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client")
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client")
 
       # Verify registry entry exists
       assert [{pid, _}] = Registry.lookup(Helix.Flows.Registry, flow_id)
@@ -83,7 +83,7 @@ defmodule Helix.Flows.SupervisionTest do
       assert %{active: false, client_count: 0} = SessionServer.get_flow_status(flow_id)
 
       # Should be able to start fresh session with same flow_id
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "new-client")
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "new-client")
       assert %{active: true, client_count: 1} = SessionServer.get_flow_status(flow_id)
     end
 
@@ -91,7 +91,7 @@ defmodule Helix.Flows.SupervisionTest do
       flow_id = "supervisor-restart-test-#{System.unique_integer([:positive])}"
 
       # Create active session
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client")
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client")
       assert %{active: true, client_count: 1} = SessionServer.get_flow_status(flow_id)
 
       # Get session process PID
@@ -104,7 +104,7 @@ defmodule Helix.Flows.SupervisionTest do
         :timer.sleep(50)
 
         # Should still be able to restart
-        assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-#{i}")
+        assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client-#{i}")
         [{new_pid, _}] = Registry.lookup(Helix.Flows.Registry, flow_id)
 
         # Should be a new process each time
@@ -117,8 +117,8 @@ defmodule Helix.Flows.SupervisionTest do
       flow_id_2 = "isolation-test-2-#{System.unique_integer([:positive])}"
 
       # Start two independent sessions
-      assert {:ok, 1} = SessionServer.join_flow(flow_id_1, "client-1")
-      assert {:ok, 1} = SessionServer.join_flow(flow_id_2, "client-2")
+      assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id_1, "client-1")
+      assert {:ok, 1, _id2} = SessionServer.join_flow(flow_id_2, "client-2")
 
       # Verify both are active
       assert %{active: true, client_count: 1} = SessionServer.get_flow_status(flow_id_1)
@@ -134,17 +134,17 @@ defmodule Helix.Flows.SupervisionTest do
       # Second session should be unaffected (verify it can still accept operations)
       # Note: if the first session crash affected this session, we may need to restart
       case SessionServer.join_flow(flow_id_2, "client-2b") do
-        {:ok, 2} ->
+        {:ok, 2, _id} ->
           assert %{active: true, client_count: 2} = SessionServer.get_flow_status(flow_id_2)
 
-        {:ok, 1} ->
+        {:ok, 1, _id} ->
           # Session restarted, so original client is gone but new client joined
           assert %{active: true, client_count: 1} = SessionServer.get_flow_status(flow_id_2)
       end
 
       # First session should be restartable with clean state
       assert %{active: false, client_count: 0} = SessionServer.get_flow_status(flow_id_1)
-      assert {:ok, 1} = SessionServer.join_flow(flow_id_1, "new-client")
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id_1, "new-client")
     end
   end
 
@@ -157,7 +157,7 @@ defmodule Helix.Flows.SupervisionTest do
 
       # This test verifies the error is returned when limit exceeded
       # Since @max_clients_per_flow is 1000, we'll test the boundary logic
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-1")
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client-1")
 
       # For now, just verify the limit exists and doesn't crash
       # In a real scenario, we'd mock the limit to a smaller number for testing
@@ -171,7 +171,7 @@ defmodule Helix.Flows.SupervisionTest do
       flow_id = "termination-test-#{System.unique_integer([:positive])}"
 
       # Join and then leave a client
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client")
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client")
       assert %{active: true, client_count: 1} = SessionServer.get_flow_status(flow_id)
 
       assert {:ok, 0} = SessionServer.leave_flow(flow_id, "client")

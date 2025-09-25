@@ -15,30 +15,30 @@ defmodule Helix.FlowsTest do
       flow_id = "test-flow"
       client_id = "client-1"
 
-      assert {:ok, 1} = Flows.join_flow(flow_id, client_id)
+      assert {:ok, 1, _id} = Flows.join_flow(flow_id, client_id)
     end
 
     test "tracks multiple clients in the same flow" do
       flow_id = "multi-client-flow-#{System.unique_integer([:positive])}"
 
-      assert {:ok, 1} = Flows.join_flow(flow_id, "client-1")
-      assert {:ok, 2} = Flows.join_flow(flow_id, "client-2")
-      assert {:ok, 3} = Flows.join_flow(flow_id, "client-3")
+      assert {:ok, 1, _id} = Flows.join_flow(flow_id, "client-1")
+      assert {:ok, 2, _id} = Flows.join_flow(flow_id, "client-2")
+      assert {:ok, 3, _id} = Flows.join_flow(flow_id, "client-3")
     end
 
     test "handles empty client IDs by generating anonymous ones" do
       flow_id = "anonymous-flow-#{System.unique_integer([:positive])}"
 
-      assert {:ok, 1} = Flows.join_flow(flow_id, "")
-      assert {:ok, 2} = Flows.join_flow(flow_id, nil)
+      assert {:ok, 1, _generated_id1} = Flows.join_flow(flow_id, "")
+      assert {:ok, 2, _generated_id2} = Flows.join_flow(flow_id, nil)
     end
 
     test "handles duplicate client joins idempotently" do
       flow_id = "duplicate-flow"
       client_id = "duplicate-client"
 
-      assert {:ok, 1} = Flows.join_flow(flow_id, client_id)
-      assert {:ok, 1} = Flows.join_flow(flow_id, client_id)
+      assert {:ok, 1, _id} = Flows.join_flow(flow_id, client_id)
+      assert {:ok, 1, _id} = Flows.join_flow(flow_id, client_id)
     end
   end
 
@@ -48,7 +48,7 @@ defmodule Helix.FlowsTest do
       client_id = "leaving-client"
 
       # Join first
-      assert {:ok, 1} = Flows.join_flow(flow_id, client_id)
+      assert {:ok, 1, _id} = Flows.join_flow(flow_id, client_id)
 
       # Then leave
       assert {:ok, 0} = Flows.leave_flow(flow_id, client_id)
@@ -58,9 +58,9 @@ defmodule Helix.FlowsTest do
       flow_id = "multi-leave-flow"
 
       # Join multiple clients
-      assert {:ok, 1} = Flows.join_flow(flow_id, "client-1")
-      assert {:ok, 2} = Flows.join_flow(flow_id, "client-2")
-      assert {:ok, 3} = Flows.join_flow(flow_id, "client-3")
+      assert {:ok, 1, _id} = Flows.join_flow(flow_id, "client-1")
+      assert {:ok, 2, _id} = Flows.join_flow(flow_id, "client-2")
+      assert {:ok, 3, _id} = Flows.join_flow(flow_id, "client-3")
 
       # Leave one client
       assert {:ok, 2} = Flows.leave_flow(flow_id, "client-1")
@@ -80,7 +80,7 @@ defmodule Helix.FlowsTest do
       flow_id = "exists-flow"
 
       # Join one client
-      assert {:ok, 1} = Flows.join_flow(flow_id, "real-client")
+      assert {:ok, 1, _id} = Flows.join_flow(flow_id, "real-client")
 
       # Try to leave with different client
       assert {:ok, 1} = Flows.leave_flow(flow_id, "fake-client")
@@ -97,8 +97,8 @@ defmodule Helix.FlowsTest do
       flow_id = "status-test-flow-#{System.unique_integer([:positive])}"
 
       # Join clients
-      assert {:ok, 1} = Flows.join_flow(flow_id, "client-1")
-      assert {:ok, 2} = Flows.join_flow(flow_id, "client-2")
+      assert {:ok, 1, _id} = Flows.join_flow(flow_id, "client-1")
+      assert {:ok, 2, _id} = Flows.join_flow(flow_id, "client-2")
 
       status = Flows.get_flow_status(flow_id)
       assert %{active: true, client_count: 2, last_activity: last_activity} = status
@@ -112,7 +112,7 @@ defmodule Helix.FlowsTest do
       changes = %{nodes: [], edges: []}
 
       # Join a client first
-      assert {:ok, 1} = Flows.join_flow(flow_id, "client-1")
+      assert {:ok, 1, _id} = Flows.join_flow(flow_id, "client-1")
 
       # Subscribe to PubSub for this flow
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
@@ -143,7 +143,7 @@ defmodule Helix.FlowsTest do
       changes = %{test: "data"}
 
       # Join client and get initial status
-      assert {:ok, 1} = Flows.join_flow(flow_id, "client-1")
+      assert {:ok, 1, _id} = Flows.join_flow(flow_id, "client-1")
       initial_status = Flows.get_flow_status(flow_id)
 
       # Wait a moment then broadcast
@@ -165,8 +165,8 @@ defmodule Helix.FlowsTest do
       flow_id = "active-session-flow"
 
       # Join clients
-      assert {:ok, 1} = Flows.join_flow(flow_id, "client-1")
-      assert {:ok, 2} = Flows.join_flow(flow_id, "client-2")
+      assert {:ok, 1, _id} = Flows.join_flow(flow_id, "client-1")
+      assert {:ok, 2, _id} = Flows.join_flow(flow_id, "client-2")
 
       sessions = Flows.get_active_sessions()
       assert %{^flow_id => session_info} = sessions
@@ -179,8 +179,8 @@ defmodule Helix.FlowsTest do
       flow_id = "force-close-flow"
 
       # Join clients
-      assert {:ok, 1} = Flows.join_flow(flow_id, "client-1")
-      assert {:ok, 2} = Flows.join_flow(flow_id, "client-2")
+      assert {:ok, 1, _id} = Flows.join_flow(flow_id, "client-1")
+      assert {:ok, 2, _id} = Flows.join_flow(flow_id, "client-2")
 
       # Force close
       assert {:ok, 2} = Flows.force_close_flow_session(flow_id)
@@ -201,7 +201,7 @@ defmodule Helix.FlowsTest do
       flow_id = "delete-broadcast-flow"
 
       # Join client and subscribe to PubSub
-      assert {:ok, 1} = Flows.join_flow(flow_id, "client-1")
+      assert {:ok, 1, _id} = Flows.join_flow(flow_id, "client-1")
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
 
       # Force close
@@ -217,8 +217,8 @@ defmodule Helix.FlowsTest do
       flow_id = "whitespace-client-flow"
 
       # Client ID with only spaces should generate anonymous ID
-      assert {:ok, 1} = Flows.join_flow(flow_id, "   ")
-      assert {:ok, 2} = Flows.join_flow(flow_id, "\t\n")
+      assert {:ok, 1, _generated_id1} = Flows.join_flow(flow_id, "   ")
+      assert {:ok, 2, _generated_id2} = Flows.join_flow(flow_id, "\t\n")
 
       # Should have 2 different anonymous clients
       status = Flows.get_flow_status(flow_id)
@@ -229,23 +229,23 @@ defmodule Helix.FlowsTest do
       flow_id = "non-string-client-flow"
 
       # Various non-string client IDs should generate anonymous IDs
-      assert {:ok, 1} = Flows.join_flow(flow_id, 123)
-      assert {:ok, 2} = Flows.join_flow(flow_id, :atom)
-      assert {:ok, 3} = Flows.join_flow(flow_id, [])
-      assert {:ok, 4} = Flows.join_flow(flow_id, %{})
+      assert {:ok, 1, _generated_id1} = Flows.join_flow(flow_id, 123)
+      assert {:ok, 2, _generated_id2} = Flows.join_flow(flow_id, :atom)
+      assert {:ok, 3, _generated_id3} = Flows.join_flow(flow_id, [])
+      assert {:ok, 4, _generated_id4} = Flows.join_flow(flow_id, %{})
 
       status = Flows.get_flow_status(flow_id)
       assert %{active: true, client_count: 4} = status
     end
 
-    test "preserves valid string client IDs with whitespace" do
+    test "trims valid string client IDs with whitespace" do
       flow_id = "whitespace-preserved-flow"
       client_id = "  valid-client  "
 
-      # Should preserve the original ID including whitespace
-      assert {:ok, 1} = Flows.join_flow(flow_id, client_id)
-      # Same client
-      assert {:ok, 1} = Flows.join_flow(flow_id, client_id)
+      # Should trim whitespace from client ID
+      assert {:ok, 1, "valid-client"} = Flows.join_flow(flow_id, client_id)
+      # Same client should have the same trimmed ID
+      assert {:ok, 1, "valid-client"} = Flows.join_flow(flow_id, client_id)
 
       status = Flows.get_flow_status(flow_id)
       assert %{active: true, client_count: 1} = status
@@ -257,7 +257,7 @@ defmodule Helix.FlowsTest do
       flow_id = "cleanup-test-flow-#{System.unique_integer([:positive])}"
 
       # Join a client
-      assert {:ok, 1} = Flows.join_flow(flow_id, "client-1")
+      assert {:ok, 1, _id} = Flows.join_flow(flow_id, "client-1")
 
       # Verify session exists
       assert %{active: true, client_count: 1} = Flows.get_flow_status(flow_id)

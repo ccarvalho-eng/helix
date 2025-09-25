@@ -30,12 +30,29 @@ defmodule Helix.Flows.SessionServer do
   end
 
   @doc """
+  Child specification for dynamic supervisors.
+
+  Sets restart policy to :transient so sessions are restarted only on abnormal exits,
+  not when they terminate normally (e.g., when no clients remain).
+  """
+  def child_spec(opts) do
+    %{
+      id: {__MODULE__, Keyword.fetch!(opts, :flow_id)},
+      start: {__MODULE__, :start_link, [opts]},
+      restart: :transient,
+      shutdown: 5_000,
+      type: :worker
+    }
+  end
+
+  @doc """
   Join a client to a flow session.
 
-  Returns `{:ok, client_count}` where client_count is the total number of clients
-  currently connected to the flow.
+  Returns `{:ok, client_count, effective_client_id}` where:
+  - client_count is the total number of clients currently connected to the flow
+  - effective_client_id is the actual client_id used (may be generated if input was invalid)
   """
-  @spec join_flow(flow_id(), client_id()) :: operation_result()
+  @spec join_flow(flow_id(), client_id()) :: {:ok, pos_integer(), client_id()} | {:error, term()}
   def join_flow(flow_id, client_id) do
     case Helix.Flows.FlowSessionManager.get_or_start_session(flow_id) do
       {:ok, pid} -> GenServer.call(pid, {:join_flow, client_id}, 5000)
@@ -82,7 +99,7 @@ defmodule Helix.Flows.SessionServer do
   def broadcast_flow_change(flow_id, changes) do
     case Registry.lookup(Helix.Flows.Registry, flow_id) do
       [{pid, _}] ->
-        Task.start(fn ->
+        Task.Supervisor.start_child(Helix.TaskSupervisor, fn ->
           Phoenix.PubSub.broadcast(Helix.PubSub, "flow:#{flow_id}", {:flow_change, changes})
         end)
 
@@ -104,15 +121,18 @@ defmodule Helix.Flows.SessionServer do
     Registry.select(Helix.Flows.Registry, [{{:"$1", :"$2", :_}, [], [{{:"$1", :"$2"}}]}])
     |> Enum.reduce(%{}, fn {flow_id, pid}, acc ->
       try do
-        status = GenServer.call(pid, :get_flow_status, 1000)
-
-        if status.active do
-          Map.put(acc, flow_id, Map.delete(status, :active))
-        else
-          acc
+        case GenServer.call(pid, :get_flow_status, 1_000) do
+          status when is_map(status) ->
+            if status.active do
+              Map.put(acc, flow_id, Map.delete(status, :active))
+            else
+              acc
+            end
         end
       rescue
-        _ -> acc
+        e ->
+          Logger.warning("Failed to get status for #{flow_id}: #{inspect(e)}")
+          acc
       end
     end)
   end
@@ -150,7 +170,7 @@ defmodule Helix.Flows.SessionServer do
 
         Helix.Flows.FlowSessionManager.stop_session(flow_id)
 
-        Task.start(fn ->
+        Task.Supervisor.start_child(Helix.TaskSupervisor, fn ->
           Phoenix.PubSub.broadcast(Helix.PubSub, "flow:#{flow_id}", {:flow_deleted, flow_id})
         end)
 
@@ -198,7 +218,8 @@ defmodule Helix.Flows.SessionServer do
         flow_id: state.flow_id
       })
 
-      {:reply, {:ok, client_count}, %{state | clients: new_clients, last_activity: now}}
+      {:reply, {:ok, client_count, safe_client_id},
+       %{state | clients: new_clients, last_activity: now}}
     end
   end
 
@@ -268,7 +289,7 @@ defmodule Helix.Flows.SessionServer do
 
     # Notify PubSub of session termination if clients exist
     unless MapSet.size(state.clients) == 0 do
-      Task.start(fn ->
+      Task.Supervisor.start_child(Helix.TaskSupervisor, fn ->
         Phoenix.PubSub.broadcast(
           Helix.PubSub,
           "flow:#{state.flow_id}",

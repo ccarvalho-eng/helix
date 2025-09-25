@@ -32,30 +32,30 @@ defmodule Helix.Flows.SessionServerTest do
 
   describe "join_flow/2" do
     test "joins a new client to a new flow" do
-      assert {:ok, 1} = SessionServer.join_flow("test-flow", "client-1")
+      assert {:ok, 1, "client-1"} = SessionServer.join_flow("test-flow", "client-1")
     end
 
     test "joins multiple clients to the same flow" do
       flow_id = "multi-client-flow-#{System.unique_integer([:positive])}"
 
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-1")
-      assert {:ok, 2} = SessionServer.join_flow(flow_id, "client-2")
-      assert {:ok, 3} = SessionServer.join_flow(flow_id, "client-3")
+      assert {:ok, 1, "client-1"} = SessionServer.join_flow(flow_id, "client-1")
+      assert {:ok, 2, "client-2"} = SessionServer.join_flow(flow_id, "client-2")
+      assert {:ok, 3, "client-3"} = SessionServer.join_flow(flow_id, "client-3")
     end
 
     test "handles duplicate client joins idempotently" do
       flow_id = "duplicate-flow"
       client_id = "duplicate-client"
 
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, client_id)
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, client_id)
+      assert {:ok, 1, ^client_id} = SessionServer.join_flow(flow_id, client_id)
+      assert {:ok, 1, ^client_id} = SessionServer.join_flow(flow_id, client_id)
     end
 
     test "generates anonymous IDs for empty client IDs" do
       flow_id = "anonymous-flow"
 
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "")
-      assert {:ok, 2} = SessionServer.join_flow(flow_id, nil)
+      assert {:ok, 1, _anon_id1} = SessionServer.join_flow(flow_id, "")
+      assert {:ok, 2, _anon_id2} = SessionServer.join_flow(flow_id, nil)
 
       # Should have 2 different clients
       status = SessionServer.get_flow_status(flow_id)
@@ -65,8 +65,8 @@ defmodule Helix.Flows.SessionServerTest do
     test "generates anonymous IDs for whitespace-only client IDs" do
       flow_id = "whitespace-flow"
 
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "   ")
-      assert {:ok, 2} = SessionServer.join_flow(flow_id, "\t\n  ")
+      assert {:ok, 1, _anon_id1} = SessionServer.join_flow(flow_id, "   ")
+      assert {:ok, 2, _anon_id2} = SessionServer.join_flow(flow_id, "\t\n  ")
 
       status = SessionServer.get_flow_status(flow_id)
       assert %{active: true, client_count: 2} = status
@@ -75,10 +75,10 @@ defmodule Helix.Flows.SessionServerTest do
     test "generates anonymous IDs for non-string client IDs" do
       flow_id = "non-string-flow"
 
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, 123)
-      assert {:ok, 2} = SessionServer.join_flow(flow_id, :atom)
-      assert {:ok, 3} = SessionServer.join_flow(flow_id, [])
-      assert {:ok, 4} = SessionServer.join_flow(flow_id, %{})
+      assert {:ok, 1, _anon_id1} = SessionServer.join_flow(flow_id, 123)
+      assert {:ok, 2, _anon_id2} = SessionServer.join_flow(flow_id, :atom)
+      assert {:ok, 3, _anon_id3} = SessionServer.join_flow(flow_id, [])
+      assert {:ok, 4, _anon_id4} = SessionServer.join_flow(flow_id, %{})
 
       status = SessionServer.get_flow_status(flow_id)
       assert %{active: true, client_count: 4} = status
@@ -88,9 +88,9 @@ defmodule Helix.Flows.SessionServerTest do
       flow_id = "preserved-whitespace-flow"
       client_id = "  valid-client  "
 
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, client_id)
+      assert {:ok, 1, trimmed_client_id} = SessionServer.join_flow(flow_id, client_id)
       # Same client
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, client_id)
+      assert {:ok, 1, ^trimmed_client_id} = SessionServer.join_flow(flow_id, client_id)
 
       status = SessionServer.get_flow_status(flow_id)
       assert %{active: true, client_count: 1} = status
@@ -100,7 +100,7 @@ defmodule Helix.Flows.SessionServerTest do
       flow_id = "timestamp-join-flow"
 
       before_join = System.system_time(:second)
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-1")
+      assert {:ok, 1, "client-1"} = SessionServer.join_flow(flow_id, "client-1")
 
       status = SessionServer.get_flow_status(flow_id)
       assert status.last_activity >= before_join
@@ -113,7 +113,7 @@ defmodule Helix.Flows.SessionServerTest do
       client_id = "leaving-client"
 
       # Join first
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, client_id)
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, client_id)
 
       # Then leave
       assert {:ok, 0} = SessionServer.leave_flow(flow_id, client_id)
@@ -123,9 +123,9 @@ defmodule Helix.Flows.SessionServerTest do
       flow_id = "multi-leave-flow"
 
       # Join multiple clients
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-1")
-      assert {:ok, 2} = SessionServer.join_flow(flow_id, "client-2")
-      assert {:ok, 3} = SessionServer.join_flow(flow_id, "client-3")
+      assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "client-1")
+      assert {:ok, 2, _id2} = SessionServer.join_flow(flow_id, "client-2")
+      assert {:ok, 3, _id3} = SessionServer.join_flow(flow_id, "client-3")
 
       # Leave clients one by one
       assert {:ok, 2} = SessionServer.leave_flow(flow_id, "client-1")
@@ -141,7 +141,7 @@ defmodule Helix.Flows.SessionServerTest do
       flow_id = "exists-flow"
 
       # Join one client
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "real-client")
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "real-client")
 
       # Try to leave with different client
       assert {:ok, 1} = SessionServer.leave_flow(flow_id, "fake-client")
@@ -152,7 +152,7 @@ defmodule Helix.Flows.SessionServerTest do
       client_id = "only-client"
 
       # Join and verify session exists
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, client_id)
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, client_id)
       assert %{active: true} = SessionServer.get_flow_status(flow_id)
 
       # Leave and verify session is removed
@@ -192,8 +192,8 @@ defmodule Helix.Flows.SessionServerTest do
       flow_id = "status-test-flow"
 
       # Join clients
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-1")
-      assert {:ok, 2} = SessionServer.join_flow(flow_id, "client-2")
+      assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "client-1")
+      assert {:ok, 2, _id2} = SessionServer.join_flow(flow_id, "client-2")
 
       status = SessionServer.get_flow_status(flow_id)
       assert %{active: true, client_count: 2, last_activity: last_activity} = status
@@ -230,7 +230,7 @@ defmodule Helix.Flows.SessionServerTest do
       changes = %{nodes: [], edges: []}
 
       # Join a client first
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-1")
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client-1")
 
       # Subscribe to PubSub for this flow
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
@@ -261,7 +261,7 @@ defmodule Helix.Flows.SessionServerTest do
       changes = %{test: "data"}
 
       # Join client and get initial status
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-1")
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client-1")
       initial_status = SessionServer.get_flow_status(flow_id)
 
       # Wait a moment then broadcast
@@ -308,8 +308,8 @@ defmodule Helix.Flows.SessionServerTest do
       flow_id = "active-sessions-flow"
 
       # Join clients
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-1")
-      assert {:ok, 2} = SessionServer.join_flow(flow_id, "client-2")
+      assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "client-1")
+      assert {:ok, 2, _id2} = SessionServer.join_flow(flow_id, "client-2")
 
       sessions = SessionServer.get_active_sessions()
       assert %{^flow_id => session_info} = sessions
@@ -353,8 +353,8 @@ defmodule Helix.Flows.SessionServerTest do
       flow_id = "force-close-flow"
 
       # Join clients
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-1")
-      assert {:ok, 2} = SessionServer.join_flow(flow_id, "client-2")
+      assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "client-1")
+      assert {:ok, 2, _id2} = SessionServer.join_flow(flow_id, "client-2")
 
       # Force close
       assert {:ok, 2} = SessionServer.force_close_flow_session(flow_id)
@@ -375,7 +375,7 @@ defmodule Helix.Flows.SessionServerTest do
       flow_id = "delete-broadcast-flow"
 
       # Join client and subscribe to PubSub
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-1")
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client-1")
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
 
       # Force close
@@ -402,7 +402,7 @@ defmodule Helix.Flows.SessionServerTest do
       :timer.sleep(50)
 
       # Try to join again - should work as if starting fresh
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-1")
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client-1")
       assert %{active: true, client_count: 1} = SessionServer.get_flow_status(flow_id)
     end
   end
@@ -412,7 +412,7 @@ defmodule Helix.Flows.SessionServerTest do
       flow_id = "auto-terminate-flow"
 
       # Join a client
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-1")
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client-1")
       assert %{active: true, client_count: 1} = SessionServer.get_flow_status(flow_id)
 
       # Leave the client - session should terminate automatically
@@ -441,7 +441,7 @@ defmodule Helix.Flows.SessionServerTest do
       results = Enum.map(tasks, &Task.await/1)
 
       # All joins should succeed
-      assert Enum.all?(results, fn {status, _count} -> status == :ok end)
+      assert Enum.all?(results, fn {status, _count, _id} -> status == :ok end)
 
       # Final count should be 10
       status = SessionServer.get_flow_status(flow_id)
@@ -505,6 +505,82 @@ defmodule Helix.Flows.SessionServerTest do
       :timer.sleep(50)
       assert %{active: false, client_count: 0} = SessionServer.get_flow_status(flow_id)
     end
+
+    test "concurrent get_or_start_session/1 calls create no duplicate sessions" do
+      flow_id = "concurrent-start-flow"
+
+      # Spawn multiple processes trying to get or start the same session
+      tasks =
+        Enum.map(1..20, fn _i ->
+          Task.async(fn ->
+            case Helix.Flows.FlowSessionManager.get_or_start_session(flow_id) do
+              {:ok, pid} when is_pid(pid) -> {:ok, pid}
+              error -> error
+            end
+          end)
+        end)
+
+      results = Enum.map(tasks, &Task.await/1)
+
+      # All should succeed and return a pid
+      assert Enum.all?(results, fn {status, pid} -> status == :ok and is_pid(pid) end)
+
+      # Extract all PIDs - they should all be the same (no duplicates)
+      pids = Enum.map(results, fn {:ok, pid} -> pid end)
+      unique_pids = Enum.uniq(pids)
+      assert length(unique_pids) == 1, "Expected 1 unique PID, got #{length(unique_pids)}"
+
+      # Verify only one session is registered for our specific flow_id
+      # (other tests may have left sessions running)
+      session_pids_for_flow = Registry.lookup(Helix.Flows.Registry, flow_id)
+      assert length(session_pids_for_flow) == 1
+    end
+
+    test "session process crashes and recreates properly with transient restart" do
+      flow_id = "crash-recreate-flow"
+
+      # Start a session by joining
+      assert {:ok, 1, "client-1"} = SessionServer.join_flow(flow_id, "client-1")
+
+      # Get the original PID
+      [{original_pid, _}] = Registry.lookup(Helix.Flows.Registry, flow_id)
+      assert is_pid(original_pid)
+      assert Process.alive?(original_pid)
+
+      # Verify session is active
+      assert %{active: true, client_count: 1} = SessionServer.get_flow_status(flow_id)
+
+      # Kill the session process abnormally (simulating a crash)
+      Process.exit(original_pid, :some_error)
+
+      # Wait for process to die and restart (if it would restart)
+      :timer.sleep(200)
+      assert not Process.alive?(original_pid)
+
+      # With :transient restart policy, the process should be restarted since it died abnormally
+      # But the new process should start with fresh state (no clients)
+      case Registry.lookup(Helix.Flows.Registry, flow_id) do
+        [] ->
+          # Process was not restarted (expected for this test case)
+          assert %{active: false, client_count: 0} = SessionServer.get_flow_status(flow_id)
+
+        [{restarted_pid, _}] ->
+          # Process was restarted but should have clean state
+          assert restarted_pid != original_pid
+          assert %{active: false, client_count: 0} = SessionServer.get_flow_status(flow_id)
+      end
+
+      # New join should create a fresh session
+      assert {:ok, 1, "client-2"} = SessionServer.join_flow(flow_id, "client-2")
+
+      # Get the new PID
+      [{new_pid, _}] = Registry.lookup(Helix.Flows.Registry, flow_id)
+      assert is_pid(new_pid)
+      assert new_pid != original_pid
+
+      # Session should be active with fresh state
+      assert %{active: true, client_count: 1} = SessionServer.get_flow_status(flow_id)
+    end
   end
 
   describe "error handling and edge cases" do
@@ -523,7 +599,7 @@ defmodule Helix.Flows.SessionServerTest do
       long_flow_id = String.duplicate("a", 1000)
       long_client_id = String.duplicate("b", 1000)
 
-      assert {:ok, 1} = SessionServer.join_flow(long_flow_id, long_client_id)
+      assert {:ok, 1, _id} = SessionServer.join_flow(long_flow_id, long_client_id)
       assert {:ok, 0} = SessionServer.leave_flow(long_flow_id, long_client_id)
     end
 
@@ -531,7 +607,7 @@ defmodule Helix.Flows.SessionServerTest do
       unicode_flow = "flow-测试-🚀-τεστ"
       unicode_client = "client-مرحبا-🎉-тест"
 
-      assert {:ok, 1} = SessionServer.join_flow(unicode_flow, unicode_client)
+      assert {:ok, 1, _id} = SessionServer.join_flow(unicode_flow, unicode_client)
       assert %{active: true, client_count: 1} = SessionServer.get_flow_status(unicode_flow)
       assert {:ok, 0} = SessionServer.leave_flow(unicode_flow, unicode_client)
     end
@@ -545,9 +621,10 @@ defmodule Helix.Flows.SessionServerTest do
           SessionServer.join_flow(flow_id, nil)
         end)
 
-      # All should succeed and increment count
-      expected_counts = Enum.map(1..20, fn i -> {:ok, i} end)
-      assert results == expected_counts
+      # All should succeed and increment count - extract counts from 3-tuple results
+      actual_counts = Enum.map(results, fn {:ok, count, _id} -> count end)
+      expected_counts = Enum.to_list(1..20)
+      assert actual_counts == expected_counts
 
       status = SessionServer.get_flow_status(flow_id)
       assert %{active: true, client_count: 20} = status

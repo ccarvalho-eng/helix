@@ -220,7 +220,7 @@ defmodule HelixWeb.FlowControllerTest do
       client_id = "test-client"
 
       # Join a client to make the flow active
-      {:ok, client_count} = Flows.join_flow(flow_id, client_id)
+      {:ok, client_count, _effective_client_id} = Flows.join_flow(flow_id, client_id)
 
       conn = get(conn, ~p"/api/flows/#{flow_id}/status")
 

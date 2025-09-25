@@ -24,7 +24,7 @@ defmodule Helix.Flows.ConcurrencyTest do
       results = Enum.map(tasks, &Task.await/1)
 
       # All should succeed
-      assert Enum.all?(results, fn {status, _} -> status == :ok end)
+      assert Enum.all?(results, fn {status, _, _id} -> status == :ok end)
 
       # Should only have one session process in Registry
       registry_entries = Registry.lookup(Helix.Flows.Registry, flow_id)
@@ -39,8 +39,8 @@ defmodule Helix.Flows.ConcurrencyTest do
       flow_id = "concurrent-ops-test-#{System.unique_integer([:positive])}"
 
       # Start with some clients
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "initial-client-1")
-      assert {:ok, 2} = SessionServer.join_flow(flow_id, "initial-client-2")
+      assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "initial-client-1")
+      assert {:ok, 2, _id2} = SessionServer.join_flow(flow_id, "initial-client-2")
 
       # Concurrent mix of join and leave operations
       join_tasks =
@@ -63,7 +63,7 @@ defmodule Helix.Flows.ConcurrencyTest do
       leave_results = Enum.map(leave_tasks, &Task.await/1)
 
       # All operations should succeed
-      assert Enum.all?(join_results, fn {status, _} -> status == :ok end)
+      assert Enum.all?(join_results, fn {status, _, _id} -> status == :ok end)
       assert Enum.all?(leave_results, fn {status, _} -> status == :ok end)
 
       # Session should still be active
@@ -96,7 +96,7 @@ defmodule Helix.Flows.ConcurrencyTest do
         assert length(flow_results) == 10
 
         # All operations for this flow should succeed
-        assert Enum.all?(flow_results, fn {_flow_id, {status, _}} -> status == :ok end)
+        assert Enum.all?(flow_results, fn {_flow_id, {status, _, _id}} -> status == :ok end)
 
         # Flow should be active with 10 clients
         status = SessionServer.get_flow_status(flow_id)
@@ -120,7 +120,7 @@ defmodule Helix.Flows.ConcurrencyTest do
       clients = Enum.map(1..5, &"client-#{&1}")
 
       Enum.each(clients, fn client_id ->
-        assert {:ok, _} = SessionServer.join_flow(flow_id, client_id)
+        assert {:ok, _, _id} = SessionServer.join_flow(flow_id, client_id)
       end)
 
       # Verify all joined
@@ -156,7 +156,7 @@ defmodule Helix.Flows.ConcurrencyTest do
         Enum.map(1..10, fn i ->
           Task.async(fn ->
             client_id = "op-client-#{i}"
-            {:ok, _} = SessionServer.join_flow(flow_id, client_id)
+            {:ok, _, _id} = SessionServer.join_flow(flow_id, client_id)
             :timer.sleep(10)
             {:ok, _} = SessionServer.leave_flow(flow_id, client_id)
           end)
@@ -166,7 +166,7 @@ defmodule Helix.Flows.ConcurrencyTest do
       _status_results = Enum.map(status_tasks, &Task.await/1)
       operation_results = Enum.map(operation_tasks, &Task.await/1)
 
-      # All operations should complete successfully (each returns {:ok, count} tuples)
+      # All operations should complete successfully (each returns {:ok, count} tuples from leave_flow)
       assert Enum.all?(operation_results, fn {status, _count} -> status == :ok end)
 
       # Final state should be inactive
@@ -179,8 +179,8 @@ defmodule Helix.Flows.ConcurrencyTest do
       flow_id = "broadcast-test-#{System.unique_integer([:positive])}"
 
       # Join some clients
-      assert {:ok, 1} = SessionServer.join_flow(flow_id, "client-1")
-      assert {:ok, 2} = SessionServer.join_flow(flow_id, "client-2")
+      assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "client-1")
+      assert {:ok, 2, _id2} = SessionServer.join_flow(flow_id, "client-2")
 
       # Start concurrent broadcast operations
       broadcast_tasks =
@@ -195,7 +195,7 @@ defmodule Helix.Flows.ConcurrencyTest do
         Enum.map(1..5, fn i ->
           Task.async(fn ->
             client_id = "concurrent-client-#{i}"
-            {:ok, _} = SessionServer.join_flow(flow_id, client_id)
+            {:ok, _, _id} = SessionServer.join_flow(flow_id, client_id)
             status = SessionServer.get_flow_status(flow_id)
             {:ok, _} = SessionServer.leave_flow(flow_id, client_id)
             status

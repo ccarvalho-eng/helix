@@ -8,7 +8,7 @@ defmodule Helix.Flows do
 
       iex> # Join clients to flows
       iex> Helix.Flows.join_flow("my-flow", "client-1")
-      {:ok, 1}
+      {:ok, 1, "client-1"}
 
       iex> # Check flow status
       iex> Helix.Flows.get_flow_status("my-flow")
@@ -36,15 +36,19 @@ defmodule Helix.Flows do
   @doc """
   Join a flow session.
 
+  Returns `{:ok, client_count, effective_client_id}` where:
+  - client_count is the total number of clients currently connected to the flow
+  - effective_client_id is the actual client_id used (may be generated if input was invalid)
+
   ## Examples
 
       iex> Helix.Flows.join_flow("test-flow", "client-1")
-      {:ok, 1}
+      {:ok, 1, "client-1"}
 
       iex> Helix.Flows.join_flow("test-flow", "client-2")
-      {:ok, 2}
+      {:ok, 2, "client-2"}
   """
-  @spec join_flow(flow_id(), client_id()) :: operation_result()
+  @spec join_flow(flow_id(), client_id()) :: {:ok, pos_integer(), client_id()} | {:error, term()}
   def join_flow(flow_id, client_id) do
     SessionServer.join_flow(flow_id, client_id)
   end
@@ -55,7 +59,7 @@ defmodule Helix.Flows do
   ## Examples
 
       iex> Helix.Flows.join_flow("leave-flow", "client-1")
-      {:ok, 1}
+      {:ok, 1, "client-1"}
 
       iex> Helix.Flows.leave_flow("leave-flow", "client-1")
       {:ok, 0}
@@ -77,7 +81,7 @@ defmodule Helix.Flows do
       %{active: false, client_count: 0}
 
       iex> Helix.Flows.join_flow("status-flow", "client-1")
-      {:ok, 1}
+      {:ok, 1, "client-1"}
 
       iex> Helix.Flows.get_flow_status("status-flow")
       %{active: true, client_count: 1, last_activity: 1640995200}
@@ -93,7 +97,7 @@ defmodule Helix.Flows do
   ## Examples
 
       iex> Helix.Flows.join_flow("broadcast-flow", "client-1")
-      {:ok, 1}
+      {:ok, 1, "client-1"}
 
       iex> Helix.Flows.broadcast_flow_change("broadcast-flow", %{nodes: []})
       :ok
@@ -112,7 +116,7 @@ defmodule Helix.Flows do
       %{}
 
       iex> Helix.Flows.join_flow("active-flow", "client-1")
-      {:ok, 1}
+      {:ok, 1, "client-1"}
 
       iex> Helix.Flows.get_active_sessions()
       %{"active-flow" => %{client_count: 1, last_activity: 1640995200}}
@@ -128,7 +132,7 @@ defmodule Helix.Flows do
   ## Examples
 
       iex> Helix.Flows.join_flow("close-flow", "client-1")
-      {:ok, 1}
+      {:ok, 1, "client-1"}
 
       iex> Helix.Flows.force_close_flow_session("close-flow")
       {:ok, 1}

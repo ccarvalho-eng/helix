@@ -23,12 +23,13 @@ defmodule HelixWeb.FlowChannel do
 
     # Join the flow session - let Flows context handle validation
     case Flows.join_flow(normalized_flow_id, client_id) do
-      {:ok, client_count} ->
+      {:ok, client_count, effective_client_id} ->
         # Store client info in socket assigns and register for monitoring
+        # Use the effective client_id returned by the session (may be generated)
         socket =
           socket
           |> assign(:flow_id, normalized_flow_id)
-          |> assign(:client_id, client_id)
+          |> assign(:client_id, effective_client_id)
 
         Logger.debug(
           "Client #{client_id} joined flow channel #{normalized_flow_id}. " <>
