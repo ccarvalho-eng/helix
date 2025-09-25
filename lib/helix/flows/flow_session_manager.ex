@@ -1,7 +1,8 @@
 defmodule Helix.Flows.FlowSessionManager do
   @moduledoc """
   Manages flow sessions using DynamicSupervisor and Registry.
-  Provides supervisory/lookup functions only - business logic stays in SessionServer.
+
+  Provides supervisory/lookup functions.
   """
 
   use GenServer
