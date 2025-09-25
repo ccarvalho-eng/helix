@@ -1,69 +1,34 @@
 defmodule HelixWeb.Utils do
   @moduledoc """
   Utility functions shared across the web layer.
+
+  Following OTP design principles: keep it simple and focused.
   """
 
   @doc """
   Formats Ecto changeset errors into a human-readable string.
-
-  ## Parameters
-    - changeset: Ecto.Changeset.t() with errors
-
-  ## Returns
-    - String with formatted error messages
   """
   @spec format_changeset_errors(Ecto.Changeset.t()) :: String.t()
   def format_changeset_errors(changeset) do
     changeset
     |> Ecto.Changeset.traverse_errors(&translate_error/1)
     |> Enum.map_join("\n", fn {field, errors} ->
-      field_name =
-        case field do
-          :email -> "Email"
-          :password -> "Password"
-          :first_name -> "First name"
-          :last_name -> "Last name"
-          field -> String.capitalize(to_string(field))
-        end
-
-      formatted_errors =
-        Enum.map_join(errors, ", ", fn error ->
-          # Remove field name prefix if it exists in the error message
-          error
-          |> String.replace(~r/^#{String.downcase(field_name)}\s+/, "")
-          |> String.capitalize()
-        end)
-
+      field_name = humanize_field_name(field)
+      formatted_errors = Enum.map_join(errors, ", ", &capitalize_error(&1, field_name))
       "#{field_name}: #{formatted_errors}"
     end)
   end
 
   @doc """
   Checks if a resolution context contains an authenticated user.
-
-  ## Parameters
-    - resolution: Absinthe.Resolution.t()
-
-  ## Returns
-    - `{:ok, User.t()}` if authenticated
-    - `{:error, "Not authenticated"}` if not authenticated
   """
   @spec get_current_user(Absinthe.Resolution.t()) ::
           {:ok, Helix.Accounts.User.t()} | {:error, String.t()}
   def get_current_user(%{context: %{current_user: user}}), do: {:ok, user}
-  def get_current_user(_resolution), do: not_authenticated_error()
+  def get_current_user(_resolution), do: {:error, "Not authenticated"}
 
   @doc """
   Macro for requiring authentication in resolvers.
-
-  Returns the authenticated user or an error response.
-
-  ## Example
-      def my_resolver(parent, args, resolution) do
-        with {:ok, user} <- require_auth(resolution) do
-          # resolver logic with authenticated user
-        end
-      end
   """
   defmacro require_auth(resolution) do
     quote do
@@ -71,11 +36,27 @@ defmodule HelixWeb.Utils do
     end
   end
 
+  # Private functions
+
   defp translate_error({msg, opts}) do
     Enum.reduce(opts, msg, fn {key, value}, acc ->
       String.replace(acc, "%{#{key}}", inspect(value))
     end)
   end
 
-  defp not_authenticated_error, do: {:error, "Not authenticated"}
+  defp humanize_field_name(field) do
+    case field do
+      :email -> "Email"
+      :password -> "Password"
+      :first_name -> "First name"
+      :last_name -> "Last name"
+      field -> field |> to_string() |> String.capitalize()
+    end
+  end
+
+  defp capitalize_error(error, field_name) do
+    error
+    |> String.replace(~r/^#{String.downcase(field_name)}\s+/, "")
+    |> String.capitalize()
+  end
 end

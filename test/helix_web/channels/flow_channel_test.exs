@@ -1,27 +1,10 @@
 defmodule HelixWeb.FlowChannelTest do
   use HelixWeb.ChannelCase, async: false
 
-  alias Helix.FlowSessionManager
+  alias Helix.Flows
   alias HelixWeb.FlowChannel
 
   @moduletag :authenticated_socket
-
-  setup do
-    # Start FlowSessionManager for tests
-    pid = start_supervised({FlowSessionManager, []})
-
-    on_exit(fn ->
-      case pid do
-        {:ok, pid} ->
-          Process.exit(pid, :normal)
-
-        _ ->
-          :ok
-      end
-    end)
-
-    :ok
-  end
 
   # Helper function to generate unique test flow IDs
   defp test_flow_id(base_id) do
@@ -66,7 +49,7 @@ defmodule HelixWeb.FlowChannelTest do
 
       # Verify session manager has correct count
       assert %{active: true, client_count: 2} =
-               FlowSessionManager.get_flow_status(flow_id)
+               Flows.get_flow_status(flow_id)
     end
 
     test "generates unique client IDs for different sockets", %{socket: socket} do
@@ -183,7 +166,7 @@ defmodule HelixWeb.FlowChannelTest do
 
       # Verify client joined
       assert %{active: true, client_count: 1} =
-               FlowSessionManager.get_flow_status(flow_id)
+               Flows.get_flow_status(flow_id)
 
       # Clear join broadcast
       assert_broadcast("client_joined", %{client_count: 1})
@@ -195,9 +178,12 @@ defmodule HelixWeb.FlowChannelTest do
       # Assert we receive the EXIT signal (this is expected during channel cleanup)
       assert_receive {:EXIT, _pid, {:shutdown, :closed}}, 1000
 
+      # Wait for session termination to complete
+      :timer.sleep(50)
+
       # After the EXIT, verify cleanup happened properly
       assert %{active: false, client_count: 0} =
-               FlowSessionManager.get_flow_status(flow_id)
+               Flows.get_flow_status(flow_id)
     end
 
     test "updates client count correctly when one of multiple clients disconnects", %{
@@ -210,7 +196,7 @@ defmodule HelixWeb.FlowChannelTest do
       {:ok, _reply2, _socket2} = subscribe_and_join(socket2, FlowChannel, "flow:#{flow_id}")
       # Verify both clients are active
       assert %{active: true, client_count: 2} =
-               FlowSessionManager.get_flow_status(flow_id)
+               Flows.get_flow_status(flow_id)
 
       # Clear join broadcasts
       assert_broadcast("client_joined", %{client_count: 1})
@@ -225,7 +211,7 @@ defmodule HelixWeb.FlowChannelTest do
 
       # Session should still be active with 1 client
       assert %{active: true, client_count: 1} =
-               FlowSessionManager.get_flow_status(flow_id)
+               Flows.get_flow_status(flow_id)
     end
 
     test "handles disconnection gracefully when session manager is unavailable" do
@@ -246,21 +232,21 @@ defmodule HelixWeb.FlowChannelTest do
     end
   end
 
-  describe "integration with FlowSessionManager" do
+  describe "integration with Flows" do
     test "session manager state reflects channel operations", %{socket: socket} do
       flow_id = test_flow_id("integration-test-flow")
       # Initially no sessions
-      assert %{} = FlowSessionManager.get_active_sessions()
+      assert %{} = Flows.get_active_sessions()
       # Client joins
       {:ok, _reply, socket1} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
       # Session should appear
-      sessions = FlowSessionManager.get_active_sessions()
+      sessions = Flows.get_active_sessions()
       assert %{^flow_id => %{client_count: 1}} = sessions
       # Another client joins
       socket2 = HelixWeb.ChannelCase.create_authenticated_socket()
       {:ok, _reply, _socket2} = subscribe_and_join(socket2, FlowChannel, "flow:#{flow_id}")
       # Count should update
-      sessions = FlowSessionManager.get_active_sessions()
+      sessions = Flows.get_active_sessions()
       assert %{^flow_id => %{client_count: 2}} = sessions
 
       # Clear all the broadcast messages to avoid noise in the mailbox
@@ -276,7 +262,7 @@ defmodule HelixWeb.FlowChannelTest do
       assert_broadcast("client_left", %{client_count: 1})
 
       # Count should decrease
-      sessions = FlowSessionManager.get_active_sessions()
+      sessions = Flows.get_active_sessions()
       assert %{^flow_id => %{client_count: 1}} = sessions
 
       # Last client leaves
@@ -286,7 +272,7 @@ defmodule HelixWeb.FlowChannelTest do
       :timer.sleep(100)
 
       # Session should be removed
-      assert %{} = FlowSessionManager.get_active_sessions()
+      assert %{} = Flows.get_active_sessions()
     end
 
     test "flow changes are properly broadcasted through PubSub", %{socket: socket} do
@@ -312,7 +298,7 @@ defmodule HelixWeb.FlowChannelTest do
       # Clear join broadcast
       assert_broadcast("client_joined", %{client_count: 1})
 
-      # Simulate flow_deleted message from FlowSessionManager
+      # Simulate flow_deleted message from Flows
       timestamp = System.system_time(:second)
       send(socket.channel_pid, {:flow_deleted, flow_id})
 
@@ -483,9 +469,9 @@ defmodule HelixWeb.FlowChannelTest do
   end
 
   describe "error edge cases" do
-    test "handles join when FlowSessionManager returns error", %{socket: socket} do
+    test "handles join when Flows returns error", %{socket: socket} do
       # Mock scenario where join might fail
-      # (This is a theoretical test - FlowSessionManager.join_flow doesn't currently return errors)
+      # (This is a theoretical test - Flows.join_flow doesn't currently return errors)
       flow_id = "error-test-flow"
       # For this test, we'll test successful join since the current implementation
       # doesn't have error cases, but this structure is ready for future error handling

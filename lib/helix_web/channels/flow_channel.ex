@@ -10,48 +10,44 @@ defmodule HelixWeb.FlowChannel do
 
   use HelixWeb, :channel
 
-  alias Helix.FlowSessionManager
+  alias Helix.Flows
   require Logger
 
   @impl true
   def join("flow:" <> flow_id, _payload, socket) do
-    # Basic validation - ensure flow_id is not empty and has valid format
-    # Allow alphanumeric, hyphens, underscores, dots, and angle brackets
-    # for test compatibility
-    flow_id_pattern = ~r/^[a-zA-Z0-9\-_.<>#]+$/
-    is_empty = String.trim(flow_id) == ""
-    is_valid_format = String.match?(flow_id, flow_id_pattern)
+    # Normalize flow_id by trimming it for consistency
+    normalized_flow_id = String.trim(flow_id)
 
-    if is_empty or not is_valid_format do
-      Logger.warning("Invalid flow ID format attempted: #{inspect(flow_id)}")
-      {:error, %{reason: "Invalid flow identifier"}}
-    else
-      # Generate a unique client ID for this connection
-      client_id = generate_client_id()
+    # Generate a unique client ID for this connection
+    client_id = generate_client_id()
 
-      # Join the flow session
-      case FlowSessionManager.join_flow(flow_id, client_id) do
-        {:ok, client_count} ->
-          # Store client info in socket assigns
-          socket =
-            socket
-            |> assign(:flow_id, flow_id)
-            |> assign(:client_id, client_id)
+    # Join the flow session - let Flows context handle validation
+    case Flows.join_flow(normalized_flow_id, client_id) do
+      {:ok, client_count, effective_client_id} ->
+        # Store client info in socket assigns and register for monitoring
+        # Use the effective client_id returned by the session (may be generated)
+        socket =
+          socket
+          |> assign(:flow_id, normalized_flow_id)
+          |> assign(:client_id, effective_client_id)
 
-          Logger.info(
-            "Client #{client_id} joined flow channel #{flow_id}. " <>
-              "Total clients: #{client_count}"
-          )
+        Logger.debug(
+          "Client #{client_id} joined flow channel #{normalized_flow_id}. " <>
+            "Total clients: #{client_count}"
+        )
 
-          # Send join confirmation with current client count
-          send(self(), {:after_join, client_count})
+        # Send join confirmation with current client count
+        send(self(), {:after_join, client_count})
 
-          {:ok, socket}
+        {:ok, socket}
 
-        {:error, reason} ->
-          Logger.error("Failed to join flow #{flow_id}: #{inspect(reason)}")
-          {:error, %{reason: "Failed to join flow session"}}
-      end
+      {:error, :invalid_flow_id} ->
+        Logger.warning("Invalid flow ID format attempted: #{inspect(flow_id)}")
+        {:error, %{reason: "Invalid flow identifier"}}
+
+      {:error, reason} ->
+        Logger.error("Failed to join flow #{normalized_flow_id}: #{inspect(reason)}")
+        {:error, %{reason: "Failed to join flow session"}}
     end
   end
 
@@ -100,7 +96,7 @@ defmodule HelixWeb.FlowChannel do
     flow_id = socket.assigns.flow_id
 
     # Broadcast changes to other clients via the session manager
-    FlowSessionManager.broadcast_flow_change(flow_id, changes)
+    Flows.broadcast_flow_change(flow_id, changes)
 
     # Acknowledge receipt
     {:reply, {:ok, %{status: "broadcasted"}}, socket}
@@ -124,7 +120,7 @@ defmodule HelixWeb.FlowChannel do
     client_id = socket.assigns[:client_id]
 
     if flow_id && client_id do
-      case FlowSessionManager.leave_flow(flow_id, client_id) do
+      case Flows.leave_flow(flow_id, client_id) do
         {:ok, remaining_clients} ->
           # Broadcast that a client left using broadcast_from
           # This may fail if the channel is already terminating or never
@@ -149,7 +145,7 @@ defmodule HelixWeb.FlowChannel do
           end
 
         {:error, reason} ->
-          Logger.error("Error leaving flow #{flow_id}: #{inspect(reason)}")
+          Logger.warning("Failed to leave flow #{flow_id} during termination: #{inspect(reason)}")
       end
     end
 
