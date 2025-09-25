@@ -20,8 +20,6 @@ defmodule Helix.Flows do
 
   """
 
-  use Supervisor
-
   alias Helix.Flows.SessionServer
   alias Helix.Flows.Types
 
@@ -32,24 +30,6 @@ defmodule Helix.Flows do
   @type flow_status :: Types.flow_status()
   @type sessions_map :: Types.sessions_map()
   @type operation_result :: Types.operation_result()
-
-  @doc """
-  Start the flows supervision tree
-  """
-  @spec start_link(keyword()) :: Supervisor.on_start()
-  def start_link(opts \\ []) do
-    Supervisor.start_link(__MODULE__, opts, name: Keyword.get(opts, :name, __MODULE__.Supervisor))
-  end
-
-  @impl Supervisor
-  def init(opts) do
-    children = [
-      {SessionServer, []}
-    ]
-
-    strategy = Keyword.get(opts, :strategy, :one_for_one)
-    Supervisor.init(children, strategy: strategy)
-  end
 
   # Public API - delegates to the appropriate process
 

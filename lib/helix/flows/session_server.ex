@@ -14,14 +14,19 @@ defmodule Helix.Flows.SessionServer do
   @type sessions_map :: Types.sessions_map()
   @type operation_result :: Types.operation_result()
 
+  # Resource limits
+  @max_clients_per_flow 1000
+
   # Client API
 
   @doc """
-  Start the SessionServer GenServer.
+  Start a SessionServer GenServer for a specific flow.
   """
   @spec start_link(keyword()) :: GenServer.on_start()
-  def start_link(_opts) do
-    GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
+  def start_link(opts) do
+    flow_id = Keyword.fetch!(opts, :flow_id)
+    name = Keyword.get(opts, :name)
+    GenServer.start_link(__MODULE__, %{flow_id: flow_id}, name: name)
   end
 
   @doc """
@@ -32,7 +37,10 @@ defmodule Helix.Flows.SessionServer do
   """
   @spec join_flow(flow_id(), client_id()) :: operation_result()
   def join_flow(flow_id, client_id) do
-    GenServer.call(__MODULE__, {:join_flow, flow_id, client_id})
+    case Helix.Flows.FlowSessionManager.get_or_start_session(flow_id) do
+      {:ok, pid} -> GenServer.call(pid, {:join_flow, client_id}, 5000)
+      error -> error
+    end
   end
 
   @doc """
@@ -43,7 +51,10 @@ defmodule Helix.Flows.SessionServer do
   """
   @spec leave_flow(flow_id(), client_id()) :: operation_result()
   def leave_flow(flow_id, client_id) do
-    GenServer.call(__MODULE__, {:leave_flow, flow_id, client_id})
+    case Helix.Flows.FlowSessionManager.get_or_start_session(flow_id) do
+      {:ok, pid} -> GenServer.call(pid, {:leave_flow, client_id}, 5000)
+      error -> error
+    end
   end
 
   @doc """
@@ -55,7 +66,10 @@ defmodule Helix.Flows.SessionServer do
   """
   @spec get_flow_status(flow_id()) :: flow_status()
   def get_flow_status(flow_id) do
-    GenServer.call(__MODULE__, {:get_flow_status, flow_id})
+    case Registry.lookup(Helix.Flows.Registry, flow_id) do
+      [{pid, _}] -> GenServer.call(pid, :get_flow_status, 5000)
+      [] -> %{active: false, client_count: 0}
+    end
   end
 
   @doc """
@@ -66,7 +80,17 @@ defmodule Helix.Flows.SessionServer do
   """
   @spec broadcast_flow_change(flow_id(), map()) :: :ok
   def broadcast_flow_change(flow_id, changes) do
-    GenServer.cast(__MODULE__, {:broadcast_flow_change, flow_id, changes})
+    case Registry.lookup(Helix.Flows.Registry, flow_id) do
+      [{pid, _}] ->
+        Task.start(fn ->
+          Phoenix.PubSub.broadcast(Helix.PubSub, "flow:#{flow_id}", {:flow_change, changes})
+        end)
+
+        GenServer.cast(pid, {:update_activity})
+
+      [] ->
+        :ok
+    end
   end
 
   @doc """
@@ -77,7 +101,20 @@ defmodule Helix.Flows.SessionServer do
   """
   @spec get_active_sessions() :: sessions_map()
   def get_active_sessions do
-    GenServer.call(__MODULE__, :get_active_sessions)
+    Registry.select(Helix.Flows.Registry, [{{:"$1", :"$2", :_}, [], [{{:"$1", :"$2"}}]}])
+    |> Enum.reduce(%{}, fn {flow_id, pid}, acc ->
+      try do
+        status = GenServer.call(pid, :get_flow_status, 1000)
+
+        if status.active do
+          Map.put(acc, flow_id, Map.delete(status, :active))
+        else
+          acc
+        end
+      rescue
+        _ -> acc
+      end
+    end)
   end
 
   @doc """
@@ -88,162 +125,122 @@ defmodule Helix.Flows.SessionServer do
   that were disconnected.
   """
   @spec force_close_flow_session(flow_id()) :: operation_result()
-  def force_close_flow_session(flow_id) do
-    GenServer.call(__MODULE__, {:force_close_flow_session, flow_id})
+  def force_close_flow_session(flow_id) when is_binary(flow_id) do
+    trimmed_flow_id = String.trim(flow_id)
+
+    if byte_size(trimmed_flow_id) == 0 do
+      {:error, :invalid_flow_id}
+    else
+      do_force_close_flow_session(trimmed_flow_id)
+    end
+  end
+
+  def force_close_flow_session(_), do: {:error, :invalid_flow_id}
+
+  defp do_force_close_flow_session(flow_id) do
+    case Registry.lookup(Helix.Flows.Registry, flow_id) do
+      [{pid, _}] ->
+        client_count =
+          try do
+            %{client_count: count} = GenServer.call(pid, :get_flow_status, 1000)
+            count
+          rescue
+            _ -> 0
+          end
+
+        Helix.Flows.FlowSessionManager.stop_session(flow_id)
+
+        Task.start(fn ->
+          Phoenix.PubSub.broadcast(Helix.PubSub, "flow:#{flow_id}", {:flow_deleted, flow_id})
+        end)
+
+        {:ok, client_count}
+
+      [] ->
+        {:ok, 0}
+    end
   end
 
   # Server Callbacks
 
   @impl true
-  def init(_state) do
+  def init(%{flow_id: flow_id}) do
     # Schedule periodic cleanup
     cleanup_timer = schedule_cleanup()
-    {:ok, %{sessions: %{}, client_flows: %{}, cleanup_timer: cleanup_timer}}
+
+    {:ok,
+     %{
+       flow_id: flow_id,
+       clients: MapSet.new(),
+       last_activity: System.system_time(:second),
+       cleanup_timer: cleanup_timer
+     }}
   end
 
   @impl true
-  def handle_call({:join_flow, flow_id, client_id}, _from, state) do
-    case validate_flow_id(flow_id) do
-      {:ok, validated_flow_id} ->
-        safe_client_id = ensure_valid_client_id(client_id)
+  def handle_call({:join_flow, client_id}, _from, state) do
+    current_client_count = MapSet.size(state.clients)
 
-        {client_count, new_sessions, new_client_flows} =
-          add_client_to_session(state, validated_flow_id, safe_client_id)
+    if current_client_count >= @max_clients_per_flow do
+      Logger.warning("Max clients (#{@max_clients_per_flow}) reached for flow #{state.flow_id}")
+      {:reply, {:error, :max_clients_reached}, state}
+    else
+      safe_client_id = ensure_valid_client_id(client_id)
+      new_clients = MapSet.put(state.clients, safe_client_id)
+      client_count = MapSet.size(new_clients)
+      now = System.system_time(:second)
 
-        Logger.debug(
-          "Client #{safe_client_id} joined flow #{validated_flow_id}. Active clients: #{client_count}"
-        )
+      Logger.debug(
+        "Client #{safe_client_id} joined flow #{state.flow_id}. Active clients: #{client_count}"
+      )
 
-        {:reply, {:ok, client_count},
-         %{state | sessions: new_sessions, client_flows: new_client_flows}}
+      :telemetry.execute([:helix, :session, :client_joined], %{client_count: client_count}, %{
+        flow_id: state.flow_id
+      })
 
-      {:error, reason} ->
-        {:reply, {:error, reason}, state}
+      {:reply, {:ok, client_count}, %{state | clients: new_clients, last_activity: now}}
     end
   end
 
   @impl true
-  def handle_call({:leave_flow, flow_id, client_id}, _from, state) do
-    case validate_flow_id(flow_id) do
-      {:ok, validated_flow_id} ->
-        new_client_flows = Map.delete(state.client_flows, client_id)
+  def handle_call({:leave_flow, client_id}, _from, state) do
+    new_clients = MapSet.delete(state.clients, client_id)
+    client_count = MapSet.size(new_clients)
+    now = System.system_time(:second)
 
-        case Map.get(state.sessions, validated_flow_id) do
-          nil ->
-            {:reply, {:ok, 0}, %{state | client_flows: new_client_flows}}
+    Logger.debug(
+      "Client #{client_id} left flow #{state.flow_id}. Remaining clients: #{client_count}"
+    )
 
-          session ->
-            {client_count, new_sessions} =
-              remove_client_from_session(state.sessions, validated_flow_id, session, client_id)
+    :telemetry.execute([:helix, :session, :client_left], %{client_count: client_count}, %{
+      flow_id: state.flow_id
+    })
 
-            Logger.debug(
-              "Client #{client_id} left flow #{validated_flow_id}. Remaining clients: #{client_count}"
-            )
+    new_state = %{state | clients: new_clients, last_activity: now}
 
-            {:reply, {:ok, client_count},
-             %{state | sessions: new_sessions, client_flows: new_client_flows}}
-        end
-
-      {:error, reason} ->
-        {:reply, {:error, reason}, state}
+    if client_count == 0 do
+      # Self-terminate when no clients remain
+      {:stop, :normal, {:ok, client_count}, new_state}
+    else
+      {:reply, {:ok, client_count}, new_state}
     end
   end
 
   @impl true
-  def handle_call({:get_flow_status, flow_id}, _from, state) do
-    # Normalize flow_id the same way other functions do, but don't return error
-    # for invalid IDs - just treat them as non-existent flows
-    normalized_flow_id =
-      case validate_flow_id(flow_id) do
-        {:ok, validated_id} -> validated_id
-        # Use original ID for lookup, will return inactive
-        {:error, _} -> flow_id
-      end
+  def handle_call(:get_flow_status, _from, state) do
+    client_count = MapSet.size(state.clients)
 
-    case Map.get(state.sessions, normalized_flow_id) do
-      nil ->
-        {:reply, %{active: false, client_count: 0}, state}
-
-      session ->
-        {:reply,
-         %{
-           active: true,
-           client_count: MapSet.size(session.clients),
-           last_activity: session.last_activity
-         }, state}
-    end
+    {:reply,
+     %{
+       active: client_count > 0,
+       client_count: client_count,
+       last_activity: state.last_activity
+     }, state}
   end
 
   @impl true
-  def handle_call(:get_active_sessions, _from, state) do
-    active_sessions = build_active_sessions_map(state.sessions)
-    {:reply, active_sessions, state}
-  end
-
-  @impl true
-  def handle_call({:force_close_flow_session, flow_id}, _from, state) do
-    case validate_flow_id(flow_id) do
-      {:ok, validated_flow_id} ->
-        case Map.get(state.sessions, validated_flow_id) do
-          nil ->
-            {:reply, {:ok, 0}, state}
-
-          session ->
-            client_count = MapSet.size(session.clients)
-            {new_sessions, new_client_flows} = force_close_session(state, validated_flow_id)
-            broadcast_flow_deletion(validated_flow_id)
-
-            Logger.info(
-              "Force closed flow session #{validated_flow_id} with #{client_count} clients"
-            )
-
-            {:reply, {:ok, client_count},
-             %{state | sessions: new_sessions, client_flows: new_client_flows}}
-        end
-
-      {:error, reason} ->
-        {:reply, {:error, reason}, state}
-    end
-  end
-
-  @impl true
-  def handle_cast({:broadcast_flow_change, flow_id, changes}, state) do
-    # Validate and normalize flow_id to ensure consistency
-    case validate_flow_id(flow_id) do
-      {:ok, validated_flow_id} ->
-        case Map.get(state.sessions, validated_flow_id) do
-          nil ->
-            Logger.warning(
-              "Attempted to broadcast changes to non-existent flow session: #{validated_flow_id}"
-            )
-
-            {:noreply, state}
-
-          session ->
-            updated_session = %{
-              session
-              | last_activity: System.system_time(:second)
-            }
-
-            new_sessions = Map.put(state.sessions, validated_flow_id, updated_session)
-
-            Phoenix.PubSub.broadcast(
-              Helix.PubSub,
-              "flow:#{validated_flow_id}",
-              {:flow_change, changes}
-            )
-
-            Logger.debug(
-              "Broadcasted flow changes for #{validated_flow_id} to #{MapSet.size(session.clients)} clients"
-            )
-
-            {:noreply, %{state | sessions: new_sessions}}
-        end
-
-      {:error, _reason} ->
-        Logger.warning("Attempted to broadcast changes with invalid flow_id: #{inspect(flow_id)}")
-        {:noreply, state}
-    end
+  def handle_cast({:update_activity}, state) do
+    {:noreply, %{state | last_activity: System.system_time(:second)}}
   end
 
   @impl true
@@ -252,48 +249,39 @@ defmodule Helix.Flows.SessionServer do
     # 30 minutes
     inactive_threshold = now - 30 * 60
 
-    {inactive_flows, new_sessions, new_client_flows} =
-      cleanup_inactive_sessions(state, inactive_threshold)
-
-    if inactive_flows != [] do
-      log_cleanup_results(inactive_flows)
+    if state.last_activity < inactive_threshold do
+      Logger.info("Session #{state.flow_id} inactive for 30+ minutes, terminating")
+      {:stop, :normal, state}
+    else
+      # Schedule next cleanup and update timer reference
+      new_cleanup_timer = schedule_cleanup()
+      {:noreply, %{state | cleanup_timer: new_cleanup_timer}}
     end
-
-    # Schedule next cleanup and update timer reference
-    new_cleanup_timer = schedule_cleanup()
-
-    {:noreply,
-     %{
-       state
-       | sessions: new_sessions,
-         client_flows: new_client_flows,
-         cleanup_timer: new_cleanup_timer
-     }}
   end
 
   @impl true
-  def terminate(_reason, state) do
+  def terminate(reason, state) do
     # Cancel cleanup timer to prevent timer leaks
     if state.cleanup_timer do
       Process.cancel_timer(state.cleanup_timer)
     end
 
+    # Notify PubSub of session termination if clients exist
+    unless MapSet.size(state.clients) == 0 do
+      Task.start(fn ->
+        Phoenix.PubSub.broadcast(
+          Helix.PubSub,
+          "flow:#{state.flow_id}",
+          {:flow_deleted, state.flow_id}
+        )
+      end)
+    end
+
+    Logger.info("SessionServer for flow #{state.flow_id} terminated: #{inspect(reason)}")
     :ok
   end
 
   # Private functions
-
-  defp validate_flow_id(flow_id) when is_binary(flow_id) do
-    trimmed = String.trim(flow_id)
-
-    if byte_size(trimmed) == 0 do
-      {:error, :invalid_flow_id}
-    else
-      {:ok, trimmed}
-    end
-  end
-
-  defp validate_flow_id(_), do: {:error, :invalid_flow_id}
 
   defp ensure_valid_client_id(client_id) do
     case client_id do
@@ -313,108 +301,5 @@ defmodule Helix.Flows.SessionServer do
   defp schedule_cleanup do
     # 10 minutes
     Process.send_after(self(), :cleanup_inactive_sessions, 10 * 60 * 1000)
-  end
-
-  defp add_client_to_session(state, flow_id, safe_client_id) do
-    now = System.system_time(:second)
-    new_client_flows = Map.put(state.client_flows, safe_client_id, flow_id)
-
-    session = Map.get(state.sessions, flow_id, %{clients: MapSet.new(), last_activity: now})
-
-    updated_session = %{
-      clients: MapSet.put(session.clients, safe_client_id),
-      last_activity: now
-    }
-
-    new_sessions = Map.put(state.sessions, flow_id, updated_session)
-    client_count = MapSet.size(updated_session.clients)
-
-    {client_count, new_sessions, new_client_flows}
-  end
-
-  defp remove_client_from_session(sessions, flow_id, session, client_id) do
-    updated_clients = MapSet.delete(session.clients, client_id)
-    client_count = MapSet.size(updated_clients)
-
-    new_sessions =
-      if client_count == 0 do
-        Logger.info("Flow #{flow_id} session ended - no more clients")
-        Map.delete(sessions, flow_id)
-      else
-        updated_session = %{
-          session
-          | clients: updated_clients,
-            last_activity: System.system_time(:second)
-        }
-
-        Map.put(sessions, flow_id, updated_session)
-      end
-
-    {client_count, new_sessions}
-  end
-
-  defp build_active_sessions_map(sessions) do
-    sessions
-    |> Enum.map(fn {flow_id, session} ->
-      {flow_id,
-       %{
-         client_count: MapSet.size(session.clients),
-         last_activity: session.last_activity
-       }}
-    end)
-    |> Enum.into(%{})
-  end
-
-  defp force_close_session(state, flow_id) do
-    new_sessions = Map.delete(state.sessions, flow_id)
-
-    new_client_flows =
-      state.client_flows
-      |> Enum.reject(fn {_client_id, client_flow_id} ->
-        client_flow_id == flow_id
-      end)
-      |> Map.new()
-
-    {new_sessions, new_client_flows}
-  end
-
-  defp broadcast_flow_deletion(flow_id) do
-    Phoenix.PubSub.broadcast(
-      Helix.PubSub,
-      "flow:#{flow_id}",
-      {:flow_deleted, flow_id}
-    )
-  end
-
-  defp cleanup_inactive_sessions(state, inactive_threshold) do
-    {inactive_flows, active_sessions} =
-      state.sessions
-      |> Enum.split_with(fn {_flow_id, session} ->
-        session.last_activity < inactive_threshold
-      end)
-
-    new_sessions = Map.new(active_sessions)
-
-    inactive_ids_set =
-      inactive_flows
-      |> Enum.map(fn {flow_id, _} -> flow_id end)
-      |> MapSet.new()
-
-    new_client_flows =
-      state.client_flows
-      |> Enum.reject(fn {_client_id, flow_id} ->
-        MapSet.member?(inactive_ids_set, flow_id)
-      end)
-      |> Map.new()
-
-    {inactive_flows, new_sessions, new_client_flows}
-  end
-
-  defp log_cleanup_results(inactive_flows) do
-    inactive_flow_ids = Enum.map(inactive_flows, fn {flow_id, _} -> flow_id end)
-
-    Logger.info(
-      "Cleaned up #{length(inactive_flows)} inactive flow sessions: #{inspect(inactive_flow_ids)}"
-    )
   end
 end

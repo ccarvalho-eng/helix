@@ -14,8 +14,16 @@ defmodule Helix.Application do
       {Phoenix.PubSub, name: Helix.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: Helix.Finch},
-      # Start the Flows subsystem with proper supervision
-      Helix.Flows,
+      # Start the Registry for session processes
+      {Registry, keys: :unique, name: Helix.Flows.Registry},
+      # Start the DynamicSupervisor for session processes
+      {DynamicSupervisor,
+       name: Helix.Flows.SessionSupervisor,
+       strategy: :one_for_one,
+       max_restarts: 10,
+       max_seconds: 60},
+      # Start the FlowSessionManager
+      Helix.Flows.FlowSessionManager,
       # Start a worker by calling: Helix.Worker.start_link(arg)
       # {Helix.Worker, arg},
       # Start to serve requests, typically the last entry

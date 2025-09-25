@@ -6,23 +6,6 @@ defmodule HelixWeb.FlowChannelTest do
 
   @moduletag :authenticated_socket
 
-  setup do
-    # Start Flows for tests
-    pid = start_supervised({Flows, []})
-
-    on_exit(fn ->
-      case pid do
-        {:ok, pid} ->
-          Process.exit(pid, :normal)
-
-        _ ->
-          :ok
-      end
-    end)
-
-    :ok
-  end
-
   # Helper function to generate unique test flow IDs
   defp test_flow_id(base_id) do
     "#{base_id}-#{inspect(self())}-#{:erlang.unique_integer([:positive])}"
@@ -194,6 +177,9 @@ defmodule HelixWeb.FlowChannelTest do
 
       # Assert we receive the EXIT signal (this is expected during channel cleanup)
       assert_receive {:EXIT, _pid, {:shutdown, :closed}}, 1000
+
+      # Wait for session termination to complete
+      :timer.sleep(50)
 
       # After the EXIT, verify cleanup happened properly
       assert %{active: false, client_count: 0} =

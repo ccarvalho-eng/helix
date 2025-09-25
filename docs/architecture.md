@@ -38,7 +38,12 @@ graph TB
         US[UserSocket<br/>WebSocket Handler]
         FC[FlowChannel<br/>Phoenix Channel]
         FB[Helix.Flows<br/>Boundary Module]
-        SS[SessionServer<br/>GenServer State]
+        FSM[FlowSessionManager<br/>Supervisor Process]
+        REG[Registry<br/>Process Discovery]
+        DS[DynamicSupervisor<br/>Session Processes]
+        SS1[SessionServer<br/>Flow 1]
+        SS2[SessionServer<br/>Flow 2]
+        SSN[SessionServer<br/>Flow N]
         PUB[Phoenix.PubSub<br/>Message Broadcasting]
         API[REST API<br/>Flow CRUD]
 
@@ -46,8 +51,15 @@ graph TB
         WSB --> US
         US --> FC
         FC <--> FB
-        FB --> SS
-        SS --> PUB
+        FB --> FSM
+        FSM --> REG
+        FSM --> DS
+        DS --> SS1
+        DS --> SS2
+        DS --> SSN
+        SS1 --> PUB
+        SS2 --> PUB
+        SSN --> PUB
         PUB --> FC
         HTTP --> API
     end
@@ -66,7 +78,7 @@ graph TB
     class UA,UB,FEA,FEB,LSA,LSB client
     class WSA,WSB,HTTP network
     class US,API server
-    class FC,FB,SS,PUB realtime
+    class FC,FB,FSM,REG,DS,SS1,SS2,SSN,PUB realtime
     class PG database
 ```
 
@@ -80,7 +92,9 @@ sequenceDiagram
     participant WS as 🌐 WebSocket
     participant FC as 📡 FlowChannel
     participant FBM as 🚪 Helix.Flows
-    participant SS as 🧠 SessionServer
+    participant FSM as 🔧 FlowSessionManager
+    participant REG as 📋 Registry
+    participant SS as 🧠 SessionServer (Per-Flow)
     participant PUB as 📢 Phoenix.PubSub
     participant FB as 🖥️ Frontend B
     participant UB as 👤 User B
@@ -91,18 +105,22 @@ sequenceDiagram
     FA->>WS: 📤 Send flow_change event
     WS->>FC: 📥 Receive flow_change
     FC->>FBM: 🚀 Flows.broadcast_flow_change()
-    FBM->>SS: 🔄 SessionServer.broadcast_flow_change()
+    FBM->>FSM: 🔍 Get or start session
+    FSM->>REG: 🔎 Registry lookup
+    REG->>FSM: 📍 Process PID or create new
+    FSM->>SS: 🔄 SessionServer.broadcast_flow_change()
     SS->>SS: ⏰ Update last_activity
-    SS->>PUB: 📡 Phoenix.PubSub.broadcast
+    SS->>PUB: 📡 Phoenix.PubSub.broadcast (async)
     PUB->>FC: 📢 {:flow_change, data}
     FC->>WS: 📤 Send flow_update
     WS->>FB: 📥 Receive flow_update
     FB->>FB: 🔄 Apply remote changes
     FB->>UB: ✨ Visual update appears
 
-    Note over SS: 📋 Manages client sessions<br/>⏰ Updates activity timestamps<br/>❌ No conflict resolution
-    Note over FBM: 🚪 Boundary module API<br/>🔒 Hides implementation details
-    Note over PUB: 🚀 Handles message broadcasting<br/>📡 Topic: "flow:#{flow_id}"
+    Note over SS: 📋 Per-flow process isolation<br/>⏰ Updates activity timestamps<br/>🔄 Self-terminates when empty
+    Note over FSM: 🔧 Supervisor process management<br/>🔍 Registry-based discovery<br/>🚀 Race-condition prevention
+    Note over FBM: 🚪 Boundary module API<br/>🔒 Hides OTP implementation
+    Note over PUB: 🚀 Async message broadcasting<br/>📡 Topic: "flow:#{flow_id}"
 ```
 
 ## WebSocket Conflict Resolution
@@ -181,36 +199,56 @@ flowchart TD
 
 ### OTP Design and Supervision Tree
 
-The flow management system follows OTP (Open Telecom Platform) design principles with a simple supervision hierarchy:
+The flow management system follows OTP (Open Telecom Platform) design principles with a production-hardened supervision hierarchy:
 
 ```
 Phoenix Application
 ├── Helix.Application (Application)
 │   ├── Phoenix.PubSub (Supervisor)
 │   ├── HelixWeb.Endpoint (Supervisor)
-│   └── Helix.Flows (Supervisor)
-│       └── Helix.Flows.SessionServer (GenServer)
+│   ├── Helix.Flows.Registry (Registry)
+│   ├── Helix.Flows.SessionSupervisor (DynamicSupervisor)
+│   ├── Helix.Flows.FlowSessionManager (GenServer)
+│   └── Per-Flow SessionServer Processes
+│       ├── SessionServer (flow_id_1)
+│       ├── SessionServer (flow_id_2)
+│       └── SessionServer (flow_id_N)
 ```
 
 #### Supervision Strategy
 
-- **Strategy**: `:one_for_one` - If SessionServer crashes, only it gets restarted
-- **Restart**: `:permanent` - SessionServer is always restarted if it terminates
+- **Main Strategy**: `:one_for_one` with restart limits (`max_restarts: 10, max_seconds: 60`)
+- **DynamicSupervisor**: `:one_for_one` strategy for per-flow SessionServer processes
+- **Restart**: `:permanent` - SessionServers are always restarted if they terminate
 - **Shutdown**: `5000` ms - Graceful shutdown timeout
+- **Restart Intensity Limits**: Prevents supervisor shutdown under burst failures
 
 #### Process Responsibilities
 
-- **Helix.Flows**: OTP Supervisor managing the SessionServer lifecycle
-- **SessionServer**: Single point of truth for all flow session state
+- **Helix.Flows.Registry**: Process discovery and naming (prevents race conditions)
+- **Helix.Flows.SessionSupervisor**: DynamicSupervisor managing per-flow SessionServer processes
+- **Helix.Flows.FlowSessionManager**: Supervisory process for session lifecycle management
+- **SessionServer**: Per-flow GenServer processes managing individual flow session state
 - **Phoenix.PubSub**: Message broadcasting infrastructure (separate process)
 - **Phoenix Channels**: WebSocket connection handlers (per-connection processes)
 
 #### Design Principles Applied
 
-- **Start Simple**: Single GenServer instead of complex multi-process architecture
-- **Let It Crash**: No defensive programming - let OTP handle process failures
-- **Single Responsibility**: SessionServer only manages session state
+- **Process Isolation**: Each flow gets its own SessionServer process for fault isolation
+- **Registry-Based Discovery**: Race-condition-free process lookup and creation
+- **Let It Crash**: Comprehensive crash recovery with clean state restart
+- **Resource Management**: Configurable limits and automatic cleanup
+- **Supervision Limits**: Prevents supervisor shutdown under failure bursts
 - **Boundary Module**: Helix.Flows provides clean API hiding implementation details
+
+#### Production Safety Features
+
+- **Resource Limits**: Maximum 1000 clients per flow (configurable)
+- **Memory Protection**: Sessions auto-terminate when no clients remain
+- **Inactivity Cleanup**: 30-minute timeout for inactive sessions
+- **Restart Limits**: Supervisor won't give up under burst failures
+- **Telemetry**: Production monitoring via `:telemetry` events
+- **Error Handling**: Graceful degradation with proper error responses
 
 ## Key Components
 
@@ -218,21 +256,32 @@ Phoenix Application
 
 **Helix.Flows** - Boundary module:
 
-- Public API for all flow operations
-- Supervision tree management
-- Documented interface with typespecs
+- Public API for all flow operations (simplified interface)
+- Input validation and error handling
+- Documented interface with comprehensive typespecs
+- Delegates to FlowSessionManager for process management
 
-**SessionServer** - GenServer process:
+**Helix.Flows.FlowSessionManager** - Supervisory GenServer:
 
-- Tracks active flow sessions and connected clients
-- Automatic cleanup of inactive sessions (30-minute timeout)
-- Client join/leave operations
-- Flow change broadcasting via Phoenix PubSub
-- Anonymous client ID generation for invalid inputs
-- Client-to-flow mapping for lookups
-- Flow ID validation and normalization (trimming whitespace)
-- Proper timer management with cleanup on termination
-- Comprehensive error handling with input validation
+- Session process lifecycle management
+- Registry-based process discovery (`via_tuple` patterns)
+- DynamicSupervisor integration for safe process creation
+- Race-condition prevention in concurrent session startup
+- Clean process termination and cleanup
+
+**SessionServer** - Per-flow GenServer processes:
+
+- **Isolation**: Each flow has its own dedicated SessionServer process
+- **State Management**: Tracks clients, last activity, cleanup timers per flow
+- **Resource Limits**: Enforces maximum clients per flow (1000 default)
+- **Auto-cleanup**: Self-terminates when no clients remain
+- **Inactivity Timeout**: 30-minute cleanup timer with proper cancellation
+- **Client Management**: Join/leave operations with anonymous ID generation
+- **Broadcasting**: Async flow change broadcasting via Phoenix PubSub
+- **Telemetry**: Emits `:telemetry` events for production monitoring
+- **Error Resilience**: Comprehensive error handling and graceful degradation
+- **Flow ID Validation**: Input sanitization and normalization
+- **Timer Management**: Proper cleanup on termination to prevent leaks
 
 ### Phoenix Channels
 
@@ -254,3 +303,74 @@ Workflow persistence in browser localStorage:
 - Flow data: nodes, edges, viewport state
 - Registry with timestamps and counts
 - Auto-save with debouncing
+
+## Testing Strategy
+
+### Test Coverage
+
+- **Total Tests**: 239 tests across all components
+- **Core Flow Logic**: `Helix.Flows` boundary module
+- **SessionServer**: Per-flow process behavior
+- **FlowSessionManager**: Supervisory functions
+- **Phoenix Channels**: WebSocket handling
+
+### Failure Scenarios Tested
+
+**Process Crash Recovery** (`test/helix/flows/supervision_test.exs`):
+- SessionServer restart with clean state after crashes
+- Registry cleanup on abnormal termination
+- Supervisor burst crash handling (multiple simultaneous failures)
+- Session isolation (crashes don't affect other sessions)
+- Memory leak prevention with rapid session creation/destruction
+
+**Concurrency & Race Conditions** (`test/helix/flows/concurrency_test.exs`):
+- Concurrent session creation (parallel attempts)
+- Mixed join/leave operations under load
+- High-frequency status checks without blocking
+- Concurrent broadcasts without state corruption
+- Multiple client stress scenarios
+
+**Resource Management**:
+- Maximum clients per flow enforcement
+- Process count stability under load
+- Inactive session cleanup verification
+- Memory usage bounds testing
+
+### Monitoring
+
+**Telemetry Events**:
+- `[:helix, :session, :client_joined]` - Client count and flow ID
+- `[:helix, :session, :client_left]` - Client count and flow ID
+
+**Logging**:
+- Session lifecycle events (start, terminate, cleanup)
+- Client operations (join, leave) with counts
+- Error conditions with context
+- Resource limit violations
+
+**Available Metrics**:
+- Active session count via `Flows.get_active_sessions/0`
+- Client count per flow via `Flows.get_flow_status/1`
+- Process restart frequency (supervisor metrics)
+- Memory usage trends
+- WebSocket connection patterns
+
+### Failure Mode Behavior
+
+**Process Crashes**:
+- SessionServer processes restart with clean state
+- Clients must reconnect and rejoin flows
+- No data persistence across crashes (ephemeral design)
+- Other flows unaffected by individual crashes
+
+**Resource Exhaustion**:
+- Maximum 1000 clients per flow (configurable via `@max_clients_per_flow`)
+- Returns `{:error, :max_clients_reached}` when limit exceeded
+- Sessions self-terminate when no clients remain
+- 30-minute inactivity timeout prevents resource leaks
+
+**Network Partitions**:
+- WebSocket disconnections handled by Phoenix Channel infrastructure
+- Clients attempt automatic reconnection with exponential backoff
+- No message queuing (disconnected events are lost)
+- No state synchronization on reconnect

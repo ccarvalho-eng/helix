@@ -2,13 +2,11 @@ defmodule Helix.FlowsTest do
   use ExUnit.Case, async: false
 
   alias Helix.Flows
+  import Helix.FlowTestHelper
 
   setup do
-    # Start fresh Flows context for each test
-    start_supervised({Flows, []})
-
-    # Wait a moment for the system to be ready
-    :timer.sleep(10)
+    # Ensure flow services are available
+    ensure_flow_services_available()
     :ok
   end
 
@@ -187,6 +185,9 @@ defmodule Helix.FlowsTest do
       # Force close
       assert {:ok, 2} = Flows.force_close_flow_session(flow_id)
 
+      # Wait for termination to complete
+      :timer.sleep(50)
+
       # Session should be inactive now
       status = Flows.get_flow_status(flow_id)
       assert %{active: false, client_count: 0} = status
@@ -252,7 +253,7 @@ defmodule Helix.FlowsTest do
   end
 
   describe "session cleanup behavior" do
-    test "inactive sessions are cleaned up" do
+    test "sessions auto-terminate when no clients remain" do
       flow_id = "cleanup-test-flow-#{System.unique_integer([:positive])}"
 
       # Join a client
@@ -261,18 +262,14 @@ defmodule Helix.FlowsTest do
       # Verify session exists
       assert %{active: true, client_count: 1} = Flows.get_flow_status(flow_id)
 
-      # Get the SessionServer PID to send cleanup message directly
-      session_server_pid = Process.whereis(Helix.Flows.SessionServer)
+      # Leave the client - session should terminate
+      assert {:ok, 0} = Flows.leave_flow(flow_id, "client-1")
 
-      # Simulate an old session by sending cleanup message
-      # We can't easily manipulate time, but we can test the cleanup logic
-      send(session_server_pid, :cleanup_inactive_sessions)
-
-      # Wait for the message to be processed
+      # Wait for termination to complete
       :timer.sleep(50)
 
-      # Session should still exist since it's recent
-      assert %{active: true, client_count: 1} = Flows.get_flow_status(flow_id)
+      # Session should be inactive now
+      assert %{active: false, client_count: 0} = Flows.get_flow_status(flow_id)
     end
   end
 end

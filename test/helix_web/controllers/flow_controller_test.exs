@@ -2,14 +2,10 @@ defmodule HelixWeb.FlowControllerTest do
   use HelixWeb.ConnCase, async: true
 
   alias Helix.Flows
+  import Helix.FlowTestHelper
 
   setup do
-    # Ensure Flows is started, but don't fail if already started
-    case start_supervised({Flows, []}) do
-      {:ok, _pid} -> :ok
-      {:error, {:already_started, _pid}} -> :ok
-    end
-
+    ensure_flow_services_available()
     :ok
   end
 
@@ -257,12 +253,14 @@ defmodule HelixWeb.FlowControllerTest do
       # Remove last client
       Flows.leave_flow(flow_id, "client-2")
 
+      # Wait for session termination to complete
+      :timer.sleep(50)
+
       conn4 = get(conn, ~p"/api/flows/#{flow_id}/status")
 
-      assert json_response(conn4, 200) == %{
-               "active" => false,
-               "client_count" => 0
-             }
+      response = json_response(conn4, 200)
+      assert response["active"] == false
+      assert response["client_count"] == 0
     end
 
     test "handles special characters in flow ID", %{conn: conn} do
