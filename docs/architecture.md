@@ -1,6 +1,6 @@
 # Architecture
 
-Helix is a real-time collaborative flow builder using Phoenix LiveView, WebSocket channels, and OTP supervision for distributed session management.
+Helix is a real-time collaborative flow builder using Phoenix, WebSocket channels, and OTP supervision for distributed session management.
 
 ## OTP Supervision Tree
 
