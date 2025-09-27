@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Cpu,
   Plus,
@@ -29,7 +29,7 @@ declare global {
   }
 }
 
-export const HomePage: React.FC = () => {
+export function HomePage() {
   const { logout } = useAuth();
   const [flows, setFlows] = useState<FlowRegistryEntry[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -458,4 +458,4 @@ export const HomePage: React.FC = () => {
       </div>
     </ProtectedRoute>
   );
-};
+}

@@ -18,6 +18,13 @@ jest.mock('reactflow', () => ({
   NodeResizer: () => <div data-testid='node-resizer' />,
 }));
 
+// Mock react-error-boundary
+jest.mock('react-error-boundary', () => ({
+  ErrorBoundary: ({ children }: { children: React.ReactNode; [key: string]: unknown }) => (
+    <div data-testid='error-boundary'>{children}</div>
+  ),
+}));
+
 // Mock useFlowManager hook with controllable state
 const mockDeleteNode = jest.fn();
 const mockDuplicateNode = jest.fn();

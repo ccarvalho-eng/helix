@@ -1,2 +1,9 @@
 export { useFlowBuilder } from './useFlowBuilder';
+export { useTheme } from './useTheme';
 export { useDownloadImage } from './useDownloadImage';
+export { useFlowManager } from './useFlowManager';
+export { useUIState } from './useUIState';
+export { useTitleEditor } from './useTitleEditor';
+export { useNodeDefaults } from './useNodeDefaults';
+export { useKeyboardShortcuts } from './useKeyboardShortcuts';
+export { useOutsideClick } from './useOutsideClick';
