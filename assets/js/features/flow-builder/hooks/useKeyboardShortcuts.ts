@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { Node } from 'reactflow';
+import { AIFlowNode } from '../types';
 
 interface UseKeyboardShortcutsProps {
-  selectedNode: Node | null;
+  selectedNode: AIFlowNode | null;
   deleteNode: (_id: string) => void;
   duplicateNode: (_id: string) => void;
   isCanvasLocked: boolean;

@@ -1,5 +1,5 @@
-import { ErrorBoundary as ReactErrorBoundary, ErrorInfo } from 'react-error-boundary';
-import { ReactNode } from 'react';
+import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
+import { ReactNode, ErrorInfo } from 'react';
 
 interface ErrorFallbackProps {
   error: Error;
