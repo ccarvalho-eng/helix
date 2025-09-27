@@ -24,7 +24,7 @@ declare global {
   }
 }
 
-export const RegisterPage: React.FC = () => {
+export function RegisterPage() {
   const { register, isLoading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -339,4 +339,4 @@ export const RegisterPage: React.FC = () => {
       </footer>
     </div>
   );
-};
+}

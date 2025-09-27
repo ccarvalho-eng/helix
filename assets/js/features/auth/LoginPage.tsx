@@ -13,7 +13,7 @@ declare global {
   }
 }
 
-export const LoginPage: React.FC = () => {
+export function LoginPage() {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -286,4 +286,4 @@ export const LoginPage: React.FC = () => {
       </footer>
     </div>
   );
-};
+}

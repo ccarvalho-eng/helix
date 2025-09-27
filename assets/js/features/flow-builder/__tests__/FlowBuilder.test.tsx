@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react';
 
 // Mock ReactFlow and its dependencies
 jest.mock('reactflow', () => ({
+  __esModule: true,
   ReactFlow: ({ children }: { children?: React.ReactNode; [key: string]: unknown }) => (
     <div data-testid='reactflow'>{children}</div>
   ),
@@ -16,6 +17,14 @@ jest.mock('reactflow', () => ({
   Position: { Left: 'left', Right: 'right' },
   MarkerType: { ArrowClosed: 'arrowclosed' },
   NodeResizer: () => <div data-testid='node-resizer' />,
+}));
+
+// Mock react-error-boundary
+jest.mock('react-error-boundary', () => ({
+  __esModule: true,
+  ErrorBoundary: ({ children }: { children: React.ReactNode; [key: string]: unknown }) => (
+    <div data-testid='error-boundary'>{children}</div>
+  ),
 }));
 
 // Mock useFlowManager hook with controllable state

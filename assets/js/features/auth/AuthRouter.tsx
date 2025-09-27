@@ -1,4 +1,3 @@
-import React from 'react';
 import { LoginPage } from './LoginPage';
 import { RegisterPage } from './RegisterPage';
 import { AuthRedirect } from '../../shared/components/AuthRedirect';
@@ -7,7 +6,7 @@ interface AuthRouterProps {
   mode?: 'login' | 'register';
 }
 
-export const AuthRouter: React.FC<AuthRouterProps> = ({ mode }) => {
+export function AuthRouter({ mode }: AuthRouterProps) {
   // Determine mode from URL if not provided
   const currentMode = mode || (window.location.pathname === '/register' ? 'register' : 'login');
 
@@ -22,4 +21,4 @@ export const AuthRouter: React.FC<AuthRouterProps> = ({ mode }) => {
   };
 
   return <AuthRedirect>{renderAuthPage()}</AuthRedirect>;
-};
+}

@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface PasswordStrengthProps {
   password: string;
 }
@@ -10,7 +8,7 @@ interface StrengthCheck {
   met: boolean;
 }
 
-export const PasswordStrength: React.FC<PasswordStrengthProps> = ({ password }) => {
+export function PasswordStrength({ password }: PasswordStrengthProps) {
   const checks: StrengthCheck[] = [
     {
       label: 'At least 8 characters',
@@ -83,4 +81,4 @@ export const PasswordStrength: React.FC<PasswordStrengthProps> = ({ password }) 
       </ul>
     </div>
   );
-};
+}
