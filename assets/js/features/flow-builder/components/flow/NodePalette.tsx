@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import {
   Bot,
   Eye,
@@ -47,6 +47,7 @@ export const NodePalette = memo(function NodePalette({
   isFlowReady,
 }: NodePaletteProps) {
   const { theme = 'light' } = useThemeContext() ?? { theme: 'light' };
+  const [isTemplatesLinkHovered, setIsTemplatesLinkHovered] = useState(false);
 
   const nodeDefinitions = [
     // Core nodes
@@ -249,23 +250,25 @@ export const NodePalette = memo(function NodePalette({
             marginTop: 12,
             padding: '8px 12px',
             fontSize: 14,
-            color: theme === 'dark' ? 'var(--theme-text-secondary)' : '#6b7280',
+            color: isTemplatesLinkHovered
+              ? theme === 'dark'
+                ? 'var(--theme-syntax-green)'
+                : '#374151'
+              : theme === 'dark'
+                ? 'var(--theme-text-secondary)'
+                : '#6b7280',
+            backgroundColor: isTemplatesLinkHovered
+              ? theme === 'dark'
+                ? 'var(--theme-bg-tertiary)'
+                : '#f3f4f6'
+              : 'transparent',
             textAlign: 'center',
             cursor: 'pointer',
             borderRadius: 6,
             transition: 'all 0.2s ease',
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.backgroundColor =
-              theme === 'dark' ? 'var(--theme-bg-tertiary)' : '#f3f4f6';
-            e.currentTarget.style.color =
-              theme === 'dark' ? 'var(--theme-syntax-green)' : '#374151';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color =
-              theme === 'dark' ? 'var(--theme-text-secondary)' : '#6b7280';
-          }}
+          onMouseEnter={() => setIsTemplatesLinkHovered(true)}
+          onMouseLeave={() => setIsTemplatesLinkHovered(false)}
           onClick={onOpenTemplatesModal}
         >
           See all templates →
