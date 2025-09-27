@@ -77,6 +77,11 @@ export const FlowCanvas = memo(function FlowCanvas({
           markerEnd: { type: MarkerType.ArrowClosed, color: '#9ca3af' },
           style: { stroke: '#9ca3af', strokeWidth: 2 },
         }}
+        nodesDraggable={!isCanvasLocked}
+        nodesConnectable={!isCanvasLocked}
+        elementsSelectable={!isCanvasLocked}
+        panOnDrag={!isCanvasLocked}
+        zoomOnScroll={!isCanvasLocked}
         fitView
         attributionPosition='bottom-left'
         proOptions={{ hideAttribution: true }}
