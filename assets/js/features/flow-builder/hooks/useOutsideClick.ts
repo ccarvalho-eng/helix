@@ -12,7 +12,7 @@ export function useOutsideClick({ isMobileStatsOpen, setIsMobileStatsOpen }: Use
       if (
         isMobileStatsOpen &&
         !target.closest('.flow-builder__mobile-stats-panel') &&
-        !target.closest('.flow-builder__mobile-stats-toggle')
+        !target.closest('.flow-builder__mobile-stats-btn')
       ) {
         setIsMobileStatsOpen(false);
       }

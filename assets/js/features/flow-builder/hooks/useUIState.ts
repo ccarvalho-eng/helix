@@ -35,7 +35,11 @@ export function useUIState() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('templates') === 'true') {
       setIsTemplatesModalOpen(true);
-      const newUrl = window.location.pathname;
+      urlParams.delete('templates');
+      const newSearch = urlParams.toString();
+      const newUrl = newSearch
+        ? `${window.location.pathname}?${newSearch}`
+        : window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
     }
   }, []);
