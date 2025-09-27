@@ -7,6 +7,15 @@ import {
   NodeTypes,
   EdgeTypes,
   MarkerType,
+  Node,
+  Edge,
+  Connection,
+  NodeChange,
+  EdgeChange,
+  OnSelectionChangeParams,
+  ReactFlowInstance,
+  OnMoveEnd,
+  Viewport,
 } from 'reactflow';
 import { FlowNode } from './FlowNode';
 
@@ -17,17 +26,17 @@ const nodeTypes: NodeTypes = {
 const edgeTypes: EdgeTypes = {};
 
 interface FlowCanvasProps {
-  nodes: any[];
-  edges: any[];
-  onNodesChange: (_changes: any) => void;
-  onEdgesChange: (_changes: any) => void;
-  onConnect: (_connection: any) => void;
-  onSelectionChange: (_elements: any) => void;
-  onInit: (_instance: any) => void;
+  nodes: Node[];
+  edges: Edge[];
+  onNodesChange: (_changes: NodeChange[]) => void;
+  onEdgesChange: (_changes: EdgeChange[]) => void;
+  onConnect: (_connection: Connection) => void;
+  onSelectionChange: (_elements: OnSelectionChangeParams) => void;
+  onInit: (_instance: ReactFlowInstance) => void;
   onDrop: (_event: React.DragEvent) => void;
   onDragOver: (_event: React.DragEvent) => void;
-  onMoveEnd: (_event: any, _viewport: any) => void;
-  initialViewport: any;
+  onMoveEnd: OnMoveEnd;
+  initialViewport: Viewport;
   isCanvasLocked: boolean;
 }
 

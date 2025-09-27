@@ -1,10 +1,11 @@
+import { Node, Edge } from 'reactflow';
 import { PropertiesPanel } from '../properties';
 import { AIFlowNode } from '../../types';
 
 interface FlowPropertiesPanelProps {
-  selectedNode: any;
-  nodes: any[];
-  edges: any[];
+  selectedNode: Node | null;
+  nodes: Node[];
+  edges: Edge[];
   onUpdateNode: (_id: string, _updates: Partial<AIFlowNode>) => void;
   onDeleteNode: (_id: string) => void;
   onOpenNodeModal?: (_nodeId: string) => void;

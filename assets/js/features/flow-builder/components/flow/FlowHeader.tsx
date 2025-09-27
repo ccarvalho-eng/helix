@@ -1,11 +1,12 @@
 import { Cpu, Menu, Sliders, Circle, Zap, ChevronDown, ChevronUp, LogOut } from 'lucide-react';
+import { Node, Edge } from 'reactflow';
 import { ThemeToggle } from '../ThemeToggle';
 import { DownloadButton } from '../DownloadButton';
 
 interface FlowHeaderProps {
   currentFlow: { title: string; id: string } | null;
-  nodes: any[];
-  edges: any[];
+  nodes: Node[];
+  edges: Edge[];
   isFlowReady: boolean;
   isConnected: boolean;
   isMobile: boolean;

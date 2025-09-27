@@ -1,4 +1,4 @@
-import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary as ReactErrorBoundary, ErrorInfo } from 'react-error-boundary';
 import { ReactNode } from 'react';
 
 interface ErrorFallbackProps {
@@ -20,11 +20,11 @@ function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
 
 interface ModernErrorBoundaryProps {
   children: ReactNode;
-  onError?: (_error: Error, _errorInfo: any) => void;
+  onError?: (_error: Error, _errorInfo: ErrorInfo) => void;
 }
 
 export function ModernErrorBoundary({ children, onError }: ModernErrorBoundaryProps) {
-  const handleError = (error: Error, errorInfo: any) => {
+  const handleError = (error: Error, errorInfo: ErrorInfo) => {
     console.error('React Error Boundary:', error, errorInfo);
     onError?.(error, errorInfo);
   };
