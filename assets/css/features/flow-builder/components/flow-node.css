@@ -22,7 +22,7 @@
 /* Dark theme - Remove background colors and enhance borders */
 [data-theme="dark"] .flow-node {
   background: transparent;
-  border: 0.5px solid var(--theme-text-muted);
+  border: 0.5px solid var(--node-border-color, var(--theme-text-muted));
   backdrop-filter: blur(12px);
 }
 
@@ -36,7 +36,7 @@
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.15),
     0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 0.5px solid var(--theme-border-secondary);
+  border: 0.5px solid var(--node-border-color, var(--theme-border-secondary));
 }
 
 [data-theme="light"] .flow-node:hover {
