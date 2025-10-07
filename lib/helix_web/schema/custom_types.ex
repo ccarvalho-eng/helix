@@ -25,9 +25,12 @@ defmodule HelixWeb.Schema.CustomTypes do
   defp encode(value), do: value
 
   # Decode: Handle input from GraphQL queries/mutations
-  @spec decode(Absinthe.Blueprint.Input.String.t()) :: {:ok, map()} | :error
-  @spec decode(Absinthe.Blueprint.Input.Object.t()) :: {:ok, map()}
-  @spec decode(Absinthe.Blueprint.Input.Null.t()) :: {:ok, nil}
+  @spec decode(
+          Absinthe.Blueprint.Input.String.t()
+          | Absinthe.Blueprint.Input.Object.t()
+          | Absinthe.Blueprint.Input.Null.t()
+          | any()
+        ) :: {:ok, term()} | :error
   defp decode(%Absinthe.Blueprint.Input.String{value: value}) do
     case Jason.decode(value) do
       {:ok, result} -> {:ok, result}
