@@ -96,6 +96,41 @@ defmodule Helix.Flows.Storage do
   end
 
   @doc """
+  Gets a flow with authorization check and preloaded data (nodes and edges).
+
+  Combines authorization check and data preloading in a single operation
+  for better performance.
+
+  ## Parameters
+    - user_id: The user ID
+    - flow_id: The flow ID
+
+  ## Returns
+    - `{:ok, flow}` with nodes and edges preloaded if found and user is authorized
+    - `{:error, :not_found}` if not found
+    - `{:error, :unauthorized}` if user is not the owner
+
+  ## Examples
+
+      iex> get_user_flow_with_data(user_id, flow_id)
+      {:ok, %Flow{nodes: [...], edges: [...]}}
+  """
+  @spec get_user_flow_with_data(user_id(), flow_id()) ::
+          {:ok, Flow.t()} | {:error, :not_found | :unauthorized}
+  def get_user_flow_with_data(user_id, flow_id) do
+    case get_flow(flow_id) do
+      {:ok, %Flow{user_id: ^user_id} = flow} ->
+        {:ok, Repo.preload(flow, [:nodes, :edges])}
+
+      {:ok, _flow} ->
+        {:error, :unauthorized}
+
+      error ->
+        error
+    end
+  end
+
+  @doc """
   Gets a flow with all nodes and edges preloaded.
 
   ## Parameters
