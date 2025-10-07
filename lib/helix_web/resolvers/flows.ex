@@ -137,9 +137,9 @@ defmodule HelixWeb.Resolvers.Flows do
         %{id: flow_id, input: %{nodes: nodes, edges: edges, version: version}},
         %{context: %{current_user: user}}
       ) do
-    # First verify ownership
-    with {:ok, _flow} <- Storage.get_user_flow(user.id, flow_id),
-         {:ok, updated_flow} <- Storage.update_flow_data(flow_id, nodes, edges, version) do
+    # Verify ownership and get flow
+    with {:ok, flow} <- Storage.get_user_flow(user.id, flow_id),
+         {:ok, updated_flow} <- Storage.update_flow_data(flow, nodes, edges, version) do
       {:ok, updated_flow}
     else
       {:error, :not_found} -> {:error, "Flow not found"}
@@ -204,8 +204,7 @@ defmodule HelixWeb.Resolvers.Flows do
 
     # Verify ownership of source flow
     with {:ok, _flow} <- Storage.get_user_flow(user.id, flow_id),
-         {:ok, new_flow} <- Storage.duplicate_flow(flow_id, user.id, title),
-         {:ok, new_flow_with_data} <- Storage.get_flow_with_data(new_flow.id) do
+         {:ok, new_flow_with_data} <- Storage.duplicate_flow(flow_id, user.id, title) do
       {:ok, new_flow_with_data}
     else
       {:error, :not_found} -> {:error, "Flow not found"}

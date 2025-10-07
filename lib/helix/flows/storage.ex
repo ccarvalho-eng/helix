@@ -233,13 +233,13 @@ defmodule Helix.Flows.Storage do
     - new_title: Optional title for the duplicated flow
 
   ## Returns
-    - `{:ok, new_flow}` with nodes and edges duplicated
+    - `{:ok, new_flow}` with nodes and edges preloaded
     - `{:error, :not_found}` if source flow not found
 
   ## Examples
 
       iex> duplicate_flow(flow_id, user_id, "Copy of Flow")
-      {:ok, %Flow{}}
+      {:ok, %Flow{nodes: [...], edges: [...]}}
   """
   @spec duplicate_flow(flow_id(), user_id(), String.t() | nil) ::
           {:ok, Flow.t()} | {:error, :not_found | Ecto.Changeset.t()}
@@ -304,9 +304,15 @@ defmodule Helix.Flows.Storage do
       end)
       |> Repo.transaction()
       |> case do
-        {:ok, %{new_flow: new_flow}} -> {:ok, new_flow}
-        {:error, :new_flow, changeset, _} -> {:error, changeset}
-        {:error, _, reason, _} -> {:error, reason}
+        {:ok, %{new_flow: new_flow}} ->
+          # Preload nodes and edges before returning
+          {:ok, Repo.preload(new_flow, [:nodes, :edges])}
+
+        {:error, :new_flow, changeset, _} ->
+          {:error, changeset}
+
+        {:error, _, reason, _} ->
+          {:error, reason}
       end
     end
   end
@@ -319,7 +325,7 @@ defmodule Helix.Flows.Storage do
   Uses optimistic locking via the version field to prevent conflicts.
 
   ## Parameters
-    - flow_id: The flow ID
+    - flow: The Flow struct
     - nodes_attrs: List of node attribute maps
     - edges_attrs: List of edge attribute maps
     - expected_version: Expected current version for optimistic locking
@@ -327,26 +333,24 @@ defmodule Helix.Flows.Storage do
   ## Returns
     - `{:ok, flow}` with updated data preloaded
     - `{:error, :version_conflict}` if version doesn't match
-    - `{:error, :not_found}` if flow not found
     - `{:error, changeset}` if validation fails
 
   ## Examples
 
-      iex> update_flow_data(flow_id, nodes, edges, 1)
+      iex> update_flow_data(flow, nodes, edges, 1)
       {:ok, %Flow{version: 2, nodes: [...], edges: [...]}}
   """
-  @spec update_flow_data(flow_id(), [map()], [map()], integer()) ::
-          {:ok, Flow.t()} | {:error, :version_conflict | :not_found | Ecto.Changeset.t()}
-  def update_flow_data(flow_id, nodes_attrs, edges_attrs, expected_version) do
-    with {:ok, flow} <- get_flow(flow_id),
-         :ok <- check_version(flow, expected_version) do
+  @spec update_flow_data(Flow.t(), [map()], [map()], integer()) ::
+          {:ok, Flow.t()} | {:error, :version_conflict | Ecto.Changeset.t()}
+  def update_flow_data(%Flow{} = flow, nodes_attrs, edges_attrs, expected_version) do
+    with :ok <- check_version(flow, expected_version) do
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       # Prepare nodes and edges with timestamps for bulk insert
       nodes_to_insert =
         Enum.map(nodes_attrs, fn node_attrs ->
           node_attrs
-          |> Map.put(:flow_id, flow_id)
+          |> Map.put(:flow_id, flow.id)
           |> Map.put(:inserted_at, now)
           |> Map.put(:updated_at, now)
         end)
@@ -354,15 +358,15 @@ defmodule Helix.Flows.Storage do
       edges_to_insert =
         Enum.map(edges_attrs, fn edge_attrs ->
           edge_attrs
-          |> Map.put(:flow_id, flow_id)
+          |> Map.put(:flow_id, flow.id)
           |> Map.put(:inserted_at, now)
           |> Map.put(:updated_at, now)
         end)
 
       # Use Ecto.Multi for atomic transaction
       Ecto.Multi.new()
-      |> Ecto.Multi.delete_all(:delete_nodes, from(n in FlowNode, where: n.flow_id == ^flow_id))
-      |> Ecto.Multi.delete_all(:delete_edges, from(e in FlowEdge, where: e.flow_id == ^flow_id))
+      |> Ecto.Multi.delete_all(:delete_nodes, from(n in FlowNode, where: n.flow_id == ^flow.id))
+      |> Ecto.Multi.delete_all(:delete_edges, from(e in FlowEdge, where: e.flow_id == ^flow.id))
       |> Ecto.Multi.insert_all(:insert_nodes, FlowNode, nodes_to_insert)
       |> Ecto.Multi.insert_all(:insert_edges, FlowEdge, edges_to_insert)
       |> Ecto.Multi.update(:increment_version, Flow.increment_version_changeset(flow))
