@@ -51,4 +51,54 @@ defmodule HelixWeb.Schema.FlowsTypes do
     field :inserted_at, :datetime, description: "When the flow was created"
     field :updated_at, :datetime, description: "When the flow was last updated"
   end
+
+  # Input types for mutations
+
+  @desc "Input for creating a new flow"
+  input_object :create_flow_input do
+    field :title, non_null(:string), description: "Flow title"
+    field :description, :string, description: "Flow description"
+    field :viewport_x, :float, description: "Viewport X offset (default: 0.0)"
+    field :viewport_y, :float, description: "Viewport Y offset (default: 0.0)"
+    field :viewport_zoom, :float, description: "Viewport zoom level (default: 1.0)"
+  end
+
+  @desc "Input for updating flow metadata"
+  input_object :update_flow_input do
+    field :title, :string, description: "Flow title"
+    field :description, :string, description: "Flow description"
+    field :viewport_x, :float, description: "Viewport X offset"
+    field :viewport_y, :float, description: "Viewport Y offset"
+    field :viewport_zoom, :float, description: "Viewport zoom level"
+  end
+
+  @desc "Input for a flow node"
+  input_object :node_input do
+    field :node_id, non_null(:string), description: "Client-side node identifier"
+    field :type, non_null(:string), description: "Node type"
+    field :position_x, non_null(:float), description: "X coordinate"
+    field :position_y, non_null(:float), description: "Y coordinate"
+    field :width, :float, description: "Node width"
+    field :height, :float, description: "Node height"
+    field :data, :json, description: "Node configuration data"
+  end
+
+  @desc "Input for a flow edge"
+  input_object :edge_input do
+    field :edge_id, non_null(:string), description: "Client-side edge identifier"
+    field :source_node_id, non_null(:string), description: "Source node identifier"
+    field :target_node_id, non_null(:string), description: "Target node identifier"
+    field :source_handle, :string, description: "Source connection handle"
+    field :target_handle, :string, description: "Target connection handle"
+    field :edge_type, :string, description: "Edge type"
+    field :animated, :boolean, description: "Whether edge is animated"
+    field :data, :json, description: "Edge configuration data"
+  end
+
+  @desc "Input for updating flow data (nodes and edges)"
+  input_object :update_flow_data_input do
+    field :nodes, non_null(list_of(non_null(:node_input))), description: "List of nodes"
+    field :edges, non_null(list_of(non_null(:edge_input))), description: "List of edges"
+    field :version, non_null(:integer), description: "Expected version for optimistic locking"
+  end
 end
