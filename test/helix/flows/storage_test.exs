@@ -296,14 +296,14 @@ defmodule Helix.Flows.StorageTest do
         }
       ]
 
-      assert {:ok, updated_flow} = Storage.update_flow_data(flow.id, nodes_attrs, edges_attrs, 1)
+      assert {:ok, updated_flow} = Storage.update_flow_data(flow, nodes_attrs, edges_attrs, 1)
       assert updated_flow.version == 2
       assert length(updated_flow.nodes) == 2
       assert length(updated_flow.edges) == 1
     end
 
     test "returns version conflict when version doesn't match", %{flow: flow} do
-      assert {:error, :version_conflict} = Storage.update_flow_data(flow.id, [], [], 999)
+      assert {:error, :version_conflict} = Storage.update_flow_data(flow, [], [], 999)
     end
 
     test "replaces existing nodes and edges", %{flow: flow} do
@@ -320,7 +320,7 @@ defmodule Helix.Flows.StorageTest do
         %{node_id: "new-node", type: "tool", position_x: 100.0, position_y: 100.0, data: %{}}
       ]
 
-      assert {:ok, updated_flow} = Storage.update_flow_data(flow.id, new_nodes, [], 1)
+      assert {:ok, updated_flow} = Storage.update_flow_data(flow, new_nodes, [], 1)
       assert length(updated_flow.nodes) == 1
       assert hd(updated_flow.nodes).node_id == "new-node"
     end
