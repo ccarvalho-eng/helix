@@ -42,19 +42,10 @@ defmodule HelixWeb.Resolvers.Flows do
   @spec get_flow(any(), map(), Absinthe.Resolution.t()) ::
           {:ok, any()} | {:error, String.t()}
   def get_flow(_parent, %{id: flow_id}, %{context: %{current_user: user}}) do
-    case Storage.get_user_flow(user.id, flow_id) do
-      {:ok, flow} ->
-        # Preload nodes and edges for the response
-        case Storage.get_flow_with_data(flow.id) do
-          {:ok, flow_with_data} -> {:ok, flow_with_data}
-          {:error, :not_found} -> {:error, "Flow not found"}
-        end
-
-      {:error, :not_found} ->
-        {:error, "Flow not found"}
-
-      {:error, :unauthorized} ->
-        {:error, "Unauthorized"}
+    case Storage.get_user_flow_with_data(user.id, flow_id) do
+      {:ok, flow_with_data} -> {:ok, flow_with_data}
+      {:error, :not_found} -> {:error, "Flow not found"}
+      {:error, :unauthorized} -> {:error, "Unauthorized"}
     end
   end
 

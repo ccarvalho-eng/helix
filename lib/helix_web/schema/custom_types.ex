@@ -40,11 +40,9 @@ defmodule HelixWeb.Schema.CustomTypes do
 
   defp decode(%Absinthe.Blueprint.Input.Object{fields: fields}) do
     result =
-      fields
-      |> Enum.map(fn %{name: name, input_value: %{data: value}} ->
+      Map.new(fields, fn %{name: name, input_value: %{data: value}} ->
         {name, value}
       end)
-      |> Map.new()
 
     {:ok, result}
   end
