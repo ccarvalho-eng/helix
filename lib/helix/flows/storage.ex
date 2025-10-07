@@ -305,8 +305,12 @@ defmodule Helix.Flows.Storage do
       |> Repo.transaction()
       |> case do
         {:ok, %{new_flow: new_flow}} ->
-          # Preload nodes and edges before returning
-          {:ok, Repo.preload(new_flow, [:nodes, :edges])}
+          # Preload nodes and edges with deterministic ordering
+          {:ok,
+           Repo.preload(new_flow,
+             nodes: from(n in FlowNode, order_by: [asc: n.inserted_at, asc: n.id]),
+             edges: from(e in FlowEdge, order_by: [asc: e.inserted_at, asc: e.id])
+           )}
 
         {:error, :new_flow, changeset, _} ->
           {:error, changeset}
@@ -343,41 +347,50 @@ defmodule Helix.Flows.Storage do
   @spec update_flow_data(Flow.t(), [map()], [map()], integer()) ::
           {:ok, Flow.t()} | {:error, :version_conflict | Ecto.Changeset.t()}
   def update_flow_data(%Flow{} = flow, nodes_attrs, edges_attrs, expected_version) do
-    with :ok <- check_version(flow, expected_version) do
-      now = DateTime.utc_now() |> DateTime.truncate(:second)
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-      # Prepare nodes and edges with timestamps for bulk insert
-      nodes_to_insert =
-        Enum.map(nodes_attrs, fn node_attrs ->
-          node_attrs
-          |> Map.put(:flow_id, flow.id)
-          |> Map.put(:inserted_at, now)
-          |> Map.put(:updated_at, now)
-        end)
+    # Prepare nodes and edges with timestamps for bulk insert
+    nodes_to_insert =
+      Enum.map(nodes_attrs, fn node_attrs ->
+        node_attrs
+        |> Map.put(:flow_id, flow.id)
+        |> Map.put(:inserted_at, now)
+        |> Map.put(:updated_at, now)
+      end)
 
-      edges_to_insert =
-        Enum.map(edges_attrs, fn edge_attrs ->
-          edge_attrs
-          |> Map.put(:flow_id, flow.id)
-          |> Map.put(:inserted_at, now)
-          |> Map.put(:updated_at, now)
-        end)
+    edges_to_insert =
+      Enum.map(edges_attrs, fn edge_attrs ->
+        edge_attrs
+        |> Map.put(:flow_id, flow.id)
+        |> Map.put(:inserted_at, now)
+        |> Map.put(:updated_at, now)
+      end)
 
-      # Use Ecto.Multi for atomic transaction
-      Ecto.Multi.new()
-      |> Ecto.Multi.delete_all(:delete_nodes, from(n in FlowNode, where: n.flow_id == ^flow.id))
-      |> Ecto.Multi.delete_all(:delete_edges, from(e in FlowEdge, where: e.flow_id == ^flow.id))
-      |> Ecto.Multi.insert_all(:insert_nodes, FlowNode, nodes_to_insert)
-      |> Ecto.Multi.insert_all(:insert_edges, FlowEdge, edges_to_insert)
-      |> Ecto.Multi.update(:increment_version, Flow.increment_version_changeset(flow))
-      |> Repo.transaction()
-      |> case do
-        {:ok, %{increment_version: updated_flow}} ->
-          {:ok, Repo.preload(updated_flow, [:nodes, :edges], force: true)}
+    # Use Ecto.Multi for atomic transaction with version lock
+    Ecto.Multi.new()
+    # Lock the flow row and re-check version inside the transaction
+    |> Ecto.Multi.run(:lock_flow, fn repo, _changes ->
+      locked_flow = repo.one!(from(f in Flow, where: f.id == ^flow.id, lock: "FOR UPDATE"))
 
-        {:error, _operation, reason, _changes} ->
-          {:error, reason}
+      case check_version(locked_flow, expected_version) do
+        :ok -> {:ok, locked_flow}
+        {:error, :version_conflict} -> {:error, :version_conflict}
       end
+    end)
+    |> Ecto.Multi.delete_all(:delete_nodes, from(n in FlowNode, where: n.flow_id == ^flow.id))
+    |> Ecto.Multi.delete_all(:delete_edges, from(e in FlowEdge, where: e.flow_id == ^flow.id))
+    |> Ecto.Multi.insert_all(:insert_nodes, FlowNode, nodes_to_insert)
+    |> Ecto.Multi.insert_all(:insert_edges, FlowEdge, edges_to_insert)
+    |> Ecto.Multi.update(:increment_version, fn %{lock_flow: locked_flow} ->
+      Flow.increment_version_changeset(locked_flow)
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{increment_version: updated_flow}} ->
+        {:ok, Repo.preload(updated_flow, [:nodes, :edges], force: true)}
+
+      {:error, _operation, reason, _changes} ->
+        {:error, reason}
     end
   end
 
