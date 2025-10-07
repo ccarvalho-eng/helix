@@ -1,8 +1,6 @@
 defmodule HelixWeb.Utils do
   @moduledoc """
   Utility functions shared across the web layer.
-
-  Following OTP design principles: keep it simple and focused.
   """
 
   @doc """

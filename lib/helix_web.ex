@@ -9,7 +9,7 @@ defmodule HelixWeb do
       use HelixWeb, :html
 
   The definitions below will be executed for every controller,
-  component, etc, so keep them short and clean, focused
+  component, etc, so keep them short and focused
   on imports, uses and aliases.
 
   Do NOT define functions inside the quoted expressions

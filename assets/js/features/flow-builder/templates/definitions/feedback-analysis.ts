@@ -107,7 +107,7 @@ export const feedbackAnalysisTemplate: Template = {
       id: 'report-generator',
       type: 'skill',
       label: 'Report Generation',
-      description: 'Create comprehensive feedback analysis reports',
+      description: 'Create feedback analysis reports',
       x: 1100,
       y: 200,
       config: {

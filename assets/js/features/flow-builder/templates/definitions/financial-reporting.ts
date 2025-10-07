@@ -3,7 +3,7 @@ import { Template } from '../types';
 export const financialReportingTemplate: Template = {
   id: 'financial-reporting',
   name: 'Automated Financial Reporting',
-  description: 'Generate comprehensive financial reports with AI insights',
+  description: 'Generate financial reports with AI insights',
   category: 'data-analysis',
   nodes: [
     {
@@ -155,7 +155,7 @@ export const financialReportingTemplate: Template = {
     {
       id: 'financial-report',
       type: 'output',
-      label: 'Comprehensive Financial Report',
+      label: 'Financial Report',
       description: 'Complete financial analysis with insights and forecasts',
       x: 1300,
       y: 275,

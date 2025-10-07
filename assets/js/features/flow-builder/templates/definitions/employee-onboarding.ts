@@ -3,7 +3,7 @@ import { Template } from '../types';
 export const employeeOnboardingTemplate: Template = {
   id: 'employee-onboarding',
   name: 'Employee Onboarding Automation',
-  description: 'Streamline new employee onboarding process with AI assistance',
+  description: 'Automate new employee onboarding process with AI assistance',
   category: 'business-automation',
   nodes: [
     {
