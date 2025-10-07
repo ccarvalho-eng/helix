@@ -46,7 +46,6 @@ defmodule HelixWeb.Resolvers.Flows do
       {:ok, flow_with_data} -> {:ok, flow_with_data}
       {:error, :not_found} -> {:error, "Flow not found"}
       {:error, :unauthorized} -> {:error, "Unauthorized"}
-      {:error, _} -> {:error, "Flow not found"}
     end
   end
 
