@@ -56,6 +56,7 @@ defmodule Helix.Flows.FlowNode do
     |> validate_length(:type, min: 1, max: 100)
     |> validate_number(:width, greater_than: 0)
     |> validate_number(:height, greater_than: 0)
+    |> validate_position()
     |> validate_data()
     |> foreign_key_constraint(:flow_id)
     |> unique_constraint([:flow_id, :node_id],

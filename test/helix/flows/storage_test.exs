@@ -270,8 +270,20 @@ defmodule Helix.Flows.StorageTest do
 
     test "updates nodes and edges with correct version", %{flow: flow} do
       nodes_attrs = [
-        %{node_id: "n1", type: "agent", position_x: 10, position_y: 20, data: %{label: "Node 1"}},
-        %{node_id: "n2", type: "tool", position_x: 30, position_y: 40, data: %{label: "Node 2"}}
+        %{
+          node_id: "n1",
+          type: "agent",
+          position_x: 10.0,
+          position_y: 20.0,
+          data: %{label: "Node 1"}
+        },
+        %{
+          node_id: "n2",
+          type: "tool",
+          position_x: 30.0,
+          position_y: 40.0,
+          data: %{label: "Node 2"}
+        }
       ]
 
       edges_attrs = [
@@ -300,12 +312,12 @@ defmodule Helix.Flows.StorageTest do
         flow_id: flow.id,
         node_id: "old-node",
         type: "agent",
-        position_x: 0,
-        position_y: 0
+        position_x: 0.0,
+        position_y: 0.0
       })
 
       new_nodes = [
-        %{node_id: "new-node", type: "tool", position_x: 100, position_y: 100, data: %{}}
+        %{node_id: "new-node", type: "tool", position_x: 100.0, position_y: 100.0, data: %{}}
       ]
 
       assert {:ok, updated_flow} = Storage.update_flow_data(flow.id, new_nodes, [], 1)

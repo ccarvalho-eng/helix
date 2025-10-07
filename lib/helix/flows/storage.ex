@@ -210,56 +210,69 @@ defmodule Helix.Flows.Storage do
           {:ok, Flow.t()} | {:error, :not_found | Ecto.Changeset.t()}
   def duplicate_flow(flow_id, user_id, new_title \\ nil) do
     with {:ok, source_flow} <- get_flow_with_data(flow_id) do
-      Repo.transaction(fn ->
-        # Create new flow
-        title = new_title || "#{source_flow.title} (Copy)"
+      title = new_title || "#{source_flow.title} (Copy)"
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-        {:ok, new_flow} =
-          create_flow(%{
-            user_id: user_id,
-            title: title,
-            description: source_flow.description,
-            viewport_x: source_flow.viewport_x,
-            viewport_y: source_flow.viewport_y,
-            viewport_zoom: source_flow.viewport_zoom,
-            is_template: false
-          })
+      new_flow_attrs = %{
+        user_id: user_id,
+        title: title,
+        description: source_flow.description,
+        viewport_x: source_flow.viewport_x,
+        viewport_y: source_flow.viewport_y,
+        viewport_zoom: source_flow.viewport_zoom,
+        is_template: false
+      }
 
-        # Duplicate nodes
-        Enum.each(source_flow.nodes, fn node ->
-          %FlowNode{}
-          |> FlowNode.changeset(%{
-            flow_id: new_flow.id,
-            node_id: node.node_id,
-            type: node.type,
-            position_x: node.position_x,
-            position_y: node.position_y,
-            width: node.width,
-            height: node.height,
-            data: node.data
-          })
-          |> Repo.insert!()
-        end)
+      # Use Ecto.Multi for atomic duplication
+      Ecto.Multi.new()
+      |> Ecto.Multi.insert(:new_flow, Flow.create_changeset(%Flow{}, new_flow_attrs))
+      |> Ecto.Multi.run(:nodes, fn _repo, %{new_flow: new_flow} ->
+        nodes_attrs =
+          Enum.map(source_flow.nodes, fn node ->
+            %{
+              flow_id: new_flow.id,
+              node_id: node.node_id,
+              type: node.type,
+              position_x: node.position_x,
+              position_y: node.position_y,
+              width: node.width,
+              height: node.height,
+              data: node.data,
+              inserted_at: now,
+              updated_at: now
+            }
+          end)
 
-        # Duplicate edges
-        Enum.each(source_flow.edges, fn edge ->
-          %FlowEdge{}
-          |> FlowEdge.changeset(%{
-            flow_id: new_flow.id,
-            edge_id: edge.edge_id,
-            source_node_id: edge.source_node_id,
-            target_node_id: edge.target_node_id,
-            source_handle: edge.source_handle,
-            target_handle: edge.target_handle,
-            edge_type: edge.edge_type,
-            animated: edge.animated,
-            data: edge.data
-          })
-          |> Repo.insert!()
-        end)
-
-        new_flow
+        {count, _} = Repo.insert_all(FlowNode, nodes_attrs)
+        {:ok, count}
       end)
+      |> Ecto.Multi.run(:edges, fn _repo, %{new_flow: new_flow} ->
+        edges_attrs =
+          Enum.map(source_flow.edges, fn edge ->
+            %{
+              flow_id: new_flow.id,
+              edge_id: edge.edge_id,
+              source_node_id: edge.source_node_id,
+              target_node_id: edge.target_node_id,
+              source_handle: edge.source_handle,
+              target_handle: edge.target_handle,
+              edge_type: edge.edge_type,
+              animated: edge.animated,
+              data: edge.data,
+              inserted_at: now,
+              updated_at: now
+            }
+          end)
+
+        {count, _} = Repo.insert_all(FlowEdge, edges_attrs)
+        {:ok, count}
+      end)
+      |> Repo.transaction()
+      |> case do
+        {:ok, %{new_flow: new_flow}} -> {:ok, new_flow}
+        {:error, :new_flow, changeset, _} -> {:error, changeset}
+        {:error, _, reason, _} -> {:error, reason}
+      end
     end
   end
 
@@ -292,31 +305,40 @@ defmodule Helix.Flows.Storage do
   def update_flow_data(flow_id, nodes_attrs, edges_attrs, expected_version) do
     with {:ok, flow} <- get_flow(flow_id),
          :ok <- check_version(flow, expected_version) do
-      Repo.transaction(fn ->
-        # Delete existing nodes and edges (cascade will handle it)
-        Repo.delete_all(from(n in FlowNode, where: n.flow_id == ^flow_id))
-        Repo.delete_all(from(e in FlowEdge, where: e.flow_id == ^flow_id))
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-        # Insert new nodes
-        Enum.each(nodes_attrs, fn node_attrs ->
-          %FlowNode{}
-          |> FlowNode.changeset(Map.put(node_attrs, :flow_id, flow_id))
-          |> Repo.insert!()
+      # Prepare nodes and edges with timestamps for bulk insert
+      nodes_to_insert =
+        Enum.map(nodes_attrs, fn node_attrs ->
+          node_attrs
+          |> Map.put(:flow_id, flow_id)
+          |> Map.put(:inserted_at, now)
+          |> Map.put(:updated_at, now)
         end)
 
-        # Insert new edges
-        Enum.each(edges_attrs, fn edge_attrs ->
-          %FlowEdge{}
-          |> FlowEdge.changeset(Map.put(edge_attrs, :flow_id, flow_id))
-          |> Repo.insert!()
+      edges_to_insert =
+        Enum.map(edges_attrs, fn edge_attrs ->
+          edge_attrs
+          |> Map.put(:flow_id, flow_id)
+          |> Map.put(:inserted_at, now)
+          |> Map.put(:updated_at, now)
         end)
 
-        # Increment version
-        flow
-        |> Flow.increment_version_changeset()
-        |> Repo.update!()
-        |> Repo.preload([:nodes, :edges], force: true)
-      end)
+      # Use Ecto.Multi for atomic transaction
+      Ecto.Multi.new()
+      |> Ecto.Multi.delete_all(:delete_nodes, from(n in FlowNode, where: n.flow_id == ^flow_id))
+      |> Ecto.Multi.delete_all(:delete_edges, from(e in FlowEdge, where: e.flow_id == ^flow_id))
+      |> Ecto.Multi.insert_all(:insert_nodes, FlowNode, nodes_to_insert)
+      |> Ecto.Multi.insert_all(:insert_edges, FlowEdge, edges_to_insert)
+      |> Ecto.Multi.update(:increment_version, Flow.increment_version_changeset(flow))
+      |> Repo.transaction()
+      |> case do
+        {:ok, %{increment_version: updated_flow}} ->
+          {:ok, Repo.preload(updated_flow, [:nodes, :edges], force: true)}
+
+        {:error, _operation, reason, _changes} ->
+          {:error, reason}
+      end
     end
   end
 
