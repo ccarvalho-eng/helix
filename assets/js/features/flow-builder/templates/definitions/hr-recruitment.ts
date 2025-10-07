@@ -3,7 +3,7 @@ import { Template } from '../types';
 export const hrRecruitmentTemplate: Template = {
   id: 'hr-recruitment',
   name: 'AI-Powered Recruitment Pipeline',
-  description: 'Streamline recruitment process with AI-driven candidate screening',
+  description: 'Automate recruitment process with AI-driven candidate screening',
   category: 'business-automation',
   nodes: [
     {

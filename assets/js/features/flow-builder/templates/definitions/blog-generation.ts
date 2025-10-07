@@ -50,7 +50,7 @@ export const blogGenerationTemplate: Template = {
         temperature: 0.4,
         max_tokens: 800,
         system_prompt:
-          'Create comprehensive content outlines that satisfy search intent and provide value to readers.',
+          'Create content outlines that satisfy search intent and provide value to readers.',
       },
     },
     {

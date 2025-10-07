@@ -7,7 +7,7 @@ defmodule HelixWeb.Schema.CustomTypes do
 
   @desc """
   The JSON scalar type represents arbitrary JSON data as a map.
-  This is used for flexible configuration data in nodes and edges.
+  This stores configuration data with varying structure in nodes and edges.
   """
   scalar :json do
     description("""

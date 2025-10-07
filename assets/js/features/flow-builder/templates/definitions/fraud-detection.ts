@@ -69,7 +69,7 @@ export const fraudDetectionTemplate: Template = {
       id: 'risk-calculator',
       type: 'skill',
       label: 'Risk Score Calculator',
-      description: 'Calculate comprehensive fraud risk score',
+      description: 'Calculate fraud risk score',
       x: 700,
       y: 200,
       config: {

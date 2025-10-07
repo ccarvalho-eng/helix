@@ -4,7 +4,7 @@ defmodule Helix.Flows do
 
   ## Examples
 
-  The Flows context provides a simple API for managing flow sessions:
+  The Flows context provides an API for managing flow sessions:
 
       iex> # Join clients to flows
       iex> Helix.Flows.join_flow("my-flow", "client-1")

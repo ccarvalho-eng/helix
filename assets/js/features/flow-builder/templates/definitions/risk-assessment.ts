@@ -3,7 +3,7 @@ import { Template } from '../types';
 export const riskAssessmentTemplate: Template = {
   id: 'risk-assessment',
   name: 'Financial Risk Assessment',
-  description: 'Comprehensive financial risk analysis and scoring',
+  description: 'Financial risk analysis and scoring',
   category: 'finance',
   nodes: [
     {
@@ -32,7 +32,7 @@ export const riskAssessmentTemplate: Template = {
       id: 'risk-report',
       type: 'output',
       label: 'Risk Assessment Report',
-      description: 'Comprehensive risk analysis and recommendations',
+      description: 'Risk analysis and recommendations',
       x: 500,
       y: 250,
     },
