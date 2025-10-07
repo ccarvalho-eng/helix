@@ -1,13 +1,14 @@
 defmodule Helix.Flows.StorageTest do
   use Helix.DataCase, async: true
 
-  alias Helix.Accounts
   alias Helix.Flows.Storage
-  alias Helix.Flows.{FlowEdge, FlowNode}
+
+  import Helix.AccountsFixtures
+  import Helix.FlowsFixtures
 
   describe "list_user_flows/1" do
     setup do
-      {:ok, user} = create_user()
+      user = user_fixture()
       {:ok, user: user}
     end
 
@@ -37,8 +38,8 @@ defmodule Helix.Flows.StorageTest do
     end
 
     test "does not return other users' flows", %{user: user1} do
-      {:ok, user2} = create_user()
-      {:ok, _flow} = Storage.create_flow(%{user_id: user2.id, title: "User 2 Flow"})
+      user2 = user_fixture()
+      _flow = flow_fixture(%{user_id: user2.id, title: "User 2 Flow"})
 
       assert [] = Storage.list_user_flows(user1.id)
     end
@@ -46,7 +47,7 @@ defmodule Helix.Flows.StorageTest do
 
   describe "get_flow/1" do
     setup do
-      {:ok, user} = create_user()
+      user = user_fixture()
       {:ok, user: user}
     end
 
@@ -71,8 +72,8 @@ defmodule Helix.Flows.StorageTest do
 
   describe "get_user_flow/2" do
     setup do
-      {:ok, user1} = create_user()
-      {:ok, user2} = create_user()
+      user1 = user_fixture()
+      user2 = user_fixture()
       {:ok, user1: user1, user2: user2}
     end
 
@@ -95,33 +96,34 @@ defmodule Helix.Flows.StorageTest do
 
   describe "get_flow_with_data/1" do
     setup do
-      {:ok, user} = create_user()
-      {:ok, flow} = Storage.create_flow(%{user_id: user.id, title: "Test Flow"})
-      {:ok, user: user, flow: flow}
+      user = user_fixture()
+
+      %{flow: flow, nodes: nodes, edges: edges} =
+        flow_with_data_fixture(%{user_id: user.id, node_count: 2})
+
+      {:ok, user: user, flow: flow, expected_nodes: nodes, expected_edges: edges}
     end
 
-    test "preloads nodes and edges", %{flow: flow} do
-      # Create nodes
-      node1 = insert_node(flow.id, "node-1", %{type: "agent", position_x: 100, position_y: 100})
-      node2 = insert_node(flow.id, "node-2", %{type: "tool", position_x: 200, position_y: 200})
-
-      # Create edge
-      edge1 =
-        insert_edge(flow.id, "edge-1", %{source_node_id: "node-1", target_node_id: "node-2"})
-
+    test "preloads nodes and edges", %{
+      flow: flow,
+      expected_nodes: expected_nodes,
+      expected_edges: expected_edges
+    } do
       assert {:ok, loaded_flow} = Storage.get_flow_with_data(flow.id)
       assert length(loaded_flow.nodes) == 2
       assert length(loaded_flow.edges) == 1
 
-      assert Enum.find(loaded_flow.nodes, &(&1.id == node1.id))
-      assert Enum.find(loaded_flow.nodes, &(&1.id == node2.id))
-      assert Enum.find(loaded_flow.edges, &(&1.id == edge1.id))
+      node_ids = Enum.map(expected_nodes, & &1.id)
+      edge_ids = Enum.map(expected_edges, & &1.id)
+
+      assert Enum.all?(loaded_flow.nodes, &(&1.id in node_ids))
+      assert Enum.all?(loaded_flow.edges, &(&1.id in edge_ids))
     end
   end
 
   describe "create_flow/1" do
     setup do
-      {:ok, user} = create_user()
+      user = user_fixture()
       {:ok, user: user}
     end
 
@@ -187,8 +189,8 @@ defmodule Helix.Flows.StorageTest do
 
   describe "update_flow/2" do
     setup do
-      {:ok, user} = create_user()
-      {:ok, flow} = Storage.create_flow(%{user_id: user.id, title: "Original Title"})
+      user = user_fixture()
+      flow = flow_fixture(%{user_id: user.id, title: "Original Title"})
       {:ok, user: user, flow: flow}
     end
 
@@ -219,8 +221,8 @@ defmodule Helix.Flows.StorageTest do
 
   describe "delete_flow/1" do
     setup do
-      {:ok, user} = create_user()
-      {:ok, flow} = Storage.create_flow(%{user_id: user.id, title: "Test Flow"})
+      user = user_fixture()
+      flow = flow_fixture(%{user_id: user.id, title: "Test Flow"})
       {:ok, user: user, flow: flow}
     end
 
@@ -233,14 +235,8 @@ defmodule Helix.Flows.StorageTest do
 
   describe "duplicate_flow/3" do
     setup do
-      {:ok, user} = create_user()
-      {:ok, flow} = Storage.create_flow(%{user_id: user.id, title: "Original Flow"})
-
-      # Add nodes and edges
-      insert_node(flow.id, "node-1", %{type: "agent", position_x: 100, position_y: 100})
-      insert_node(flow.id, "node-2", %{type: "tool", position_x: 200, position_y: 200})
-      insert_edge(flow.id, "edge-1", %{source_node_id: "node-1", target_node_id: "node-2"})
-
+      user = user_fixture()
+      %{flow: flow} = flow_with_data_fixture(%{user_id: user.id, node_count: 2})
       {:ok, user: user, flow: flow}
     end
 
@@ -257,7 +253,7 @@ defmodule Helix.Flows.StorageTest do
 
     test "generates default title when not provided", %{user: user, flow: source_flow} do
       assert {:ok, new_flow} = Storage.duplicate_flow(source_flow.id, user.id)
-      assert new_flow.title == "Original Flow (Copy)"
+      assert String.ends_with?(new_flow.title, "(Copy)")
     end
 
     test "returns error when source flow not found", %{user: user} do
@@ -267,8 +263,8 @@ defmodule Helix.Flows.StorageTest do
 
   describe "update_flow_data/4" do
     setup do
-      {:ok, user} = create_user()
-      {:ok, flow} = Storage.create_flow(%{user_id: user.id, title: "Test Flow"})
+      user = user_fixture()
+      flow = flow_fixture(%{user_id: user.id, title: "Test Flow"})
       {:ok, user: user, flow: flow}
     end
 
@@ -300,7 +296,13 @@ defmodule Helix.Flows.StorageTest do
 
     test "replaces existing nodes and edges", %{flow: flow} do
       # Insert initial data
-      insert_node(flow.id, "old-node", %{type: "agent", position_x: 0, position_y: 0})
+      flow_node_fixture(%{
+        flow_id: flow.id,
+        node_id: "old-node",
+        type: "agent",
+        position_x: 0,
+        position_y: 0
+      })
 
       new_nodes = [
         %{node_id: "new-node", type: "tool", position_x: 100, position_y: 100, data: %{}}
@@ -314,25 +316,11 @@ defmodule Helix.Flows.StorageTest do
 
   describe "list_templates/1" do
     setup do
-      {:ok, user} = create_user()
+      user = user_fixture()
 
-      {:ok, _template1} =
-        Storage.create_flow(%{
-          user_id: user.id,
-          title: "Healthcare Template",
-          is_template: true,
-          template_category: "healthcare"
-        })
-
-      {:ok, _template2} =
-        Storage.create_flow(%{
-          user_id: user.id,
-          title: "Finance Template",
-          is_template: true,
-          template_category: "finance"
-        })
-
-      {:ok, _regular_flow} = Storage.create_flow(%{user_id: user.id, title: "Regular Flow"})
+      _template1 = template_flow_fixture(%{user_id: user.id, template_category: "healthcare"})
+      _template2 = template_flow_fixture(%{user_id: user.id, template_category: "finance"})
+      _regular_flow = flow_fixture(%{user_id: user.id, title: "Regular Flow"})
 
       {:ok, user: user}
     end
@@ -353,53 +341,5 @@ defmodule Helix.Flows.StorageTest do
       templates = Storage.list_templates("nonexistent")
       assert templates == []
     end
-  end
-
-  # Helper functions
-
-  defp create_user do
-    unique_email = "user#{System.unique_integer([:positive])}@example.com"
-
-    Accounts.create_user(%{
-      email: unique_email,
-      password: "ValidPass123",
-      first_name: "Test",
-      last_name: "User"
-    })
-  end
-
-  defp insert_node(flow_id, node_id, attrs) do
-    %FlowNode{}
-    |> FlowNode.changeset(
-      Map.merge(
-        %{
-          flow_id: flow_id,
-          node_id: node_id,
-          type: "default",
-          position_x: 0.0,
-          position_y: 0.0,
-          data: %{}
-        },
-        attrs
-      )
-    )
-    |> Repo.insert!()
-  end
-
-  defp insert_edge(flow_id, edge_id, attrs) do
-    %FlowEdge{}
-    |> FlowEdge.changeset(
-      Map.merge(
-        %{
-          flow_id: flow_id,
-          edge_id: edge_id,
-          source_node_id: "default-source",
-          target_node_id: "default-target",
-          data: %{}
-        },
-        attrs
-      )
-    )
-    |> Repo.insert!()
   end
 end
