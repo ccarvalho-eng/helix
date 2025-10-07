@@ -43,7 +43,7 @@
 		"@babel/preset-typescript": "^7.27.1",
 		"@graphql-codegen/cli": "^6.0.0",
 		"@graphql-codegen/typescript": "^5.0.0",
-		"@graphql-codegen/typescript-operations": "^5.0.0",
+		"@graphql-codegen/typescript-operations": "^5.0.2",
 		"@graphql-codegen/typescript-react-apollo": "^4.3.3",
 		"@playwright/test": "^1.55.1",
 		"@testing-library/jest-dom": "^6.8.0",
