@@ -39,12 +39,12 @@ defmodule HelixWeb.Schema.CustomTypes do
   end
 
   defp decode(%Absinthe.Blueprint.Input.Object{fields: fields}) do
-    result =
-      Map.new(fields, fn %{name: name, input_value: %{data: value}} ->
-        {name, value}
-      end)
-
-    {:ok, result}
+    Enum.reduce_while(fields, {:ok, %{}}, fn %{name: name, input_value: iv}, {:ok, acc} ->
+      case decode_input_value(iv) do
+        {:ok, value} -> {:cont, {:ok, Map.put(acc, name, value)}}
+        :error -> {:halt, :error}
+      end
+    end)
   end
 
   defp decode(%Absinthe.Blueprint.Input.Null{}) do
@@ -52,4 +52,36 @@ defmodule HelixWeb.Schema.CustomTypes do
   end
 
   defp decode(_), do: :error
+
+  # Recursively decode Absinthe input values into Elixir terms
+  @spec decode_input_value(term()) :: {:ok, term()} | :error
+  defp decode_input_value(%Absinthe.Blueprint.Input.Object{fields: fields}) do
+    Enum.reduce_while(fields, {:ok, %{}}, fn %{name: name, input_value: iv}, {:ok, acc} ->
+      case decode_input_value(iv) do
+        {:ok, value} -> {:cont, {:ok, Map.put(acc, name, value)}}
+        :error -> {:halt, :error}
+      end
+    end)
+  end
+
+  defp decode_input_value(%Absinthe.Blueprint.Input.List{items: items}) do
+    items
+    |> Enum.reduce_while({:ok, []}, fn iv, {:ok, acc} ->
+      case decode_input_value(iv) do
+        {:ok, value} -> {:cont, {:ok, [value | acc]}}
+        :error -> {:halt, :error}
+      end
+    end)
+    |> case do
+      {:ok, acc} -> {:ok, Enum.reverse(acc)}
+      :error -> :error
+    end
+  end
+
+  defp decode_input_value(%Absinthe.Blueprint.Input.String{value: value}), do: {:ok, value}
+  defp decode_input_value(%Absinthe.Blueprint.Input.Integer{value: value}), do: {:ok, value}
+  defp decode_input_value(%Absinthe.Blueprint.Input.Float{value: value}), do: {:ok, value}
+  defp decode_input_value(%Absinthe.Blueprint.Input.Boolean{value: value}), do: {:ok, value}
+  defp decode_input_value(%Absinthe.Blueprint.Input.Null{}), do: {:ok, nil}
+  defp decode_input_value(_), do: :error
 end
