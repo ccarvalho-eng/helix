@@ -1,4 +1,3 @@
-import React from 'react';
 import { Image, Loader2 } from 'lucide-react';
 import { useDownloadImage } from '../hooks/useDownloadImage';
 import { useThemeContext } from '../contexts/ThemeContext';
