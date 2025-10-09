@@ -111,6 +111,30 @@ defmodule Helix.Flows.SessionServer do
   end
 
   @doc """
+  Persist flow changes to the database.
+
+  Asynchronously persists nodes, edges, and viewport changes to the database
+  using optimistic locking via the version field.
+
+  ## Parameters
+    - flow_id: The flow ID
+    - changes: Map containing nodes, edges, and viewport data
+
+  ## Returns
+    - :ok
+  """
+  @spec persist_flow_changes(flow_id(), map()) :: :ok
+  def persist_flow_changes(flow_id, changes) do
+    case Registry.lookup(Helix.Flows.Registry, flow_id) do
+      [{pid, _}] ->
+        GenServer.cast(pid, {:persist_changes, changes})
+
+      [] ->
+        :ok
+    end
+  end
+
+  @doc """
   Get a map of all active flow sessions.
 
   Returns a map where keys are flow IDs and values contain session information
@@ -185,12 +209,35 @@ defmodule Helix.Flows.SessionServer do
 
   @impl true
   def init(%{flow_id: flow_id}) do
+    # Load flow data from database
+    flow_data =
+      case Helix.Flows.Storage.get_flow_with_data(flow_id) do
+        {:ok, flow} ->
+          %{
+            nodes: flow.nodes,
+            edges: flow.edges,
+            viewport: %{
+              x: flow.viewport_x,
+              y: flow.viewport_y,
+              zoom: flow.viewport_zoom
+            },
+            version: flow.version
+          }
+
+        {:error, :not_found} ->
+          # Flow doesn't exist, initialize with empty state
+          # This shouldn't happen due to validation in join_flow, but handle gracefully
+          Logger.warning("Flow #{flow_id} not found in database during session init")
+          nil
+      end
+
     # Schedule periodic cleanup
     cleanup_timer = schedule_cleanup()
 
     {:ok,
      %{
        flow_id: flow_id,
+       flow_data: flow_data,
        clients: MapSet.new(),
        last_activity: System.system_time(:second),
        cleanup_timer: cleanup_timer
@@ -265,6 +312,37 @@ defmodule Helix.Flows.SessionServer do
   end
 
   @impl true
+  def handle_cast({:persist_changes, changes}, state) do
+    # Persist changes asynchronously
+    flow_id = state.flow_id
+    current_version = get_in(state.flow_data, [:version]) || 1
+
+    Task.Supervisor.start_child(Helix.TaskSupervisor, fn ->
+      persist_to_database(flow_id, changes, current_version)
+    end)
+
+    # Update flow_data in state with the new changes
+    updated_flow_data =
+      if state.flow_data do
+        state.flow_data
+        |> Map.put(:nodes, Map.get(changes, :nodes, state.flow_data.nodes))
+        |> Map.put(:edges, Map.get(changes, :edges, state.flow_data.edges))
+        |> update_viewport(changes)
+      else
+        # Initialize flow_data if it doesn't exist
+        %{
+          nodes: Map.get(changes, :nodes, []),
+          edges: Map.get(changes, :edges, []),
+          viewport: Map.get(changes, :viewport, %{x: 0, y: 0, zoom: 1.0}),
+          version: current_version
+        }
+      end
+
+    {:noreply,
+     %{state | flow_data: updated_flow_data, last_activity: System.system_time(:second)}}
+  end
+
+  @impl true
   def handle_info(:cleanup_inactive_sessions, state) do
     now = System.system_time(:second)
     # 30 minutes
@@ -322,5 +400,110 @@ defmodule Helix.Flows.SessionServer do
   defp schedule_cleanup do
     # 10 minutes
     Process.send_after(self(), :cleanup_inactive_sessions, 10 * 60 * 1000)
+  end
+
+  defp persist_to_database(flow_id, changes, current_version) do
+    try do
+      with {:ok, flow} <- Helix.Flows.Storage.get_flow(flow_id) do
+        # Convert node maps to attribute maps for Storage.update_flow_data
+        nodes_attrs =
+          changes
+          |> Map.get(:nodes, [])
+          |> Enum.map(&node_to_attrs/1)
+
+        edges_attrs =
+          changes
+          |> Map.get(:edges, [])
+          |> Enum.map(&edge_to_attrs/1)
+
+        # Update flow data with optimistic locking
+        case Helix.Flows.Storage.update_flow_data(flow, nodes_attrs, edges_attrs, current_version) do
+          {:ok, updated_flow} ->
+            Logger.debug(
+              "Successfully persisted flow #{flow_id} changes (version #{updated_flow.version})"
+            )
+
+            # Update viewport if provided
+            if viewport = Map.get(changes, :viewport) do
+              viewport_attrs = %{
+                viewport_x: viewport.x,
+                viewport_y: viewport.y,
+                viewport_zoom: viewport.zoom
+              }
+
+              case Helix.Flows.Storage.update_flow(updated_flow, viewport_attrs) do
+                {:ok, _} ->
+                  Logger.debug("Successfully updated viewport for flow #{flow_id}")
+
+                {:error, reason} ->
+                  Logger.warning(
+                    "Failed to update viewport for flow #{flow_id}: #{inspect(reason)}"
+                  )
+              end
+            end
+
+          {:error, :version_conflict} ->
+            Logger.warning(
+              "Version conflict when persisting flow #{flow_id} (expected: #{current_version})"
+            )
+
+          {:error, reason} ->
+            Logger.error("Failed to persist flow #{flow_id} changes: #{inspect(reason)}")
+        end
+      else
+        {:error, :not_found} ->
+          Logger.debug(
+            "Flow #{flow_id} not found when attempting to persist changes (likely deleted)"
+          )
+      end
+    rescue
+      Ecto.NoResultsError ->
+        Logger.debug("Flow #{flow_id} was deleted before persistence could complete")
+
+      error in [DBConnection.ConnectionError] ->
+        Logger.debug(
+          "Database connection error during persistence for flow #{flow_id}: #{inspect(error.message)}"
+        )
+
+      error ->
+        Logger.warning(
+          "Unexpected error during persistence for flow #{flow_id}: #{inspect(error)}"
+        )
+    end
+  end
+
+  defp node_to_attrs(node) when is_map(node) do
+    %{
+      node_id: node.node_id,
+      type: node.type,
+      position_x: node.position_x,
+      position_y: node.position_y,
+      width: Map.get(node, :width),
+      height: Map.get(node, :height),
+      data: Map.get(node, :data, %{})
+    }
+  end
+
+  defp edge_to_attrs(edge) when is_map(edge) do
+    %{
+      edge_id: edge.edge_id,
+      source_node_id: edge.source_node_id,
+      target_node_id: edge.target_node_id,
+      source_handle: Map.get(edge, :source_handle),
+      target_handle: Map.get(edge, :target_handle),
+      edge_type: Map.get(edge, :edge_type),
+      animated: Map.get(edge, :animated, false),
+      data: Map.get(edge, :data, %{})
+    }
+  end
+
+  defp update_viewport(flow_data, changes) do
+    case Map.get(changes, :viewport) do
+      nil ->
+        flow_data
+
+      viewport ->
+        Map.put(flow_data, :viewport, viewport)
+    end
   end
 end

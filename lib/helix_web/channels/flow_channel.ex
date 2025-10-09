@@ -95,6 +95,9 @@ defmodule HelixWeb.FlowChannel do
   def handle_in("flow_change", %{"changes" => changes}, socket) do
     flow_id = socket.assigns.flow_id
 
+    # Persist changes to database (asynchronous)
+    Flows.persist_flow_changes(flow_id, changes)
+
     # Broadcast changes to other clients via the session manager
     Flows.broadcast_flow_change(flow_id, changes)
 

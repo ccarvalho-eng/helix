@@ -36,6 +36,8 @@ defmodule Helix.Flows do
   @doc """
   Join a flow session.
 
+  Validates that the flow exists in the database before joining the session.
+
   Returns `{:ok, client_count, effective_client_id}` where:
   - client_count is the total number of clients currently connected to the flow
   - effective_client_id is the actual client_id used (may be generated if input was invalid)
@@ -50,7 +52,14 @@ defmodule Helix.Flows do
   """
   @spec join_flow(flow_id(), client_id()) :: {:ok, pos_integer(), client_id()} | {:error, term()}
   def join_flow(flow_id, client_id) do
-    SessionServer.join_flow(flow_id, client_id)
+    # Validate flow exists in database before allowing session join
+    case Helix.Flows.Storage.get_flow(flow_id) do
+      {:ok, _flow} ->
+        SessionServer.join_flow(flow_id, client_id)
+
+      {:error, :not_found} ->
+        {:error, :flow_not_found}
+    end
   end
 
   @doc """
@@ -105,6 +114,22 @@ defmodule Helix.Flows do
   @spec broadcast_flow_change(flow_id(), map()) :: :ok
   def broadcast_flow_change(flow_id, changes) do
     SessionServer.broadcast_flow_change(flow_id, changes)
+  end
+
+  @doc """
+  Persist flow changes to the database.
+
+  Asynchronously persists nodes, edges, and viewport changes to the database.
+  Uses optimistic locking to prevent conflicts.
+
+  ## Examples
+
+      iex> Helix.Flows.persist_flow_changes("flow-id", %{nodes: [], edges: []})
+      :ok
+  """
+  @spec persist_flow_changes(flow_id(), map()) :: :ok
+  def persist_flow_changes(flow_id, changes) do
+    SessionServer.persist_flow_changes(flow_id, changes)
   end
 
   @doc """
