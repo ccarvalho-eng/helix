@@ -404,53 +404,10 @@ defmodule Helix.Flows.SessionServer do
 
   defp persist_to_database(flow_id, changes, current_version) do
     try do
-      with {:ok, flow} <- Helix.Flows.Storage.get_flow(flow_id) do
-        # Convert node maps to attribute maps for Storage.update_flow_data
-        nodes_attrs =
-          changes
-          |> Map.get(:nodes, [])
-          |> Enum.map(&node_to_attrs/1)
+      case Helix.Flows.Storage.get_flow(flow_id) do
+        {:ok, flow} ->
+          persist_flow_data(flow_id, flow, changes, current_version)
 
-        edges_attrs =
-          changes
-          |> Map.get(:edges, [])
-          |> Enum.map(&edge_to_attrs/1)
-
-        # Update flow data with optimistic locking
-        case Helix.Flows.Storage.update_flow_data(flow, nodes_attrs, edges_attrs, current_version) do
-          {:ok, updated_flow} ->
-            Logger.debug(
-              "Successfully persisted flow #{flow_id} changes (version #{updated_flow.version})"
-            )
-
-            # Update viewport if provided
-            if viewport = Map.get(changes, :viewport) do
-              viewport_attrs = %{
-                viewport_x: viewport.x,
-                viewport_y: viewport.y,
-                viewport_zoom: viewport.zoom
-              }
-
-              case Helix.Flows.Storage.update_flow(updated_flow, viewport_attrs) do
-                {:ok, _} ->
-                  Logger.debug("Successfully updated viewport for flow #{flow_id}")
-
-                {:error, reason} ->
-                  Logger.warning(
-                    "Failed to update viewport for flow #{flow_id}: #{inspect(reason)}"
-                  )
-              end
-            end
-
-          {:error, :version_conflict} ->
-            Logger.warning(
-              "Version conflict when persisting flow #{flow_id} (expected: #{current_version})"
-            )
-
-          {:error, reason} ->
-            Logger.error("Failed to persist flow #{flow_id} changes: #{inspect(reason)}")
-        end
-      else
         {:error, :not_found} ->
           Logger.debug(
             "Flow #{flow_id} not found when attempting to persist changes (likely deleted)"
@@ -469,6 +426,60 @@ defmodule Helix.Flows.SessionServer do
         Logger.warning(
           "Unexpected error during persistence for flow #{flow_id}: #{inspect(error)}"
         )
+    end
+  end
+
+  defp persist_flow_data(flow_id, flow, changes, current_version) do
+    # Convert node maps to attribute maps for Storage.update_flow_data
+    nodes_attrs =
+      changes
+      |> Map.get(:nodes, [])
+      |> Enum.map(&node_to_attrs/1)
+
+    edges_attrs =
+      changes
+      |> Map.get(:edges, [])
+      |> Enum.map(&edge_to_attrs/1)
+
+    # Update flow data with optimistic locking
+    case Helix.Flows.Storage.update_flow_data(
+           flow,
+           nodes_attrs,
+           edges_attrs,
+           current_version
+         ) do
+      {:ok, updated_flow} ->
+        Logger.debug(
+          "Successfully persisted flow #{flow_id} changes (version #{updated_flow.version})"
+        )
+
+        persist_viewport_if_present(flow_id, updated_flow, changes)
+
+      {:error, :version_conflict} ->
+        Logger.warning(
+          "Version conflict when persisting flow #{flow_id} (expected: #{current_version})"
+        )
+
+      {:error, reason} ->
+        Logger.error("Failed to persist flow #{flow_id} changes: #{inspect(reason)}")
+    end
+  end
+
+  defp persist_viewport_if_present(flow_id, updated_flow, changes) do
+    if viewport = Map.get(changes, :viewport) do
+      viewport_attrs = %{
+        viewport_x: viewport.x,
+        viewport_y: viewport.y,
+        viewport_zoom: viewport.zoom
+      }
+
+      case Helix.Flows.Storage.update_flow(updated_flow, viewport_attrs) do
+        {:ok, _} ->
+          Logger.debug("Successfully updated viewport for flow #{flow_id}")
+
+        {:error, reason} ->
+          Logger.warning("Failed to update viewport for flow #{flow_id}: #{inspect(reason)}")
+      end
     end
   end
 
