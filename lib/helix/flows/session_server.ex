@@ -316,10 +316,29 @@ defmodule Helix.Flows.SessionServer do
     # Persist changes asynchronously
     flow_id = state.flow_id
     current_version = get_in(state.flow_data, [:version]) || 1
+    new_version = current_version + 1
 
     Task.Supervisor.start_child(Helix.TaskSupervisor, fn ->
       persist_to_database(flow_id, changes, current_version)
     end)
+
+    # DESIGN NOTE: Optimistic state updates
+    # We update the in-memory state immediately before database persistence completes.
+    # This is an intentional design decision for collaborative editing systems:
+    #
+    # Trade-offs:
+    # - Pro: Immediate UI feedback and better user experience
+    # - Pro: Standard pattern for collaborative editing (operational transformation)
+    # - Con: Transient inconsistency if persistence fails
+    #
+    # Mitigations:
+    # - Version conflicts prevent writes based on stale state
+    # - Database is always the source of truth on SessionServer restart
+    # - All persistence errors are logged for monitoring
+    # - Atomic transactions prevent partial database updates
+    #
+    # Alternative approach (wait for persistence) would add latency and still have
+    # edge cases (e.g., server crash after DB write but before state update).
 
     # Update flow_data in state with the new changes
     updated_flow_data =
@@ -328,13 +347,14 @@ defmodule Helix.Flows.SessionServer do
         |> Map.put(:nodes, Map.get(changes, :nodes, state.flow_data.nodes))
         |> Map.put(:edges, Map.get(changes, :edges, state.flow_data.edges))
         |> update_viewport(changes)
+        |> Map.put(:version, new_version)
       else
         # Initialize flow_data if it doesn't exist
         %{
           nodes: Map.get(changes, :nodes, []),
           edges: Map.get(changes, :edges, []),
           viewport: Map.get(changes, :viewport, %{x: 0, y: 0, zoom: 1.0}),
-          version: current_version
+          version: new_version
         }
       end
 
@@ -441,19 +461,32 @@ defmodule Helix.Flows.SessionServer do
       |> Map.get(:edges, [])
       |> Enum.map(&edge_to_attrs/1)
 
-    # Update flow data with optimistic locking
-    case Helix.Flows.Storage.update_flow_data(
+    # Prepare viewport attributes if present
+    viewport_attrs =
+      case Map.get(changes, :viewport) do
+        nil ->
+          nil
+
+        viewport ->
+          %{
+            viewport_x: viewport.x,
+            viewport_y: viewport.y,
+            viewport_zoom: viewport.zoom
+          }
+      end
+
+    # Update flow data with optimistic locking in a single transaction
+    case Helix.Flows.Storage.update_flow_data_with_viewport(
            flow,
            nodes_attrs,
            edges_attrs,
-           current_version
+           current_version,
+           viewport_attrs
          ) do
       {:ok, updated_flow} ->
         Logger.debug(
           "Successfully persisted flow #{flow_id} changes (version #{updated_flow.version})"
         )
-
-        persist_viewport_if_present(flow_id, updated_flow, changes)
 
       {:error, :version_conflict} ->
         Logger.warning(
@@ -462,24 +495,6 @@ defmodule Helix.Flows.SessionServer do
 
       {:error, reason} ->
         Logger.error("Failed to persist flow #{flow_id} changes: #{inspect(reason)}")
-    end
-  end
-
-  defp persist_viewport_if_present(flow_id, updated_flow, changes) do
-    if viewport = Map.get(changes, :viewport) do
-      viewport_attrs = %{
-        viewport_x: viewport.x,
-        viewport_y: viewport.y,
-        viewport_zoom: viewport.zoom
-      }
-
-      case Helix.Flows.Storage.update_flow(updated_flow, viewport_attrs) do
-        {:ok, _} ->
-          Logger.debug("Successfully updated viewport for flow #{flow_id}")
-
-        {:error, reason} ->
-          Logger.warning("Failed to update viewport for flow #{flow_id}: #{inspect(reason)}")
-      end
     end
   end
 

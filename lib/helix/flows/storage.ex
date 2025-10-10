@@ -347,6 +347,40 @@ defmodule Helix.Flows.Storage do
   @spec update_flow_data(Flow.t(), [map()], [map()], integer()) ::
           {:ok, Flow.t()} | {:error, :version_conflict | Ecto.Changeset.t()}
   def update_flow_data(%Flow{} = flow, nodes_attrs, edges_attrs, expected_version) do
+    update_flow_data_with_viewport(flow, nodes_attrs, edges_attrs, expected_version, nil)
+  end
+
+  @doc """
+  Updates flow data (nodes, edges, and viewport) in a single transaction.
+
+  Uses optimistic locking via the version field to prevent conflicts.
+
+  ## Parameters
+    - flow: The Flow struct
+    - nodes_attrs: List of node attribute maps
+    - edges_attrs: List of edge attribute maps
+    - expected_version: Expected current version for optimistic locking
+    - viewport_attrs: Optional map with viewport_x, viewport_y, viewport_zoom
+
+  ## Returns
+    - `{:ok, flow}` with updated data preloaded
+    - `{:error, :version_conflict}` if version doesn't match
+    - `{:error, changeset}` if validation fails
+
+  ## Examples
+
+      iex> update_flow_data_with_viewport(flow, nodes, edges, 1, %{viewport_x: 0, viewport_y: 0, viewport_zoom: 1.0})
+      {:ok, %Flow{version: 2, nodes: [...], edges: [...]}}
+  """
+  @spec update_flow_data_with_viewport(Flow.t(), [map()], [map()], integer(), map() | nil) ::
+          {:ok, Flow.t()} | {:error, :version_conflict | Ecto.Changeset.t()}
+  def update_flow_data_with_viewport(
+        %Flow{} = flow,
+        nodes_attrs,
+        edges_attrs,
+        expected_version,
+        viewport_attrs
+      ) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
     # Prepare nodes and edges with timestamps for bulk insert
@@ -382,7 +416,17 @@ defmodule Helix.Flows.Storage do
     |> Ecto.Multi.insert_all(:insert_nodes, FlowNode, nodes_to_insert)
     |> Ecto.Multi.insert_all(:insert_edges, FlowEdge, edges_to_insert)
     |> Ecto.Multi.update(:increment_version, fn %{lock_flow: locked_flow} ->
-      Flow.increment_version_changeset(locked_flow)
+      # If viewport_attrs is provided, include it in the update
+      changeset =
+        if viewport_attrs do
+          locked_flow
+          |> Flow.increment_version_changeset()
+          |> Ecto.Changeset.cast(viewport_attrs, [:viewport_x, :viewport_y, :viewport_zoom])
+        else
+          Flow.increment_version_changeset(locked_flow)
+        end
+
+      changeset
     end)
     |> Repo.transaction()
     |> case do
