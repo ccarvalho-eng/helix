@@ -4,16 +4,20 @@ defmodule HelixWeb.FlowChannelTest do
   alias Helix.Flows
   alias HelixWeb.FlowChannel
 
+  import Helix.AccountsFixtures
+  import Helix.FlowsFixtures
+
   @moduletag :authenticated_socket
 
-  # Helper function to generate unique test flow IDs
-  defp test_flow_id(base_id) do
-    "#{base_id}-#{inspect(self())}-#{:erlang.unique_integer([:positive])}"
+  setup do
+    user = user_fixture()
+    {:ok, user: user}
   end
 
   describe "joining flow channels" do
-    test "successfully joins a valid flow channel", %{socket: socket} do
-      flow_id = test_flow_id("test-flow")
+    test "successfully joins a valid flow channel", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
 
@@ -33,8 +37,9 @@ defmodule HelixWeb.FlowChannelTest do
                subscribe_and_join(socket, FlowChannel, "invalid:topic")
     end
 
-    test "multiple clients can join the same flow", %{socket: socket} do
-      flow_id = "multi-client-flow"
+    test "multiple clients can join the same flow", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # First client joins
       {:ok, _reply1, _socket1} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
@@ -52,8 +57,9 @@ defmodule HelixWeb.FlowChannelTest do
                Flows.get_flow_status(flow_id)
     end
 
-    test "generates unique client IDs for different sockets", %{socket: socket} do
-      flow_id = "unique-id-test"
+    test "generates unique client IDs for different sockets", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       {:ok, _reply1, socket1} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
 
@@ -65,8 +71,9 @@ defmodule HelixWeb.FlowChannelTest do
   end
 
   describe "handling flow changes" do
-    test "broadcasts flow changes to other clients", %{socket: socket} do
-      flow_id = "broadcast-test-flow"
+    test "broadcasts flow changes to other clients", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       changes = %{
         "nodes" => [%{"id" => "node-1", "type" => "agent"}],
@@ -99,8 +106,9 @@ defmodule HelixWeb.FlowChannelTest do
       assert is_integer(timestamp)
     end
 
-    test "handles flow_change messages correctly", %{socket: socket} do
-      flow_id = "flow-change-test"
+    test "handles flow_change messages correctly", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       changes = %{
         "nodes" => [%{"id" => "node-1", "position" => %{"x" => 100, "y" => 200}}],
@@ -116,8 +124,9 @@ defmodule HelixWeb.FlowChannelTest do
       assert_reply ref, :ok, %{status: "broadcasted"}
     end
 
-    test "receives flow changes from session manager", %{socket: socket} do
-      flow_id = "session-manager-broadcast"
+    test "receives flow changes from session manager", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       changes = %{"test" => "data"}
 
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
@@ -137,8 +146,9 @@ defmodule HelixWeb.FlowChannelTest do
   end
 
   describe "ping handling" do
-    test "responds to ping messages", %{socket: socket} do
-      flow_id = "ping-test-flow"
+    test "responds to ping messages", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
 
@@ -149,8 +159,9 @@ defmodule HelixWeb.FlowChannelTest do
   end
 
   describe "unknown events" do
-    test "handles unknown events gracefully", %{socket: socket} do
-      flow_id = "unknown-event-test"
+    test "handles unknown events gracefully", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
       ref = push(socket, "unknown_event", %{"some" => "payload"})
       assert_reply ref, :error, %{reason: "Unknown event"}
@@ -158,8 +169,9 @@ defmodule HelixWeb.FlowChannelTest do
   end
 
   describe "client disconnection" do
-    test "cleans up session when client disconnects", %{socket: socket} do
-      flow_id = test_flow_id("disconnect-test-flow")
+    test "cleans up session when client disconnects", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join and verify the session was created
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
@@ -187,9 +199,11 @@ defmodule HelixWeb.FlowChannelTest do
     end
 
     test "updates client count correctly when one of multiple clients disconnects", %{
-      socket: socket
+      socket: socket,
+      user: user
     } do
-      flow_id = test_flow_id("multi-disconnect-test")
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       # Two clients join
       {:ok, _reply1, socket1} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
       socket2 = HelixWeb.ChannelCase.create_authenticated_socket()
@@ -214,9 +228,10 @@ defmodule HelixWeb.FlowChannelTest do
                Flows.get_flow_status(flow_id)
     end
 
-    test "handles disconnection gracefully when session manager is unavailable" do
+    test "handles disconnection gracefully when session manager is unavailable", %{user: user} do
       # This tests error handling in terminate/2 with a mock socket
-      flow_id = "error-handling-test"
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Create socket without joining through proper channels to simulate error conditions
       # The socket needs more complete structure to avoid crashes
@@ -233,8 +248,9 @@ defmodule HelixWeb.FlowChannelTest do
   end
 
   describe "integration with Flows" do
-    test "session manager state reflects channel operations", %{socket: socket} do
-      flow_id = test_flow_id("integration-test-flow")
+    test "session manager state reflects channel operations", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       # Initially no sessions
       assert %{} = Flows.get_active_sessions()
       # Client joins
@@ -275,8 +291,9 @@ defmodule HelixWeb.FlowChannelTest do
       assert %{} = Flows.get_active_sessions()
     end
 
-    test "flow changes are properly broadcasted through PubSub", %{socket: socket} do
-      flow_id = "pubsub-test-flow"
+    test "flow changes are properly broadcasted through PubSub", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       changes = %{"nodes" => [], "edges" => []}
       # Subscribe to PubSub topic directly
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
@@ -290,8 +307,12 @@ defmodule HelixWeb.FlowChannelTest do
   end
 
   describe "flow deletion handling" do
-    test "handles flow_deleted message by notifying client and closing channel", %{socket: socket} do
-      flow_id = test_flow_id("flow-deleted-test")
+    test "handles flow_deleted message by notifying client and closing channel", %{
+      socket: socket,
+      user: user
+    } do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
 
@@ -318,8 +339,9 @@ defmodule HelixWeb.FlowChannelTest do
       assert_receive {:EXIT, _pid, :normal}, 1000
     end
 
-    test "flow_deleted message includes correct flow_id", %{socket: socket} do
-      flow_id = test_flow_id("specific-flow-id-test")
+    test "flow_deleted message includes correct flow_id", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
 
@@ -340,9 +362,14 @@ defmodule HelixWeb.FlowChannelTest do
       assert_receive {:EXIT, _pid, :normal}, 1000
     end
 
-    test "flow_deleted message for different flow_id does not affect channel", %{socket: socket} do
-      flow_id = test_flow_id("my-flow")
-      other_flow_id = test_flow_id("other-flow")
+    test "flow_deleted message for different flow_id does not affect channel", %{
+      socket: socket,
+      user: user
+    } do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
+      other_flow = flow_fixture(%{user_id: user.id})
+      other_flow_id = other_flow.id
 
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
 
@@ -363,8 +390,9 @@ defmodule HelixWeb.FlowChannelTest do
       assert_receive {:EXIT, _pid, :normal}, 1000
     end
 
-    test "multiple clients receive flow_deleted notification", %{socket: socket} do
-      flow_id = test_flow_id("multi-client-delete-test")
+    test "multiple clients receive flow_deleted notification", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Two clients join the same flow
       {:ok, _reply1, _socket1} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
@@ -386,8 +414,9 @@ defmodule HelixWeb.FlowChannelTest do
       assert_receive {:socket_close, _pid2, :normal}, 1000
     end
 
-    test "flow_deleted notification timestamp is current", %{socket: socket} do
-      flow_id = test_flow_id("timestamp-test")
+    test "flow_deleted notification timestamp is current", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
 
@@ -414,8 +443,9 @@ defmodule HelixWeb.FlowChannelTest do
       assert_receive {:EXIT, _pid, :normal}, 1000
     end
 
-    test "flow_deleted handling with concurrent operations", %{socket: socket} do
-      flow_id = test_flow_id("concurrent-delete-test")
+    test "flow_deleted handling with concurrent operations", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
 
@@ -436,12 +466,12 @@ defmodule HelixWeb.FlowChannelTest do
       assert_push("flow_deleted", %{flow_id: ^flow_id, timestamp: _})
 
       # Channel should close
-      Process.flag(:trap_exit, true)
-      assert_receive {:EXIT, _pid, :normal}, 1000
+      assert_receive {:socket_close, _pid, :normal}, 1000
     end
 
-    test "flow_deleted closes channel immediately without waiting", %{socket: socket} do
-      flow_id = test_flow_id("immediate-close-test")
+    test "flow_deleted closes channel immediately without waiting", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
 
@@ -469,18 +499,20 @@ defmodule HelixWeb.FlowChannelTest do
   end
 
   describe "error edge cases" do
-    test "handles join when Flows returns error", %{socket: socket} do
+    test "handles join when Flows returns error", %{socket: socket, user: user} do
       # Mock scenario where join might fail
       # (This is a theoretical test - Flows.join_flow doesn't currently return errors)
-      flow_id = "error-test-flow"
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       # For this test, we'll test successful join since the current implementation
       # doesn't have error cases, but this structure is ready for future error handling
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
       assert socket.assigns.flow_id == flow_id
     end
 
-    test "handles malformed flow change payloads", %{socket: socket} do
-      flow_id = "malformed-payload-test"
+    test "handles malformed flow change payloads", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
       # Send malformed payload (missing changes key)
       ref = push(socket, "flow_change", %{"invalid" => "payload"})

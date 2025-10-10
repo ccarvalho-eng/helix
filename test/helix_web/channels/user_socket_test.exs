@@ -1,6 +1,8 @@
 defmodule HelixWeb.UserSocketTest do
   use HelixWeb.ChannelCase, async: false
 
+  import Helix.FlowsFixtures
+
   alias Helix.Accounts.Guardian
   alias HelixWeb.UserSocket
 
@@ -36,9 +38,15 @@ defmodule HelixWeb.UserSocketTest do
   describe "channel routing" do
     @describetag :authenticated_socket
 
-    test "routes flow channels correctly", %{socket: socket} do
+    setup do
+      user = Helix.AccountsFixtures.user_fixture()
+      {:ok, user: user}
+    end
+
+    test "routes flow channels correctly", %{socket: socket, user: user} do
       # Test that flow channels can be joined through the socket
-      flow_id = "test-flow-#{:erlang.unique_integer([:positive])}"
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # The actual channel join is tested in FlowChannelTest,
       # here we just verify the routing is set up
@@ -46,13 +54,13 @@ defmodule HelixWeb.UserSocketTest do
                subscribe_and_join(socket, HelixWeb.FlowChannel, "flow:#{flow_id}")
     end
 
-    test "routes flow_management channel correctly", %{socket: socket} do
+    test "routes flow_management channel correctly", %{socket: socket, user: _user} do
       # Test that flow_management channel can be joined through the socket
       assert {:ok, _reply, _socket} =
                subscribe_and_join(socket, HelixWeb.FlowManagementChannel, "flow_management")
     end
 
-    test "rejects invalid channel topics", %{socket: socket} do
+    test "rejects invalid channel topics", %{socket: socket, user: _user} do
       # Test that invalid topics are rejected
       assert {:error, %{reason: _}} =
                subscribe_and_join(socket, HelixWeb.FlowChannel, "invalid:topic")
@@ -61,7 +69,7 @@ defmodule HelixWeb.UserSocketTest do
                subscribe_and_join(socket, HelixWeb.FlowManagementChannel, "invalid_topic")
     end
 
-    test "handles non-existent channels gracefully", %{socket: socket} do
+    test "handles non-existent channels gracefully", %{socket: socket, user: _user} do
       # Try to join a channel that doesn't exist in routing
       # This should fail because the module doesn't exist
       assert_raise UndefinedFunctionError, fn ->
@@ -81,8 +89,11 @@ defmodule HelixWeb.UserSocketTest do
     end
 
     test "socket allows multiple channel subscriptions", %{socket: socket} do
-      flow_id_1 = "flow-1-#{:erlang.unique_integer([:positive])}"
-      flow_id_2 = "flow-2-#{:erlang.unique_integer([:positive])}"
+      user = Helix.AccountsFixtures.user_fixture()
+      flow_1 = flow_fixture(%{user_id: user.id})
+      flow_id_1 = flow_1.id
+      flow_2 = flow_fixture(%{user_id: user.id})
+      flow_id_2 = flow_2.id
 
       # Join multiple flow channels
       assert {:ok, _reply1, _socket1} =
@@ -141,9 +152,10 @@ defmodule HelixWeb.UserSocketTest do
   describe "integration tests" do
     @describetag :authenticated_socket
 
-    test "full flow: connect socket, join channels, communicate", %{socket: socket} do
+    test "full flow: connect socket, join channels, communicate", %{socket: socket, user: user} do
       # Join flow channel
-      flow_id = "integration-test-#{:erlang.unique_integer([:positive])}"
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       {:ok, _reply, flow_socket} =
         subscribe_and_join(socket, HelixWeb.FlowChannel, "flow:#{flow_id}")
@@ -163,8 +175,9 @@ defmodule HelixWeb.UserSocketTest do
       assert_reply ref, :ok, %{status: "session_closed", clients_affected: _}
     end
 
-    test "socket handles channel disconnections gracefully", %{socket: socket} do
-      flow_id = "disconnect-test-#{:erlang.unique_integer([:positive])}"
+    test "socket handles channel disconnections gracefully", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       {:ok, _reply, flow_socket} =
         subscribe_and_join(socket, HelixWeb.FlowChannel, "flow:#{flow_id}")
@@ -189,10 +202,17 @@ defmodule HelixWeb.UserSocketTest do
 
     test "flow channel accepts various flow ID formats" do
       # Test only valid flow ID formats based on the FlowChannel validation
+      user = Helix.AccountsFixtures.user_fixture()
+
+      # Create flows with real IDs
+      flow_1 = flow_fixture(%{user_id: user.id})
+      flow_2 = flow_fixture(%{user_id: user.id})
+      flow_3 = flow_fixture(%{user_id: user.id})
+
       valid_flow_ids = [
-        "simple-flow",
-        "flow_with_underscores",
-        "flow-123-abc"
+        flow_1.id,
+        flow_2.id,
+        flow_3.id
       ]
 
       for flow_id <- valid_flow_ids do
@@ -203,7 +223,7 @@ defmodule HelixWeb.UserSocketTest do
       end
     end
 
-    test "flow_management channel only accepts exact topic match", %{socket: socket} do
+    test "flow_management channel only accepts exact topic match", %{socket: socket, user: _user} do
       # Should accept exact match
       assert {:ok, _reply, _socket} =
                subscribe_and_join(socket, HelixWeb.FlowManagementChannel, "flow_management")

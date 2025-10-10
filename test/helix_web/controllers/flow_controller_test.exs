@@ -1,12 +1,20 @@
 defmodule HelixWeb.FlowControllerTest do
-  use HelixWeb.ConnCase, async: true
+  use HelixWeb.ConnCase, async: false
 
   alias Helix.Flows
   import Helix.FlowTestHelper
+  import Helix.AccountsFixtures
+  import Helix.FlowsFixtures
 
   setup do
     ensure_flow_services_available()
-    :ok
+    user = user_fixture()
+
+    # Set sandbox mode to shared for flow controller tests
+    # This allows spawned SessionServer processes to access the database
+    Ecto.Adapters.SQL.Sandbox.mode(Helix.Repo, {:shared, self()})
+
+    {:ok, user: user}
   end
 
   describe "GET /" do
@@ -35,8 +43,9 @@ defmodule HelixWeb.FlowControllerTest do
   end
 
   describe "POST /api/flows/:id/sync" do
-    test "successfully broadcasts flow changes", %{conn: conn} do
-      flow_id = "test-flow-123"
+    test "successfully broadcasts flow changes", %{conn: conn, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       changes = %{
         "nodes" => [
@@ -112,8 +121,9 @@ defmodule HelixWeb.FlowControllerTest do
              }
     end
 
-    test "broadcasts complex flow changes", %{conn: conn} do
-      flow_id = "complex-flow"
+    test "broadcasts complex flow changes", %{conn: conn, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       changes = %{
         "nodes" => [
@@ -215,8 +225,9 @@ defmodule HelixWeb.FlowControllerTest do
              }
     end
 
-    test "returns active status for flow with clients", %{conn: conn} do
-      flow_id = "active-flow"
+    test "returns active status for flow with clients", %{conn: conn, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       client_id = "test-client"
 
       # Join a client to make the flow active
@@ -230,8 +241,9 @@ defmodule HelixWeb.FlowControllerTest do
       assert is_integer(response["last_activity"])
     end
 
-    test "reflects client count changes", %{conn: conn} do
-      flow_id = "count-changes-flow"
+    test "reflects client count changes", %{conn: conn, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Initially inactive
       conn1 = get(conn, ~p"/api/flows/#{flow_id}/status")
@@ -274,8 +286,9 @@ defmodule HelixWeb.FlowControllerTest do
              }
     end
 
-    test "returns consistent last_activity timestamp", %{conn: conn} do
-      flow_id = "timestamp-flow"
+    test "returns consistent last_activity timestamp", %{conn: conn, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       Flows.join_flow(flow_id, "client-1")
 
@@ -343,8 +356,9 @@ defmodule HelixWeb.FlowControllerTest do
   end
 
   describe "integration tests" do
-    test "sync and status work together", %{conn: conn} do
-      flow_id = "integration-flow"
+    test "sync and status work together", %{conn: conn, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       changes = %{"nodes" => [], "edges" => []}
 
       # Initially inactive
@@ -375,9 +389,11 @@ defmodule HelixWeb.FlowControllerTest do
       assert updated_activity > initial_activity
     end
 
-    test "multiple flows are handled independently", %{conn: conn} do
-      flow1_id = "independent-flow-1"
-      flow2_id = "independent-flow-2"
+    test "multiple flows are handled independently", %{conn: conn, user: user} do
+      flow1 = flow_fixture(%{user_id: user.id})
+      flow2 = flow_fixture(%{user_id: user.id})
+      flow1_id = flow1.id
+      flow2_id = flow2.id
 
       # Set up different states for each flow
       Flows.join_flow(flow1_id, "client-1")
