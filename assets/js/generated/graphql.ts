@@ -1,5 +1,12 @@
+// @ts-nocheck
 import { gql } from '@apollo/client';
-import * as Apollo from '@apollo/client';
+import {
+  useQuery,
+  useLazyQuery,
+  useSuspenseQuery,
+  useMutation,
+  skipToken,
+} from '@apollo/client/react';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -601,7 +608,7 @@ export const LoginDocument = gql`
     }
   }
 `;
-export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutationVariables>;
+export type LoginMutationFn = any;
 
 /**
  * __useLoginMutation__
@@ -620,18 +627,13 @@ export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutati
  *   },
  * });
  */
-export function useLoginMutation(
-  baseOptions?: Apollo.MutationHookOptions<LoginMutation, LoginMutationVariables>
-) {
+export function useLoginMutation(baseOptions?: any) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument, options);
+  return useMutation<LoginMutation, LoginMutationVariables>(LoginDocument, options);
 }
 export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
-export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
-export type LoginMutationOptions = Apollo.BaseMutationOptions<
-  LoginMutation,
-  LoginMutationVariables
->;
+export type LoginMutationResult = any;
+export type LoginMutationOptions = any;
 export const RegisterDocument = gql`
   mutation Register($input: RegisterInput!) {
     register(input: $input) {
@@ -645,10 +647,7 @@ export const RegisterDocument = gql`
     }
   }
 `;
-export type RegisterMutationFn = Apollo.MutationFunction<
-  RegisterMutation,
-  RegisterMutationVariables
->;
+export type RegisterMutationFn = any;
 
 /**
  * __useRegisterMutation__
@@ -667,18 +666,13 @@ export type RegisterMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useRegisterMutation(
-  baseOptions?: Apollo.MutationHookOptions<RegisterMutation, RegisterMutationVariables>
-) {
+export function useRegisterMutation(baseOptions?: any) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument, options);
+  return useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument, options);
 }
 export type RegisterMutationHookResult = ReturnType<typeof useRegisterMutation>;
-export type RegisterMutationResult = Apollo.MutationResult<RegisterMutation>;
-export type RegisterMutationOptions = Apollo.BaseMutationOptions<
-  RegisterMutation,
-  RegisterMutationVariables
->;
+export type RegisterMutationResult = any;
+export type RegisterMutationOptions = any;
 export const MeDocument = gql`
   query Me {
     me {
@@ -705,27 +699,22 @@ export const MeDocument = gql`
  *   },
  * });
  */
-export function useMeQuery(baseOptions?: Apollo.QueryHookOptions<MeQuery, MeQueryVariables>) {
+export function useMeQuery(baseOptions?: any) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+  return useQuery<MeQuery, MeQueryVariables>(MeDocument, options);
 }
-export function useMeLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<MeQuery, MeQueryVariables>
-) {
+export function useMeLazyQuery(baseOptions?: any) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+  return useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, options);
 }
-export function useMeSuspenseQuery(
-  baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MeQuery, MeQueryVariables>
-) {
-  const options =
-    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+export function useMeSuspenseQuery(baseOptions?: any | any) {
+  const options = baseOptions === skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return useSuspenseQuery<MeQuery, MeQueryVariables>(MeDocument, options);
 }
 export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeSuspenseQueryHookResult = ReturnType<typeof useMeSuspenseQuery>;
-export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
+export type MeQueryResult = any;
 export const MyFlowsDocument = gql`
   query MyFlows {
     myFlows {
@@ -759,31 +748,22 @@ export const MyFlowsDocument = gql`
  *   },
  * });
  */
-export function useMyFlowsQuery(
-  baseOptions?: Apollo.QueryHookOptions<MyFlowsQuery, MyFlowsQueryVariables>
-) {
+export function useMyFlowsQuery(baseOptions?: any) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<MyFlowsQuery, MyFlowsQueryVariables>(MyFlowsDocument, options);
+  return useQuery<MyFlowsQuery, MyFlowsQueryVariables>(MyFlowsDocument, options);
 }
-export function useMyFlowsLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<MyFlowsQuery, MyFlowsQueryVariables>
-) {
+export function useMyFlowsLazyQuery(baseOptions?: any) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<MyFlowsQuery, MyFlowsQueryVariables>(MyFlowsDocument, options);
+  return useLazyQuery<MyFlowsQuery, MyFlowsQueryVariables>(MyFlowsDocument, options);
 }
-export function useMyFlowsSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<MyFlowsQuery, MyFlowsQueryVariables>
-) {
-  const options =
-    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<MyFlowsQuery, MyFlowsQueryVariables>(MyFlowsDocument, options);
+export function useMyFlowsSuspenseQuery(baseOptions?: any | any) {
+  const options = baseOptions === skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return useSuspenseQuery<MyFlowsQuery, MyFlowsQueryVariables>(MyFlowsDocument, options);
 }
 export type MyFlowsQueryHookResult = ReturnType<typeof useMyFlowsQuery>;
 export type MyFlowsLazyQueryHookResult = ReturnType<typeof useMyFlowsLazyQuery>;
 export type MyFlowsSuspenseQueryHookResult = ReturnType<typeof useMyFlowsSuspenseQuery>;
-export type MyFlowsQueryResult = Apollo.QueryResult<MyFlowsQuery, MyFlowsQueryVariables>;
+export type MyFlowsQueryResult = any;
 export const GetFlowDocument = gql`
   query GetFlow($id: ID!) {
     flow(id: $id) {
@@ -844,31 +824,23 @@ export const GetFlowDocument = gql`
  * });
  */
 export function useGetFlowQuery(
-  baseOptions: Apollo.QueryHookOptions<GetFlowQuery, GetFlowQueryVariables> &
-    ({ variables: GetFlowQueryVariables; skip?: boolean } | { skip: boolean })
+  baseOptions: any & ({ variables: GetFlowQueryVariables; skip?: boolean } | { skip: boolean })
 ) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetFlowQuery, GetFlowQueryVariables>(GetFlowDocument, options);
+  return useQuery<GetFlowQuery, GetFlowQueryVariables>(GetFlowDocument, options);
 }
-export function useGetFlowLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<GetFlowQuery, GetFlowQueryVariables>
-) {
+export function useGetFlowLazyQuery(baseOptions?: any) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<GetFlowQuery, GetFlowQueryVariables>(GetFlowDocument, options);
+  return useLazyQuery<GetFlowQuery, GetFlowQueryVariables>(GetFlowDocument, options);
 }
-export function useGetFlowSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<GetFlowQuery, GetFlowQueryVariables>
-) {
-  const options =
-    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<GetFlowQuery, GetFlowQueryVariables>(GetFlowDocument, options);
+export function useGetFlowSuspenseQuery(baseOptions?: any | any) {
+  const options = baseOptions === skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return useSuspenseQuery<GetFlowQuery, GetFlowQueryVariables>(GetFlowDocument, options);
 }
 export type GetFlowQueryHookResult = ReturnType<typeof useGetFlowQuery>;
 export type GetFlowLazyQueryHookResult = ReturnType<typeof useGetFlowLazyQuery>;
 export type GetFlowSuspenseQueryHookResult = ReturnType<typeof useGetFlowSuspenseQuery>;
-export type GetFlowQueryResult = Apollo.QueryResult<GetFlowQuery, GetFlowQueryVariables>;
+export type GetFlowQueryResult = any;
 export const CreateFlowDocument = gql`
   mutation CreateFlow($input: CreateFlowInput!) {
     createFlow(input: $input) {
@@ -886,10 +858,7 @@ export const CreateFlowDocument = gql`
     }
   }
 `;
-export type CreateFlowMutationFn = Apollo.MutationFunction<
-  CreateFlowMutation,
-  CreateFlowMutationVariables
->;
+export type CreateFlowMutationFn = any;
 
 /**
  * __useCreateFlowMutation__
@@ -908,21 +877,13 @@ export type CreateFlowMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useCreateFlowMutation(
-  baseOptions?: Apollo.MutationHookOptions<CreateFlowMutation, CreateFlowMutationVariables>
-) {
+export function useCreateFlowMutation(baseOptions?: any) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<CreateFlowMutation, CreateFlowMutationVariables>(
-    CreateFlowDocument,
-    options
-  );
+  return useMutation<CreateFlowMutation, CreateFlowMutationVariables>(CreateFlowDocument, options);
 }
 export type CreateFlowMutationHookResult = ReturnType<typeof useCreateFlowMutation>;
-export type CreateFlowMutationResult = Apollo.MutationResult<CreateFlowMutation>;
-export type CreateFlowMutationOptions = Apollo.BaseMutationOptions<
-  CreateFlowMutation,
-  CreateFlowMutationVariables
->;
+export type CreateFlowMutationResult = any;
+export type CreateFlowMutationOptions = any;
 export const UpdateFlowDocument = gql`
   mutation UpdateFlow($id: ID!, $input: UpdateFlowInput!) {
     updateFlow(id: $id, input: $input) {
@@ -938,10 +899,7 @@ export const UpdateFlowDocument = gql`
     }
   }
 `;
-export type UpdateFlowMutationFn = Apollo.MutationFunction<
-  UpdateFlowMutation,
-  UpdateFlowMutationVariables
->;
+export type UpdateFlowMutationFn = any;
 
 /**
  * __useUpdateFlowMutation__
@@ -961,21 +919,13 @@ export type UpdateFlowMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useUpdateFlowMutation(
-  baseOptions?: Apollo.MutationHookOptions<UpdateFlowMutation, UpdateFlowMutationVariables>
-) {
+export function useUpdateFlowMutation(baseOptions?: any) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<UpdateFlowMutation, UpdateFlowMutationVariables>(
-    UpdateFlowDocument,
-    options
-  );
+  return useMutation<UpdateFlowMutation, UpdateFlowMutationVariables>(UpdateFlowDocument, options);
 }
 export type UpdateFlowMutationHookResult = ReturnType<typeof useUpdateFlowMutation>;
-export type UpdateFlowMutationResult = Apollo.MutationResult<UpdateFlowMutation>;
-export type UpdateFlowMutationOptions = Apollo.BaseMutationOptions<
-  UpdateFlowMutation,
-  UpdateFlowMutationVariables
->;
+export type UpdateFlowMutationResult = any;
+export type UpdateFlowMutationOptions = any;
 export const UpdateFlowDataDocument = gql`
   mutation UpdateFlowData($id: ID!, $input: UpdateFlowDataInput!) {
     updateFlowData(id: $id, input: $input) {
@@ -1006,10 +956,7 @@ export const UpdateFlowDataDocument = gql`
     }
   }
 `;
-export type UpdateFlowDataMutationFn = Apollo.MutationFunction<
-  UpdateFlowDataMutation,
-  UpdateFlowDataMutationVariables
->;
+export type UpdateFlowDataMutationFn = any;
 
 /**
  * __useUpdateFlowDataMutation__
@@ -1029,21 +976,16 @@ export type UpdateFlowDataMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useUpdateFlowDataMutation(
-  baseOptions?: Apollo.MutationHookOptions<UpdateFlowDataMutation, UpdateFlowDataMutationVariables>
-) {
+export function useUpdateFlowDataMutation(baseOptions?: any) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<UpdateFlowDataMutation, UpdateFlowDataMutationVariables>(
+  return useMutation<UpdateFlowDataMutation, UpdateFlowDataMutationVariables>(
     UpdateFlowDataDocument,
     options
   );
 }
 export type UpdateFlowDataMutationHookResult = ReturnType<typeof useUpdateFlowDataMutation>;
-export type UpdateFlowDataMutationResult = Apollo.MutationResult<UpdateFlowDataMutation>;
-export type UpdateFlowDataMutationOptions = Apollo.BaseMutationOptions<
-  UpdateFlowDataMutation,
-  UpdateFlowDataMutationVariables
->;
+export type UpdateFlowDataMutationResult = any;
+export type UpdateFlowDataMutationOptions = any;
 export const DeleteFlowDocument = gql`
   mutation DeleteFlow($id: ID!) {
     deleteFlow(id: $id) {
@@ -1053,10 +995,7 @@ export const DeleteFlowDocument = gql`
     }
   }
 `;
-export type DeleteFlowMutationFn = Apollo.MutationFunction<
-  DeleteFlowMutation,
-  DeleteFlowMutationVariables
->;
+export type DeleteFlowMutationFn = any;
 
 /**
  * __useDeleteFlowMutation__
@@ -1075,21 +1014,13 @@ export type DeleteFlowMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useDeleteFlowMutation(
-  baseOptions?: Apollo.MutationHookOptions<DeleteFlowMutation, DeleteFlowMutationVariables>
-) {
+export function useDeleteFlowMutation(baseOptions?: any) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<DeleteFlowMutation, DeleteFlowMutationVariables>(
-    DeleteFlowDocument,
-    options
-  );
+  return useMutation<DeleteFlowMutation, DeleteFlowMutationVariables>(DeleteFlowDocument, options);
 }
 export type DeleteFlowMutationHookResult = ReturnType<typeof useDeleteFlowMutation>;
-export type DeleteFlowMutationResult = Apollo.MutationResult<DeleteFlowMutation>;
-export type DeleteFlowMutationOptions = Apollo.BaseMutationOptions<
-  DeleteFlowMutation,
-  DeleteFlowMutationVariables
->;
+export type DeleteFlowMutationResult = any;
+export type DeleteFlowMutationOptions = any;
 export const DuplicateFlowDocument = gql`
   mutation DuplicateFlow($id: ID!, $title: String) {
     duplicateFlow(id: $id, title: $title) {
@@ -1126,10 +1057,7 @@ export const DuplicateFlowDocument = gql`
     }
   }
 `;
-export type DuplicateFlowMutationFn = Apollo.MutationFunction<
-  DuplicateFlowMutation,
-  DuplicateFlowMutationVariables
->;
+export type DuplicateFlowMutationFn = any;
 
 /**
  * __useDuplicateFlowMutation__
@@ -1149,18 +1077,13 @@ export type DuplicateFlowMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useDuplicateFlowMutation(
-  baseOptions?: Apollo.MutationHookOptions<DuplicateFlowMutation, DuplicateFlowMutationVariables>
-) {
+export function useDuplicateFlowMutation(baseOptions?: any) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<DuplicateFlowMutation, DuplicateFlowMutationVariables>(
+  return useMutation<DuplicateFlowMutation, DuplicateFlowMutationVariables>(
     DuplicateFlowDocument,
     options
   );
 }
 export type DuplicateFlowMutationHookResult = ReturnType<typeof useDuplicateFlowMutation>;
-export type DuplicateFlowMutationResult = Apollo.MutationResult<DuplicateFlowMutation>;
-export type DuplicateFlowMutationOptions = Apollo.BaseMutationOptions<
-  DuplicateFlowMutation,
-  DuplicateFlowMutationVariables
->;
+export type DuplicateFlowMutationResult = any;
+export type DuplicateFlowMutationOptions = any;

@@ -10,12 +10,17 @@ import {
   ReactFlowInstance,
 } from 'reactflow';
 import { AIFlowNode } from '../types';
-import { flowStorage } from '../../../shared/services/flowStorage';
 import { FlowRegistryEntry, FlowData } from '../../../shared/types/flow';
 import { websocketService, FlowChangeData } from '../../../shared/services/websocketService';
 import { getTemplate, TemplateType } from '../templates';
 import { generateId } from '../../../shared/utils';
-import { useCreateFlowMutation } from '../../../generated/graphql';
+import {
+  useCreateFlowMutation,
+  useGetFlowQuery,
+  useUpdateFlowMutation,
+  useUpdateFlowDataMutation,
+  useDeleteFlowMutation,
+} from '../../../generated/graphql';
 
 const nodeDefaults = {
   agent: { width: 140, height: 80, color: '#f0f9ff', label: 'AI Agent' },
@@ -33,6 +38,7 @@ const nodeDefaults = {
 export function useFlowManager(flowId: string | null) {
   const [currentFlow, setCurrentFlow] = useState<FlowRegistryEntry | null>(null);
   const [isNewFlow, setIsNewFlow] = useState(false);
+  const [currentVersion, setCurrentVersion] = useState<number>(0);
   const [initialViewport, setInitialViewport] = useState({
     x: 0,
     y: 0,
@@ -45,8 +51,21 @@ export function useFlowManager(flowId: string | null) {
   const [selectedNode, setSelectedNode] = useState<AIFlowNode | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
 
-  // GraphQL mutation for creating flows
+  // GraphQL hooks
   const [createFlowMutation] = useCreateFlowMutation();
+  const [updateFlowMutation] = useUpdateFlowMutation();
+  const [updateFlowDataMutation] = useUpdateFlowDataMutation();
+  const [deleteFlowMutation] = useDeleteFlowMutation();
+
+  // Load flow data from database if flowId is provided
+  const {
+    data: flowData,
+    loading: isLoadingFlow,
+    error: flowLoadError,
+  } = useGetFlowQuery({
+    variables: { id: flowId || '' },
+    skip: !flowId, // Skip query if no flowId
+  });
 
   // WebSocket state
   const [isConnected, setIsConnected] = useState(false);
@@ -60,39 +79,110 @@ export function useFlowManager(flowId: string | null) {
   // Load or create flow on mount
   useEffect(() => {
     if (flowId) {
-      // Load existing flow
-      const registry = flowStorage.getFlowRegistry();
-      const flowEntry = registry.flows.find(f => f.id === flowId);
-
-      if (flowEntry) {
-        setCurrentFlow(flowEntry);
-        setIsNewFlow(false);
-
-        const flowData = flowStorage.getFlow(flowId);
-        if (flowData) {
-          setNodes((flowData.nodes as Node<AIFlowNode>[]) || []);
-          setEdges((flowData.edges as Edge[]) || []);
-          if (flowData.viewport) {
-            setInitialViewport(flowData.viewport);
-          }
-        }
-        // Flow data is ready, but WebSocket connection will be handled separately
-        setIsFlowReady(true);
-      } else {
-        // Flow not found, redirect to home
-        window.location.href = '/';
+      // Wait for GraphQL query to complete
+      if (isLoadingFlow) {
+        setIsFlowReady(false);
+        return;
       }
+
+      // Handle flow load error or not found
+      if (flowLoadError || !flowData?.flow) {
+        console.error('Failed to load flow:', flowLoadError);
+        window.location.href = '/';
+        return;
+      }
+
+      // Transform GraphQL data to FlowRegistryEntry format
+      const flow = flowData.flow;
+      const flowEntry: FlowRegistryEntry = {
+        id: flow.id,
+        title: flow.title,
+        lastModified: flow.updatedAt,
+        createdAt: flow.insertedAt,
+        nodeCount: flow.nodes?.length || 0,
+        connectionCount: flow.edges?.length || 0,
+      };
+
+      setCurrentFlow(flowEntry);
+      setIsNewFlow(false);
+      setCurrentVersion(flow.version || 0);
+
+      // Transform nodes from GraphQL format to ReactFlow format
+      const transformedNodes: Node<AIFlowNode>[] =
+        flow.nodes?.map((node: any) => {
+          const nodeData = (node.data as any) || {};
+          const type = node.type as AIFlowNode['type'];
+          const defaults = nodeDefaults[type] || nodeDefaults.agent;
+
+          const aiFlowNode: AIFlowNode = {
+            id: node.nodeId,
+            type,
+            position: { x: node.positionX, y: node.positionY },
+            dimensions: {
+              width: node.width || defaults.width,
+              height: node.height || defaults.height,
+            },
+            x: node.positionX,
+            y: node.positionY,
+            width: node.width || defaults.width,
+            height: node.height || defaults.height,
+            label: nodeData.label || defaults.label,
+            description: nodeData.description || '',
+            config: nodeData.config || {},
+            color: nodeData.color || defaults.color,
+            borderColor: nodeData.borderColor || '#e5e7eb',
+            borderWidth: nodeData.borderWidth || 1,
+          };
+
+          return {
+            id: node.nodeId,
+            type: 'aiFlowNode',
+            position: { x: node.positionX, y: node.positionY },
+            data: aiFlowNode,
+            style: {
+              width: node.width || defaults.width,
+              height: node.height || defaults.height,
+            },
+          };
+        }) || [];
+
+      // Transform edges from GraphQL format to ReactFlow format
+      const transformedEdges: Edge[] =
+        flow.edges?.map((edge: any) => ({
+          id: edge.edgeId,
+          source: edge.sourceNodeId,
+          target: edge.targetNodeId,
+          sourceHandle: edge.sourceHandle || undefined,
+          targetHandle: edge.targetHandle || undefined,
+          type: edge.edgeType || 'default',
+          animated: edge.animated || false,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 20,
+            height: 20,
+            color: '#9ca3af',
+          },
+          style: {
+            stroke: '#9ca3af',
+            strokeWidth: 2,
+          },
+          data: edge.data,
+        })) || [];
+
+      setNodes(transformedNodes);
+      setEdges(transformedEdges);
+      setInitialViewport({
+        x: flow.viewportX,
+        y: flow.viewportY,
+        zoom: flow.viewportZoom,
+      });
+
+      // Flow data is ready
+      setIsFlowReady(true);
     } else {
-      // Create new flow via GraphQL (with localStorage fallback)
+      // Create new flow via GraphQL
       const createNewFlow = async () => {
         try {
-          // Check if mutation hook is available
-          if (!createFlowMutation || typeof createFlowMutation !== 'function') {
-            console.warn('GraphQL mutation hook not available, using localStorage fallback');
-            throw new Error('Mutation hook not available');
-          }
-
-          // Try creating via GraphQL first
           const result = await createFlowMutation({
             variables: {
               input: {
@@ -117,21 +207,9 @@ export function useFlowManager(flowId: string | null) {
               connectionCount: 0,
             };
 
-            // Also save to localStorage for backward compatibility
-            const registry = flowStorage.getFlowRegistry();
-            registry.flows.push(newFlow);
-            flowStorage.saveFlowRegistry(registry);
-
-            // Create empty flow data in localStorage
-            const emptyFlowData: FlowData = {
-              nodes: [],
-              edges: [],
-              viewport: { x: 0, y: 0, zoom: 1 },
-            };
-            flowStorage.saveFlow(newFlow.id, emptyFlowData);
-
             setCurrentFlow(newFlow);
             setIsNewFlow(true);
+            setCurrentVersion(graphqlFlow.version || 0);
             setNodes([]);
             setEdges([]);
             setIsFlowReady(true);
@@ -140,22 +218,14 @@ export function useFlowManager(flowId: string | null) {
             throw new Error('GraphQL mutation returned no data');
           }
         } catch (error) {
-          console.error('Failed to create flow via GraphQL, falling back to localStorage:', error);
-
-          // Fallback to localStorage-only creation
-          const newFlow = flowStorage.createFlow();
-          setCurrentFlow(newFlow);
-          setIsNewFlow(true);
-          setNodes([]);
-          setEdges([]);
-          setIsFlowReady(true);
-          window.history.replaceState(null, '', `/flow/${newFlow.id}`);
+          console.error('Failed to create flow:', error);
+          window.alert('Failed to create flow. Please try again.');
         }
       };
 
       createNewFlow();
     }
-  }, [flowId, setNodes, setEdges, createFlowMutation]);
+  }, [flowId, setNodes, setEdges, createFlowMutation, isLoadingFlow, flowLoadError, flowData]);
 
   // WebSocket connection management
   useEffect(() => {
@@ -258,10 +328,9 @@ export function useFlowManager(flowId: string | null) {
   }, [currentFlow, setNodes, setEdges]);
 
   // Force save function for immediate saves
-  const forceSave = useCallback(() => {
+  const forceSave = useCallback(async () => {
     if (currentFlow && reactFlowInstance) {
       const viewport = reactFlowInstance.getViewport();
-      const flowData = { nodes, edges, viewport };
 
       // Clear any pending save timeout
       if (saveTimeoutRef.current) {
@@ -269,14 +338,66 @@ export function useFlowManager(flowId: string | null) {
         saveTimeoutRef.current = null;
       }
 
-      // Save immediately
-      flowStorage.saveFlow(currentFlow.id, flowData);
-      setHasUnsavedChanges(false);
+      try {
+        // Transform ReactFlow nodes to GraphQL format
+        const graphqlNodes = nodes.map(node => {
+          const data = node.data;
+          return {
+            nodeId: data.id,
+            type: data.type,
+            positionX: node.position.x,
+            positionY: node.position.y,
+            width: data.width,
+            height: data.height,
+            data: JSON.stringify({
+              label: data.label,
+              description: data.description,
+              config: data.config,
+              color: data.color,
+              borderColor: data.borderColor,
+              borderWidth: data.borderWidth,
+            }),
+          };
+        });
 
-      return true;
+        // Transform ReactFlow edges to GraphQL format
+        const graphqlEdges = edges.map(edge => ({
+          edgeId: edge.id,
+          sourceNodeId: edge.source,
+          targetNodeId: edge.target,
+          sourceHandle: edge.sourceHandle || null,
+          targetHandle: edge.targetHandle || null,
+          edgeType: edge.type || 'default',
+          animated: edge.animated || false,
+          data: edge.data || null,
+        }));
+
+        // Save immediately to database
+        const result = await updateFlowDataMutation({
+          variables: {
+            id: currentFlow.id,
+            input: {
+              nodes: graphqlNodes,
+              edges: graphqlEdges,
+              version: currentVersion,
+            },
+          },
+        });
+
+        // Update version after successful save
+        if (result.data?.updateFlowData?.version) {
+          setCurrentVersion(result.data.updateFlowData.version);
+        }
+
+        setHasUnsavedChanges(false);
+        return true;
+      } catch (error) {
+        console.error('Failed to force save:', error);
+        return false;
+      }
     }
     return false;
-  }, [currentFlow, nodes, edges, reactFlowInstance]);
+  }, [currentFlow, nodes, edges, reactFlowInstance, updateFlowDataMutation]);
 
   // Page unload protection
   useEffect(() => {
@@ -373,20 +494,73 @@ export function useFlowManager(flowId: string | null) {
       }
 
       // Debounce the save and broadcast operations
-      const timeoutId = setTimeout(() => {
-        // Save to localStorage
-        flowStorage.saveFlow(currentFlow.id, flowData);
-
-        // Update previous data reference
-        prevFlowDataRef.current = JSON.parse(JSON.stringify(flowData));
-
-        // Broadcast changes to other clients (only if not updating from remote)
-        if (!isUpdatingFromRemote.current && websocketService.isConnected()) {
-          websocketService.sendFlowChange(flowData).catch(error => {
-            console.error('📡❌ Failed to broadcast flow changes:', error);
+      const timeoutId = setTimeout(async () => {
+        try {
+          // Transform ReactFlow nodes to GraphQL format
+          const graphqlNodes = nodes.map(node => {
+            const data = node.data;
+            return {
+              nodeId: data.id,
+              type: data.type,
+              positionX: node.position.x,
+              positionY: node.position.y,
+              width: data.width,
+              height: data.height,
+              data: JSON.stringify({
+                label: data.label,
+                description: data.description,
+                config: data.config,
+                color: data.color,
+                borderColor: data.borderColor,
+                borderWidth: data.borderWidth,
+              }),
+            };
           });
+
+          // Transform ReactFlow edges to GraphQL format
+          const graphqlEdges = edges.map(edge => ({
+            edgeId: edge.id,
+            sourceNodeId: edge.source,
+            targetNodeId: edge.target,
+            sourceHandle: edge.sourceHandle || null,
+            targetHandle: edge.targetHandle || null,
+            edgeType: edge.type || 'default',
+            animated: edge.animated || false,
+            data: edge.data || null,
+          }));
+
+          // Save to database via GraphQL
+          const result = await updateFlowDataMutation({
+            variables: {
+              id: currentFlow.id,
+              input: {
+                nodes: graphqlNodes,
+                edges: graphqlEdges,
+                version: currentVersion,
+              },
+            },
+          });
+
+          if (result.data?.updateFlowData) {
+            // Update version after successful save
+            if (result.data.updateFlowData.version) {
+              setCurrentVersion(result.data.updateFlowData.version);
+            }
+
+            // Update previous data reference
+            prevFlowDataRef.current = JSON.parse(JSON.stringify(flowData));
+
+            // Broadcast changes to other clients (only if not updating from remote)
+            if (!isUpdatingFromRemote.current && websocketService.isConnected()) {
+              websocketService.sendFlowChange(flowData).catch(error => {
+                console.error('📡❌ Failed to broadcast flow changes:', error);
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Failed to save flow to database:', error);
         }
-      }, 100);
+      }, 500); // Increased debounce to 500ms for GraphQL operations
 
       // Store timeout reference for cleanup
       saveTimeoutRef.current = timeoutId;
@@ -409,7 +583,15 @@ export function useFlowManager(flowId: string | null) {
         saveTimeoutRef.current = null;
       }
     };
-  }, [nodes, edges, currentFlow, reactFlowInstance]);
+  }, [
+    nodes,
+    edges,
+    currentFlow,
+    reactFlowInstance,
+    updateFlowDataMutation,
+    normalizeDataForComparison,
+    currentVersion,
+  ]);
 
   // Mark as initialized after first load
   useEffect(() => {
@@ -431,13 +613,27 @@ export function useFlowManager(flowId: string | null) {
   }, [currentFlow, nodes, edges, reactFlowInstance, normalizeDataForComparison]);
 
   const updateFlowTitle = useCallback(
-    (newTitle: string) => {
+    async (newTitle: string) => {
       if (currentFlow && newTitle.trim()) {
-        flowStorage.updateFlowTitle(currentFlow.id, newTitle.trim());
-        setCurrentFlow(prev => (prev ? { ...prev, title: newTitle.trim() } : null));
+        try {
+          // Update title in database via GraphQL
+          await updateFlowMutation({
+            variables: {
+              id: currentFlow.id,
+              input: {
+                title: newTitle.trim(),
+              },
+            },
+          });
+
+          // Update local state
+          setCurrentFlow(prev => (prev ? { ...prev, title: newTitle.trim() } : null));
+        } catch (error) {
+          console.error('Failed to update flow title:', error);
+        }
       }
     },
-    [currentFlow]
+    [currentFlow, updateFlowMutation]
   );
 
   const addNode = useCallback(
@@ -493,6 +689,10 @@ export function useFlowManager(flowId: string | null) {
         type: 'aiFlowNode',
         position,
         data: nodeData,
+        style: {
+          width: defaults.width,
+          height: defaults.height,
+        },
       };
 
       setNodes(nds => nds.concat(newNode));
@@ -585,6 +785,10 @@ export function useFlowManager(flowId: string | null) {
         type: 'aiFlowNode',
         position,
         data: nodeData,
+        style: {
+          width: defaults.width,
+          height: defaults.height,
+        },
       };
 
       setNodes(nds => nds.concat(newNode));
@@ -659,6 +863,10 @@ export function useFlowManager(flowId: string | null) {
             id: newNodeId,
           },
           selected: false,
+          style: {
+            width: nodeToDuplicate.data.width,
+            height: nodeToDuplicate.data.height,
+          },
         };
 
         return [...nds, duplicatedNode];
@@ -708,28 +916,67 @@ export function useFlowManager(flowId: string | null) {
     onMoveEnd: useCallback(() => {
       if (currentFlow && reactFlowInstance) {
         const viewport = reactFlowInstance.getViewport();
-        const flowData: FlowData = {
-          nodes,
-          edges,
-          viewport,
-        };
 
         // Debounced save
-        const timeoutId = setTimeout(() => {
-          flowStorage.saveFlow(currentFlow.id, flowData);
+        const timeoutId = setTimeout(async () => {
+          try {
+            // Transform ReactFlow nodes to GraphQL format
+            const graphqlNodes = nodes.map(node => {
+              const data = node.data;
+              return {
+                nodeId: data.id,
+                type: data.type,
+                positionX: node.position.x,
+                positionY: node.position.y,
+                width: data.width,
+                height: data.height,
+                data: JSON.stringify({
+                  label: data.label,
+                  description: data.description,
+                  config: data.config,
+                  color: data.color,
+                  borderColor: data.borderColor,
+                  borderWidth: data.borderWidth,
+                }),
+              };
+            });
 
-          // Update timestamp
-          const registry = flowStorage.getFlowRegistry();
-          const flowIndex = registry.flows.findIndex(f => f.id === currentFlow.id);
-          if (flowIndex >= 0) {
-            registry.flows[flowIndex].lastModified = new Date().toISOString();
-            flowStorage.saveFlowRegistry(registry);
+            // Transform ReactFlow edges to GraphQL format
+            const graphqlEdges = edges.map(edge => ({
+              edgeId: edge.id,
+              sourceNodeId: edge.source,
+              targetNodeId: edge.target,
+              sourceHandle: edge.sourceHandle || null,
+              targetHandle: edge.targetHandle || null,
+              edgeType: edge.type || 'default',
+              animated: edge.animated || false,
+              data: edge.data || null,
+            }));
+
+            // Save viewport changes to database
+            const result = await updateFlowDataMutation({
+              variables: {
+                id: currentFlow.id,
+                input: {
+                  nodes: graphqlNodes,
+                  edges: graphqlEdges,
+                  version: currentVersion,
+                },
+              },
+            });
+
+            // Update version after successful save
+            if (result.data?.updateFlowData?.version) {
+              setCurrentVersion(result.data.updateFlowData.version);
+            }
+          } catch (error) {
+            console.error('Failed to save viewport changes:', error);
           }
         }, 300);
 
         return () => clearTimeout(timeoutId);
       }
-    }, [currentFlow, nodes, edges, reactFlowInstance]),
+    }, [currentFlow, nodes, edges, reactFlowInstance, updateFlowDataMutation, currentVersion]),
 
     // Add template functionality
     addTemplate: useCallback(
@@ -764,8 +1011,8 @@ export function useFlowManager(flowId: string | null) {
             position: { x: nodeTemplate.x, y: nodeTemplate.y },
             data: nodeData,
             style: {
-              width: defaults.width,
-              height: defaults.height,
+              width: nodeData.width,
+              height: nodeData.height,
             },
           };
         });

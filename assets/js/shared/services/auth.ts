@@ -268,11 +268,6 @@ export class AuthService {
 
       // Clear any other sensitive data that might be cached
       sessionStorage.clear();
-
-      // Optionally, clear all localStorage (be careful with this)
-      // localStorage.clear();
-
-      console.log('User logged out successfully');
     } catch (error) {
       console.error('Error during logout:', error);
       // Force cleanup even if error occurs
