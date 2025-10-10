@@ -15,6 +15,7 @@ import { FlowRegistryEntry, FlowData } from '../../../shared/types/flow';
 import { websocketService, FlowChangeData } from '../../../shared/services/websocketService';
 import { getTemplate, TemplateType } from '../templates';
 import { generateId } from '../../../shared/utils';
+import { useCreateFlowMutation } from '../../../generated/graphql';
 
 const nodeDefaults = {
   agent: { width: 140, height: 80, color: '#f0f9ff', label: 'AI Agent' },
@@ -43,6 +44,9 @@ export function useFlowManager(flowId: string | null) {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<AIFlowNode | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
+
+  // GraphQL mutation for creating flows
+  const [createFlowMutation] = useCreateFlowMutation();
 
   // WebSocket state
   const [isConnected, setIsConnected] = useState(false);
@@ -79,17 +83,73 @@ export function useFlowManager(flowId: string | null) {
         window.location.href = '/';
       }
     } else {
-      // Create new flow
-      const newFlow = flowStorage.createFlow();
-      setCurrentFlow(newFlow);
-      setIsNewFlow(true);
-      setNodes([]);
-      setEdges([]);
-      setIsFlowReady(true); // New flows are ready immediately
-      // Update URL to include the new flow ID
-      window.history.replaceState(null, '', `/flow/${newFlow.id}`);
+      // Create new flow via GraphQL (with localStorage fallback)
+      const createNewFlow = async () => {
+        try {
+          // Try creating via GraphQL first
+          const result = await createFlowMutation({
+            variables: {
+              input: {
+                title: 'Untitled Flow',
+                viewportX: 0,
+                viewportY: 0,
+                viewportZoom: 1,
+              },
+            },
+          });
+
+          if (result.data?.createFlow) {
+            const graphqlFlow = result.data.createFlow;
+
+            // Convert GraphQL response to FlowRegistryEntry format
+            const newFlow: FlowRegistryEntry = {
+              id: graphqlFlow.id || generateId(),
+              title: graphqlFlow.title || 'Untitled Flow',
+              lastModified: graphqlFlow.updatedAt || new Date().toISOString(),
+              createdAt: graphqlFlow.insertedAt || new Date().toISOString(),
+              nodeCount: 0,
+              connectionCount: 0,
+            };
+
+            // Also save to localStorage for backward compatibility
+            const registry = flowStorage.getFlowRegistry();
+            registry.flows.push(newFlow);
+            flowStorage.saveFlowRegistry(registry);
+
+            // Create empty flow data in localStorage
+            const emptyFlowData: FlowData = {
+              nodes: [],
+              edges: [],
+              viewport: { x: 0, y: 0, zoom: 1 },
+            };
+            flowStorage.saveFlow(newFlow.id, emptyFlowData);
+
+            setCurrentFlow(newFlow);
+            setIsNewFlow(true);
+            setNodes([]);
+            setEdges([]);
+            setIsFlowReady(true);
+            window.history.replaceState(null, '', `/flow/${newFlow.id}`);
+          } else {
+            throw new Error('GraphQL mutation returned no data');
+          }
+        } catch (error) {
+          console.error('Failed to create flow via GraphQL, falling back to localStorage:', error);
+
+          // Fallback to localStorage-only creation
+          const newFlow = flowStorage.createFlow();
+          setCurrentFlow(newFlow);
+          setIsNewFlow(true);
+          setNodes([]);
+          setEdges([]);
+          setIsFlowReady(true);
+          window.history.replaceState(null, '', `/flow/${newFlow.id}`);
+        }
+      };
+
+      createNewFlow();
     }
-  }, [flowId, setNodes, setEdges]);
+  }, [flowId, setNodes, setEdges, createFlowMutation]);
 
   // WebSocket connection management
   useEffect(() => {
