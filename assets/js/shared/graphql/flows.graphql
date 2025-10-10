@@ -1,0 +1,158 @@
+query MyFlows {
+  myFlows {
+    id
+    title
+    description
+    viewportX
+    viewportY
+    viewportZoom
+    version
+    isTemplate
+    templateCategory
+    insertedAt
+    updatedAt
+  }
+}
+
+query GetFlow($id: ID!) {
+  flow(id: $id) {
+    id
+    title
+    description
+    viewportX
+    viewportY
+    viewportZoom
+    version
+    isTemplate
+    templateCategory
+    nodes {
+      id
+      nodeId
+      type
+      positionX
+      positionY
+      width
+      height
+      data
+      insertedAt
+      updatedAt
+    }
+    edges {
+      id
+      edgeId
+      sourceNodeId
+      targetNodeId
+      sourceHandle
+      targetHandle
+      edgeType
+      animated
+      data
+      insertedAt
+      updatedAt
+    }
+    insertedAt
+    updatedAt
+  }
+}
+
+mutation CreateFlow($input: CreateFlowInput!) {
+  createFlow(input: $input) {
+    id
+    title
+    description
+    viewportX
+    viewportY
+    viewportZoom
+    version
+    isTemplate
+    templateCategory
+    insertedAt
+    updatedAt
+  }
+}
+
+mutation UpdateFlow($id: ID!, $input: UpdateFlowInput!) {
+  updateFlow(id: $id, input: $input) {
+    id
+    title
+    description
+    viewportX
+    viewportY
+    viewportZoom
+    version
+    insertedAt
+    updatedAt
+  }
+}
+
+mutation UpdateFlowData($id: ID!, $input: UpdateFlowDataInput!) {
+  updateFlowData(id: $id, input: $input) {
+    id
+    version
+    nodes {
+      id
+      nodeId
+      type
+      positionX
+      positionY
+      width
+      height
+      data
+    }
+    edges {
+      id
+      edgeId
+      sourceNodeId
+      targetNodeId
+      sourceHandle
+      targetHandle
+      edgeType
+      animated
+      data
+    }
+    updatedAt
+  }
+}
+
+mutation DeleteFlow($id: ID!) {
+  deleteFlow(id: $id) {
+    id
+    title
+    deletedAt: updatedAt
+  }
+}
+
+mutation DuplicateFlow($id: ID!, $title: String) {
+  duplicateFlow(id: $id, title: $title) {
+    id
+    title
+    description
+    viewportX
+    viewportY
+    viewportZoom
+    version
+    nodes {
+      id
+      nodeId
+      type
+      positionX
+      positionY
+      width
+      height
+      data
+    }
+    edges {
+      id
+      edgeId
+      sourceNodeId
+      targetNodeId
+      sourceHandle
+      targetHandle
+      edgeType
+      animated
+      data
+    }
+    insertedAt
+    updatedAt
+  }
+}
