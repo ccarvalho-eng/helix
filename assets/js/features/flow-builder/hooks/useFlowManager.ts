@@ -86,6 +86,12 @@ export function useFlowManager(flowId: string | null) {
       // Create new flow via GraphQL (with localStorage fallback)
       const createNewFlow = async () => {
         try {
+          // Check if mutation hook is available
+          if (!createFlowMutation || typeof createFlowMutation !== 'function') {
+            console.warn('GraphQL mutation hook not available, using localStorage fallback');
+            throw new Error('Mutation hook not available');
+          }
+
           // Try creating via GraphQL first
           const result = await createFlowMutation({
             variables: {
