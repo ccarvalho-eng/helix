@@ -43,7 +43,7 @@ export function HomePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   // GraphQL hooks
-  const { data: flowsData, loading: loadingFlows, refetch: refetchFlows } = useMyFlowsQuery();
+  const { data: flowsData, refetch: refetchFlows } = useMyFlowsQuery();
   const [createFlowMutation] = useCreateFlowMutation();
   const [updateFlowMutation] = useUpdateFlowMutation();
   const [deleteFlowMutation] = useDeleteFlowMutation();
