@@ -7,7 +7,7 @@ defmodule HelixWeb.Schema do
   import_types(Absinthe.Type.Custom)
 
   alias HelixWeb.Schema.{AccountsMutations, AccountsQueries, AccountsTypes}
-  alias HelixWeb.Schema.{FlowsQueries, FlowsTypes, FlowsMutations, CustomTypes}
+  alias HelixWeb.Schema.{CustomTypes, FlowsMutations, FlowsQueries, FlowsTypes}
 
   import_types(CustomTypes)
   import_types(AccountsTypes)

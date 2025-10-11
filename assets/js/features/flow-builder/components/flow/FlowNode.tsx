@@ -55,23 +55,9 @@ export const FlowNode = memo(function FlowNode({ data, selected }: FlowNodeProps
 
   const iconColor = getIconColor(data.type);
 
-  const getNodeDimensions = (nodeType: ReactFlowAINode['type']) => {
-    const dimensions = {
-      agent: { width: '140px', height: '80px' },
-      sensor: { width: '120px', height: '60px' },
-      skill: { width: '120px', height: '60px' },
-      decision: { width: '100px', height: '80px' },
-      input: { width: '100px', height: '60px' },
-      output: { width: '100px', height: '60px' },
-      memory: { width: '120px', height: '60px' },
-      loop: { width: '100px', height: '60px' },
-      transform: { width: '130px', height: '60px' },
-      api: { width: '100px', height: '60px' },
-    };
-    return dimensions[nodeType];
-  };
-
-  const { width, height } = getNodeDimensions(data.type);
+  // Normalize dimensions to ensure they're numeric values
+  const width = typeof data.width === 'number' ? data.width : 80;
+  const height = typeof data.height === 'number' ? data.height : 50;
 
   const nodeStyle = {
     '--node-bg-color': data.color,
@@ -86,8 +72,8 @@ export const FlowNode = memo(function FlowNode({ data, selected }: FlowNodeProps
       <NodeResizer
         color={theme === 'dark' ? 'var(--theme-syntax-green)' : 'var(--theme-text-primary)'}
         isVisible={selected}
-        minWidth={parseInt(width)}
-        minHeight={parseInt(height)}
+        minWidth={80}
+        minHeight={50}
         handleStyle={{
           width: '6px',
           height: '6px',

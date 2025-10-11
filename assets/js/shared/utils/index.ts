@@ -2,7 +2,6 @@
 
 /**
  * Generate UUID v4 with fallback for cross-environment support
- * Consistent with flowStorage.generateUUID()
  */
 export const generateId = (): string => {
   // Try native crypto.randomUUID() first

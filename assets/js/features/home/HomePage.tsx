@@ -15,9 +15,15 @@ import {
 import { ThemeToggle } from '../flow-builder/components/ThemeToggle';
 import { useAuth } from '../../shared/contexts/AuthContext';
 import { ProtectedRoute } from '../../shared/components/ProtectedRoute';
-import { flowStorage } from '../../shared/services/flowStorage';
 import { FlowRegistryEntry } from '../../shared/types/flow';
 import { websocketService } from '../../shared/services/websocketService';
+import {
+  useMyFlowsQuery,
+  useCreateFlowMutation,
+  useUpdateFlowMutation,
+  useDeleteFlowMutation,
+  useDuplicateFlowMutation,
+} from '../../generated/graphql';
 
 // Extend Window interface to include topbar
 declare global {
@@ -31,22 +37,36 @@ declare global {
 
 export function HomePage() {
   const { logout } = useAuth();
-  const [flows, setFlows] = useState<FlowRegistryEntry[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingFlowId, setEditingFlowId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+
+  // GraphQL hooks
+  const { data: flowsData, loading: loadingFlows, refetch: refetchFlows } = useMyFlowsQuery();
+  const [createFlowMutation] = useCreateFlowMutation();
+  const [updateFlowMutation] = useUpdateFlowMutation();
+  const [deleteFlowMutation] = useDeleteFlowMutation();
+  const [duplicateFlowMutation] = useDuplicateFlowMutation();
+
+  // Transform GraphQL data to FlowRegistryEntry format
+  const flows: FlowRegistryEntry[] =
+    flowsData?.myFlows?.map((flow: any) => ({
+      id: flow.id,
+      title: flow.title,
+      lastModified: flow.updatedAt,
+      createdAt: flow.insertedAt,
+      nodeCount: 0, // We don't have node count in the list query, can add if needed
+      connectionCount: 0,
+    })) || [];
 
   const handleLogout = () => {
     logout();
     window.location.href = '/login';
   };
 
-  // Load flows on component mount
+  // Initialize websocket connection on mount
   useEffect(() => {
-    loadFlows();
-
-    // Initialize websocket connection if not already connected
     if (!websocketService.isConnected()) {
       websocketService.connect();
     }
@@ -69,19 +89,48 @@ export function HomePage() {
     };
   }, []);
 
-  const loadFlows = () => {
-    const registry = flowStorage.getFlowRegistry();
-    setFlows(registry.flows);
+  const handleCreateWorkflow = async () => {
+    try {
+      const result = await createFlowMutation({
+        variables: {
+          input: {
+            title: 'Untitled Flow',
+            viewportX: 0,
+            viewportY: 0,
+            viewportZoom: 1,
+          },
+        },
+      });
+
+      if (result.data?.createFlow) {
+        window.location.href = `/flow/${result.data.createFlow.id}`;
+      }
+    } catch (error) {
+      console.error('Failed to create flow:', error);
+      window.alert('Failed to create flow. Please try again.');
+    }
   };
 
-  const handleCreateWorkflow = () => {
-    const newFlow = flowStorage.createFlow();
-    window.location.href = `/flow/${newFlow.id}`;
-  };
+  const handleBrowseTemplates = async () => {
+    try {
+      const result = await createFlowMutation({
+        variables: {
+          input: {
+            title: 'Untitled Flow',
+            viewportX: 0,
+            viewportY: 0,
+            viewportZoom: 1,
+          },
+        },
+      });
 
-  const handleBrowseTemplates = () => {
-    const newFlow = flowStorage.createFlow('Untitled Flow');
-    window.location.href = `/flow/${newFlow.id}?templates=true`;
+      if (result.data?.createFlow) {
+        window.location.href = `/flow/${result.data.createFlow.id}?templates=true`;
+      }
+    } catch (error) {
+      console.error('Failed to create flow:', error);
+      window.alert('Failed to create flow. Please try again.');
+    }
   };
 
   const handleEditTitle = (flow: FlowRegistryEntry) => {
@@ -89,10 +138,22 @@ export function HomePage() {
     setEditingTitle(flow.title);
   };
 
-  const handleSaveTitle = () => {
+  const handleSaveTitle = async () => {
     if (editingFlowId && editingTitle.trim()) {
-      flowStorage.updateFlowTitle(editingFlowId, editingTitle.trim());
-      loadFlows();
+      try {
+        await updateFlowMutation({
+          variables: {
+            id: editingFlowId,
+            input: {
+              title: editingTitle.trim(),
+            },
+          },
+        });
+        await refetchFlows();
+      } catch (error) {
+        console.error('Failed to update flow title:', error);
+        window.alert('Failed to update flow title. Please try again.');
+      }
     }
     setEditingFlowId(null);
     setEditingTitle('');
@@ -103,12 +164,19 @@ export function HomePage() {
     setEditingTitle('');
   };
 
-  const handleDuplicateFlow = (flowId: string) => {
+  const handleDuplicateFlow = async (flowId: string) => {
     try {
-      flowStorage.duplicateFlow(flowId);
-      loadFlows();
-      // Optionally navigate to the duplicated flow
-      // window.location.href = `/flow/${duplicatedFlow.id}`;
+      const result = await duplicateFlowMutation({
+        variables: {
+          id: flowId,
+        },
+      });
+
+      if (result.data?.duplicateFlow) {
+        await refetchFlows();
+        // Optionally navigate to the duplicated flow
+        // window.location.href = `/flow/${result.data.duplicateFlow.id}`;
+      }
     } catch (error) {
       console.error('Failed to duplicate flow:', error);
       window.alert('Failed to duplicate flow. Please try again.');
@@ -117,20 +185,23 @@ export function HomePage() {
 
   const handleDeleteFlow = async (flowId: string) => {
     try {
-      // Delete from local storage first
-      flowStorage.deleteFlow(flowId);
+      // Delete from database via GraphQL
+      await deleteFlowMutation({
+        variables: {
+          id: flowId,
+        },
+      });
 
       // Notify websocket service about the deletion
       if (websocketService.isConnected()) {
         await websocketService.notifyFlowDeleted(flowId);
       }
 
-      loadFlows();
+      await refetchFlows();
       setShowDeleteConfirm(null);
     } catch (error) {
       console.error('Failed to delete flow:', error);
-      // Still update UI even if websocket notification fails
-      loadFlows();
+      window.alert('Failed to delete flow. Please try again.');
       setShowDeleteConfirm(null);
     }
   };

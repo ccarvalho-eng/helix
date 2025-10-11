@@ -21,8 +21,8 @@ Create and collaborate on AI workflow diagrams with real-time editing. Built wit
 > ⚠️ Early Development
 >
 > - Visual design and planning only — workflows are not executable yet.
-> - Workflows are stored in the browser's localStorage (no sync/backups). Clearing browser data or switching devices will lose unsaved workflows. To avoid data loss, export your diagrams before clearing browser data or moving to a new device.
-> - Server-side persistence and execution are planned for future releases.
+> - Workflows are persisted in PostgreSQL with real-time synchronization.
+> - Workflow execution is planned for future releases.
 
 ## Quick Start
 
@@ -70,6 +70,8 @@ See our [contributing guide](CONTRIBUTING.md) for more details.
 ## Documentation
 
 - [Architecture](docs/architecture.md) - Technical details and system diagrams
+- [API Reference](docs/api.md) - GraphQL and WebSocket API documentation
+- [Authentication](docs/authentication.md) - Authentication system guide
 
 ## License
 
