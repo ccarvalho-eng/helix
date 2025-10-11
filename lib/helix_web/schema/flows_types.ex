@@ -45,6 +45,7 @@ defmodule HelixWeb.Schema.FlowsTypes do
     field :viewport_zoom, :float, description: "Viewport zoom level"
     field :version, :integer, description: "Version number for optimistic locking"
     field :is_template, :boolean, description: "Whether this flow is a template"
+    field :is_public, :boolean, description: "Whether this flow is publicly accessible"
     field :template_category, :string, description: "Category for template flows"
     field :nodes, list_of(:flow_node), description: "Nodes in this flow"
     field :edges, list_of(:flow_edge), description: "Edges in this flow"
@@ -70,6 +71,7 @@ defmodule HelixWeb.Schema.FlowsTypes do
     field :viewport_x, :float, description: "Viewport X offset"
     field :viewport_y, :float, description: "Viewport Y offset"
     field :viewport_zoom, :float, description: "Viewport zoom level"
+    field :is_public, :boolean, description: "Whether flow is publicly accessible"
   end
 
   @desc "Input for a flow node"

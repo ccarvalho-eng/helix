@@ -24,6 +24,7 @@ defmodule Helix.Flows.Flow do
     field :viewport_zoom, :float, default: 1.0
     field :version, :integer, default: 1
     field :is_template, :boolean, default: false
+    field :is_public, :boolean, default: false
     field :template_category, :string
     field :deleted_at, :utc_datetime
 
@@ -83,7 +84,8 @@ defmodule Helix.Flows.Flow do
       :viewport_x,
       :viewport_y,
       :viewport_zoom,
-      :template_category
+      :template_category,
+      :is_public
     ])
     |> validate_required([:title])
     |> validate_length(:title, min: 1, max: 255)

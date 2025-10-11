@@ -22,7 +22,6 @@
     "node_modules",
     "_build",
     "deps",
-    "priv",
-    "assets/js/generated"
+    "priv"
   ]
 }

@@ -10,10 +10,6 @@ defmodule HelixWeb.Router do
     plug :put_secure_browser_headers
   end
 
-  pipeline :api do
-    plug :accepts, ["json"]
-  end
-
   pipeline :graphql do
     plug :accepts, ["json"]
     plug HelixWeb.Context
@@ -30,23 +26,18 @@ defmodule HelixWeb.Router do
     get "/flow/:id", FlowController, :show
   end
 
-  # API routes for flow synchronization
-  scope "/api", HelixWeb do
-    pipe_through :api
-
-    post "/flows/:id/sync", FlowController, :sync
-    get "/flows/:id/status", FlowController, :status
-  end
-
   # GraphQL API
   scope "/api" do
     pipe_through :graphql
 
-    forward "/graphql", Absinthe.Plug, schema: HelixWeb.Schema
+    forward "/graphql", Absinthe.Plug,
+      schema: HelixWeb.Schema,
+      adapter: Absinthe.Adapter.LanguageConventions
 
     if Application.compile_env(:helix, :dev_routes) do
       forward "/graphiql", Absinthe.Plug.GraphiQL,
         schema: HelixWeb.Schema,
+        adapter: Absinthe.Adapter.LanguageConventions,
         interface: :simple
     end
   end

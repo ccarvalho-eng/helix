@@ -1,17 +1,21 @@
 defmodule Helix.Flows.ConcurrencyTest do
-  use ExUnit.Case, async: false
+  use Helix.DataCase, async: false
 
   alias Helix.Flows.SessionServer
   import Helix.FlowTestHelper
+  import Helix.AccountsFixtures
+  import Helix.FlowsFixtures
 
   setup do
     ensure_flow_services_available()
-    :ok
+    user = user_fixture()
+    {:ok, user: user}
   end
 
   describe "concurrent session operations" do
-    test "concurrent session creation race condition" do
-      flow_id = "race-condition-test-#{System.unique_integer([:positive])}"
+    test "concurrent session creation race condition", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Start 20 concurrent attempts to create same session
       tasks =
@@ -35,8 +39,9 @@ defmodule Helix.Flows.ConcurrencyTest do
       assert %{active: true, client_count: 20} = status
     end
 
-    test "concurrent join and leave operations on same flow" do
-      flow_id = "concurrent-ops-test-#{System.unique_integer([:positive])}"
+    test "concurrent join and leave operations on same flow", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Start with some clients
       assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "initial-client-1")
@@ -72,8 +77,9 @@ defmodule Helix.Flows.ConcurrencyTest do
       assert status.client_count > 0
     end
 
-    test "concurrent operations on multiple flows" do
-      flow_ids = Enum.map(1..5, &"multi-flow-#{&1}-#{System.unique_integer([:positive])}")
+    test "concurrent operations on multiple flows", %{user: user} do
+      flows = Enum.map(1..5, fn _ -> flow_fixture(%{user_id: user.id}) end)
+      flow_ids = Enum.map(flows, & &1.id)
 
       # Each flow gets concurrent operations
       all_tasks =
@@ -113,8 +119,9 @@ defmodule Helix.Flows.ConcurrencyTest do
       assert length(total_registry_entries) == 5
     end
 
-    test "concurrent session termination scenarios" do
-      flow_id = "termination-test-#{System.unique_integer([:positive])}"
+    test "concurrent session termination scenarios", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Add fewer clients to reduce complexity
       clients = Enum.map(1..5, &"client-#{&1}")
@@ -138,8 +145,9 @@ defmodule Helix.Flows.ConcurrencyTest do
       assert %{active: false, client_count: 0} = SessionServer.get_flow_status(flow_id)
     end
 
-    test "high-frequency status checks don't interfere with operations" do
-      flow_id = "status-check-test-#{System.unique_integer([:positive])}"
+    test "high-frequency status checks don't interfere with operations", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Start status checking tasks
       status_tasks =
@@ -175,8 +183,9 @@ defmodule Helix.Flows.ConcurrencyTest do
       assert %{active: false, client_count: 0} = status
     end
 
-    test "concurrent broadcast operations don't block session state" do
-      flow_id = "broadcast-test-#{System.unique_integer([:positive])}"
+    test "concurrent broadcast operations don't block session state", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join some clients
       assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "client-1")

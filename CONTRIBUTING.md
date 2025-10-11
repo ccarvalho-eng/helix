@@ -45,6 +45,7 @@ Thank you for your interest in contributing to Helix! This guide will help you g
 
 - **Format code**: Run `mix format` for Elixir and `npm run prettier` for JS/TS
 - **Dependencies**: Run `mix deps.get` after dependency changes
+- **GraphQL types**: Run `npm run codegen` after schema changes
 - **Documentation**: Generate docs with `mix docs` for public APIs
 
 ### Testing

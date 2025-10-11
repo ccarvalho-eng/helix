@@ -1,11 +1,18 @@
 defmodule HelixWeb.FlowManagementChannelTest do
   use HelixWeb.ChannelCase, async: false
   import ExUnit.CaptureLog
+  import Helix.AccountsFixtures
+  import Helix.FlowsFixtures
 
   alias Helix.Flows
   alias HelixWeb.FlowManagementChannel
 
   @moduletag :authenticated_socket
+
+  setup do
+    user = user_fixture()
+    {:ok, user: user}
+  end
 
   describe "joining flow management channel" do
     test "successfully joins the flow_management channel", %{socket: socket} do
@@ -26,8 +33,9 @@ defmodule HelixWeb.FlowManagementChannelTest do
   end
 
   describe "handling flow_deleted messages" do
-    test "successfully handles flow deletion with active session", %{socket: socket} do
-      flow_id = test_flow_id("delete-test-flow")
+    test "successfully handles flow deletion with active session", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Set up an active flow session first
       Flows.join_flow(flow_id, "test-client-1")
@@ -51,8 +59,9 @@ defmodule HelixWeb.FlowManagementChannelTest do
       assert %{active: false, client_count: 0} = Flows.get_flow_status(flow_id)
     end
 
-    test "handles flow deletion when no active session exists", %{socket: socket} do
-      flow_id = test_flow_id("no-session-flow")
+    test "handles flow deletion when no active session exists", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowManagementChannel, "flow_management")
 
@@ -66,8 +75,9 @@ defmodule HelixWeb.FlowManagementChannelTest do
       }
     end
 
-    test "handles flow deletion with single client session", %{socket: socket} do
-      flow_id = test_flow_id("single-client-flow")
+    test "handles flow deletion with single client session", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Set up a single client session
       Flows.join_flow(flow_id, "lone-client")
@@ -218,9 +228,11 @@ defmodule HelixWeb.FlowManagementChannelTest do
   end
 
   describe "integration with Flows" do
-    test "multiple flow deletions work independently", %{socket: socket} do
-      flow_id_1 = test_flow_id("multi-delete-1")
-      flow_id_2 = test_flow_id("multi-delete-2")
+    test "multiple flow deletions work independently", %{socket: socket, user: user} do
+      flow_1 = flow_fixture(%{user_id: user.id})
+      flow_id_1 = flow_1.id
+      flow_2 = flow_fixture(%{user_id: user.id})
+      flow_id_2 = flow_2.id
 
       # Set up sessions for both flows
       Flows.join_flow(flow_id_1, "client-1")
@@ -264,8 +276,9 @@ defmodule HelixWeb.FlowManagementChannelTest do
       assert %{active: false, client_count: 0} = Flows.get_flow_status(flow_id_2)
     end
 
-    test "handles concurrent flow deletions", %{socket: socket} do
-      flow_id = test_flow_id("concurrent-delete-flow")
+    test "handles concurrent flow deletions", %{socket: socket, user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Set up a session
       Flows.join_flow(flow_id, "client-1")
@@ -340,10 +353,5 @@ defmodule HelixWeb.FlowManagementChannelTest do
 
       assert log =~ "Unknown management event unknown_event"
     end
-  end
-
-  # Helper function to generate unique test flow IDs
-  defp test_flow_id(base_id) do
-    "#{base_id}-#{inspect(self())}-#{:erlang.unique_integer([:positive])}"
   end
 end

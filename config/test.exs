@@ -30,6 +30,9 @@ config :swoosh, :api_client, false
 # Print only warnings and errors during test
 config :logger, level: :warning
 
+# Note: Database connection errors from background persistence tasks are expected
+# during test cleanup when flows are deleted while async tasks are still running.
+
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
 

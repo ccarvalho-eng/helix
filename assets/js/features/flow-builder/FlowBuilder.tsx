@@ -50,6 +50,8 @@ import {
   DollarSign,
   ShoppingCart,
   LogOut,
+  Globe,
+  Lock,
 } from 'lucide-react';
 
 type ReactFlowAINode = OriginalAIFlowNode;
@@ -333,6 +335,8 @@ function FlowBuilderInternal() {
   const {
     currentFlow,
     updateFlowTitle,
+    isPublic,
+    togglePublish,
     nodes,
     edges,
     selectedNode,
@@ -652,6 +656,21 @@ function FlowBuilderInternal() {
               <DownloadButton
                 filename={currentFlow?.title.toLowerCase().replace(/\s+/g, '-') || 'flow-diagram'}
               />
+              <button
+                className={`flow-builder__publish-btn ${isPublic ? 'flow-builder__publish-btn--public' : ''}`}
+                onClick={togglePublish}
+                title={
+                  isPublic
+                    ? 'Flow is public - click to make private'
+                    : 'Flow is private - click to make public'
+                }
+                aria-label={isPublic ? 'Make flow private' : 'Make flow public'}
+              >
+                {isPublic ? <Globe size={16} /> : <Lock size={16} />}
+                <span className='flow-builder__publish-btn-text'>
+                  {isPublic ? 'Public' : 'Private'}
+                </span>
+              </button>
               <ThemeToggle />
               <button
                 className='flow-builder__logout-btn'
@@ -691,6 +710,14 @@ function FlowBuilderInternal() {
                   {nodes.length}n {edges.length}c
                 </span>
                 {isMobileStatsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </button>
+              <button
+                className={`flow-builder__publish-btn ${isPublic ? 'flow-builder__publish-btn--public' : ''}`}
+                onClick={togglePublish}
+                title={isPublic ? 'Public' : 'Private'}
+                aria-label={isPublic ? 'Make flow private' : 'Make flow public'}
+              >
+                {isPublic ? <Globe size={16} /> : <Lock size={16} />}
               </button>
               <DownloadButton
                 filename={currentFlow?.title.toLowerCase().replace(/\s+/g, '-') || 'flow-diagram'}
@@ -904,10 +931,26 @@ function FlowBuilderInternal() {
             </h3>
             <div className='flow-builder__category-list'>
               {[
-                { id: 'business-automation', label: 'Business Automation', icon: Settings },
-                { id: 'customer-service', label: 'Customer Service', icon: Users },
-                { id: 'content-creation', label: 'Content Creation', icon: FileText },
-                { id: 'data-analysis', label: 'Data Analysis', icon: BarChart3 },
+                {
+                  id: 'business-automation',
+                  label: 'Business Automation',
+                  icon: Settings,
+                },
+                {
+                  id: 'customer-service',
+                  label: 'Customer Service',
+                  icon: Users,
+                },
+                {
+                  id: 'content-creation',
+                  label: 'Content Creation',
+                  icon: FileText,
+                },
+                {
+                  id: 'data-analysis',
+                  label: 'Data Analysis',
+                  icon: BarChart3,
+                },
                 { id: 'healthcare', label: 'Healthcare', icon: Heart },
                 { id: 'finance', label: 'Finance', icon: DollarSign },
                 { id: 'e-commerce', label: 'E-Commerce', icon: ShoppingCart },
