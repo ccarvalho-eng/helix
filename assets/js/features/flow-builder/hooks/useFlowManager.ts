@@ -22,7 +22,6 @@ import {
   useGetFlowQuery,
   useUpdateFlowMutation,
   useUpdateFlowDataMutation,
-  useDeleteFlowMutation,
 } from '../../../generated/graphql';
 import {
   transformNodesToGraphQL,
