@@ -1,4 +1,4 @@
-import { MockedProvider } from '@apollo/client/react/testing';
+import { MockedProvider } from '@apollo/client/testing/react';
 import { renderHook, waitFor } from '@testing-library/react';
 import React from 'react';
 import {
@@ -205,7 +205,35 @@ describe('Flow CRUD Operations with GraphQL', () => {
     });
 
     it('should fetch all user flows', async () => {
-      const mockFlows = [mockFlow, { ...mockFlow, id: 'another-id', title: 'Another Flow' }];
+      // MyFlows query doesn't return nodes/edges, only metadata
+      const mockFlowsList = [
+        {
+          id: mockFlowId,
+          title: 'Test Flow',
+          description: 'A test flow',
+          viewportX: 0,
+          viewportY: 0,
+          viewportZoom: 1,
+          version: 1,
+          isTemplate: false,
+          templateCategory: null,
+          insertedAt: mockFlow.insertedAt,
+          updatedAt: mockFlow.updatedAt,
+        },
+        {
+          id: 'another-id',
+          title: 'Another Flow',
+          description: 'A test flow',
+          viewportX: 0,
+          viewportY: 0,
+          viewportZoom: 1,
+          version: 1,
+          isTemplate: false,
+          templateCategory: null,
+          insertedAt: mockFlow.insertedAt,
+          updatedAt: mockFlow.updatedAt,
+        },
+      ];
 
       const mocks = [
         {
@@ -214,7 +242,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
           },
           result: {
             data: {
-              myFlows: mockFlows,
+              myFlows: mockFlowsList,
             },
           },
         },
@@ -232,7 +260,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(result.current.data?.myFlows).toEqual(mockFlows);
+      expect(result.current.data?.myFlows).toEqual(mockFlowsList);
       expect(result.current.data?.myFlows).toHaveLength(2);
     });
 

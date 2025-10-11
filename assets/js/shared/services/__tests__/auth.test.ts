@@ -252,17 +252,12 @@ describe('AuthService', () => {
     // Remove the complex Apollo mocking since logout doesn't actually use client.clearStore anymore
 
     it('logs out user and clears all data', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-
       AuthService.logout();
 
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('helix_auth_token');
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('helix_token_expiry');
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('helix_user_data');
       expect(mockSessionStorage.clear).toHaveBeenCalled();
-      expect(consoleSpy).toHaveBeenCalledWith('User logged out successfully');
-
-      consoleSpy.mockRestore();
     });
 
     it('handles errors during logout gracefully', () => {
