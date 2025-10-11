@@ -72,8 +72,8 @@ export const FlowNode = memo(function FlowNode({ data, selected }: FlowNodeProps
       <NodeResizer
         color={theme === 'dark' ? 'var(--theme-syntax-green)' : 'var(--theme-text-primary)'}
         isVisible={selected}
-        minWidth={width}
-        minHeight={height}
+        minWidth={80}
+        minHeight={50}
         handleStyle={{
           width: '6px',
           height: '6px',

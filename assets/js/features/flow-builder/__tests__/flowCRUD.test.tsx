@@ -1,8 +1,3 @@
-/**
- * Comprehensive tests for Flow CRUD operations using GraphQL
- * Tests all phases: Create, Read, Update, Delete
- */
-
 import { MockedProvider } from '@apollo/client/react/testing';
 import { renderHook, waitFor } from '@testing-library/react';
 import React from 'react';
@@ -77,7 +72,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
     updatedAt: new Date().toISOString(),
   };
 
-  describe('CREATE - Phase 6', () => {
+  describe('CREATE', () => {
     it('should create a new flow via GraphQL mutation', async () => {
       const mocks = [
         {
@@ -168,7 +163,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
     });
   });
 
-  describe('READ - Phase 7', () => {
+  describe('READ', () => {
     it('should fetch a single flow with nodes and edges', async () => {
       const flowWithData = {
         ...mockFlow,
@@ -275,7 +270,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
     });
   });
 
-  describe('UPDATE - Phase 8', () => {
+  describe('UPDATE', () => {
     it('should update flow title and metadata', async () => {
       const updatedFlow = {
         ...mockFlow,
@@ -385,7 +380,9 @@ describe('Flow CRUD Operations with GraphQL', () => {
         </MockedProvider>
       );
 
-      const { result } = renderHook(() => useUpdateFlowDataMutation(), { wrapper });
+      const { result } = renderHook(() => useUpdateFlowDataMutation(), {
+        wrapper,
+      });
 
       const [updateFlowData] = result.current;
       const response = await updateFlowData({
@@ -469,7 +466,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
     });
   });
 
-  describe('DELETE - Phase 9', () => {
+  describe('DELETE', () => {
     it('should delete a flow via GraphQL mutation', async () => {
       const deletedFlow = {
         id: mockFlowId,
@@ -571,7 +568,9 @@ describe('Flow CRUD Operations with GraphQL', () => {
         </MockedProvider>
       );
 
-      const { result } = renderHook(() => useDuplicateFlowMutation(), { wrapper });
+      const { result } = renderHook(() => useDuplicateFlowMutation(), {
+        wrapper,
+      });
 
       const [duplicateFlow] = result.current;
       const response = await duplicateFlow({
@@ -616,7 +615,9 @@ describe('Flow CRUD Operations with GraphQL', () => {
         </MockedProvider>
       );
 
-      const { result } = renderHook(() => useDuplicateFlowMutation(), { wrapper });
+      const { result } = renderHook(() => useDuplicateFlowMutation(), {
+        wrapper,
+      });
 
       const [duplicateFlow] = result.current;
       const response = await duplicateFlow({
