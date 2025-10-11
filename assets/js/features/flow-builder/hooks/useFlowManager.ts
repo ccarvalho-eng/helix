@@ -8,6 +8,9 @@ import {
   Connection,
   MarkerType,
   ReactFlowInstance,
+  NodeChange,
+  NodeDimensionChange,
+  NodePositionChange,
 } from 'reactflow';
 import { AIFlowNode } from '../types';
 import { FlowRegistryEntry, FlowData } from '../../../shared/types/flow';
@@ -21,6 +24,35 @@ import {
   useUpdateFlowDataMutation,
   useDeleteFlowMutation,
 } from '../../../generated/graphql';
+import {
+  transformNodesToGraphQL,
+  transformEdgesToGraphQL,
+  parseNodeDataSafely,
+  validateFlowData,
+} from '../utils';
+
+// GraphQL node type from API
+interface GraphQLNode {
+  nodeId: string;
+  type: string;
+  positionX: number;
+  positionY: number;
+  width?: number;
+  height?: number;
+  data?: unknown;
+}
+
+// GraphQL edge type from API
+interface GraphQLEdge {
+  edgeId: string;
+  sourceNodeId: string;
+  targetNodeId: string;
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
+  edgeType?: string | null;
+  animated?: boolean | null;
+  data?: unknown;
+}
 
 const nodeDefaults = {
   agent: { width: 140, height: 80, color: '#f0f9ff', label: 'AI Agent' },
@@ -51,35 +83,58 @@ export function useFlowManager(flowId: string | null) {
   const [selectedNode, setSelectedNode] = useState<AIFlowNode | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
 
-  // Custom onNodesChange handler that syncs dimension changes to node.data
+  // Custom onNodesChange handler that syncs dimension and position changes to node.data
   const onNodesChange = useCallback(
-    (changes: any[]) => {
+    (changes: NodeChange[]) => {
       // First apply the changes using the internal handler
       onNodesChangeInternal(changes);
 
-      // Then update node.data for dimension changes
+      // Then update node.data for dimension and position changes
       changes.forEach(change => {
-        if (change.type === 'dimensions' && change.dimensions) {
-          setNodes(nds =>
-            nds.map(node => {
-              if (node.id === change.id) {
-                return {
-                  ...node,
-                  data: {
-                    ...node.data,
-                    width: change.dimensions.width,
-                    height: change.dimensions.height,
-                  },
-                  style: {
-                    ...node.style,
-                    width: change.dimensions.width,
-                    height: change.dimensions.height,
-                  },
-                };
-              }
-              return node;
-            })
-          );
+        if (change.type === 'dimensions') {
+          const dimensionChange = change as NodeDimensionChange;
+          if (dimensionChange.dimensions) {
+            setNodes(nds =>
+              nds.map(node => {
+                if (node.id === dimensionChange.id) {
+                  return {
+                    ...node,
+                    data: {
+                      ...node.data,
+                      width: dimensionChange.dimensions!.width,
+                      height: dimensionChange.dimensions!.height,
+                    },
+                    style: {
+                      ...node.style,
+                      width: dimensionChange.dimensions!.width,
+                      height: dimensionChange.dimensions!.height,
+                    },
+                  };
+                }
+                return node;
+              })
+            );
+          }
+        } else if (change.type === 'position') {
+          const positionChange = change as NodePositionChange;
+          if (positionChange.position) {
+            setNodes(nds =>
+              nds.map(node => {
+                if (node.id === positionChange.id) {
+                  return {
+                    ...node,
+                    data: {
+                      ...node.data,
+                      x: positionChange.position!.x,
+                      y: positionChange.position!.y,
+                      position: positionChange.position!,
+                    },
+                  };
+                }
+                return node;
+              })
+            );
+          }
         }
       });
     },
@@ -117,6 +172,9 @@ export function useFlowManager(flowId: string | null) {
 
   // Load or create flow on mount
   useEffect(() => {
+    // Track if component is still mounted to prevent race conditions
+    let isMounted = true;
+
     if (flowId) {
       // Wait for GraphQL query to complete
       if (isLoadingFlow) {
@@ -127,99 +185,110 @@ export function useFlowManager(flowId: string | null) {
       // Handle flow load error or not found
       if (flowLoadError || !flowData?.flow) {
         console.error('Failed to load flow:', flowLoadError);
-        window.location.href = '/';
+        if (isMounted) {
+          window.location.href = '/';
+        }
         return;
       }
 
-      // Transform GraphQL data to FlowRegistryEntry format
+      // Validate flow data from GraphQL
       const flow = flowData.flow;
+      if (!validateFlowData(flow)) {
+        console.error('Invalid flow data received from GraphQL API');
+        if (isMounted) {
+          window.location.href = '/';
+        }
+        return;
+      }
       const flowEntry: FlowRegistryEntry = {
-        id: (flow.id as string) || '',
-        title: (flow.title as string) || 'Untitled Flow',
-        lastModified: (flow.updatedAt as string) || new Date().toISOString(),
-        createdAt: (flow.insertedAt as string) || new Date().toISOString(),
+        id: flow.id,
+        title: flow.title || 'Untitled Flow',
+        lastModified: flow.updatedAt || new Date().toISOString(),
+        createdAt: flow.insertedAt || new Date().toISOString(),
         nodeCount: flow.nodes?.length || 0,
         connectionCount: flow.edges?.length || 0,
       };
 
-      setCurrentFlow(flowEntry);
-      setIsNewFlow(false);
-      const version = flow.version || 0;
-      setCurrentVersion(version);
-      optimisticVersion.current = version;
+      if (isMounted) {
+        setCurrentFlow(flowEntry);
+        setIsNewFlow(false);
+        const version = flow.version || 0;
+        setCurrentVersion(version);
+        optimisticVersion.current = version;
 
-      // Transform nodes from GraphQL format to ReactFlow format
-      const transformedNodes: Node<AIFlowNode>[] =
-        flow.nodes?.map((node: any) => {
-          const nodeData = (node.data as any) || {};
-          const type = node.type as AIFlowNode['type'];
-          const defaults = nodeDefaults[type] || nodeDefaults.agent;
+        // Transform nodes from GraphQL format to ReactFlow format
+        const transformedNodes: Node<AIFlowNode>[] =
+          (flow.nodes as GraphQLNode[] | undefined)?.map((node: GraphQLNode) => {
+            const nodeData = parseNodeDataSafely(node.data);
+            const type = node.type as AIFlowNode['type'];
+            const defaults = nodeDefaults[type] || nodeDefaults.agent;
 
-          const aiFlowNode: AIFlowNode = {
-            id: node.nodeId,
-            type,
-            position: { x: node.positionX, y: node.positionY },
-            dimensions: {
+            const aiFlowNode: AIFlowNode = {
+              id: node.nodeId,
+              type,
+              position: { x: node.positionX, y: node.positionY },
+              dimensions: {
+                width: node.width || defaults.width,
+                height: node.height || defaults.height,
+              },
+              x: node.positionX,
+              y: node.positionY,
               width: node.width || defaults.width,
               height: node.height || defaults.height,
-            },
-            x: node.positionX,
-            y: node.positionY,
-            width: node.width || defaults.width,
-            height: node.height || defaults.height,
-            label: nodeData.label || defaults.label,
-            description: nodeData.description || '',
-            config: nodeData.config || {},
-            color: nodeData.color || defaults.color,
-            borderColor: (nodeData.borderColor as string) || '#e5e7eb',
-            borderWidth: (nodeData.borderWidth as number) || 1,
-          };
+              label: (nodeData.label as string) || defaults.label,
+              description: (nodeData.description as string) || '',
+              config: (nodeData.config as AIFlowNode['config']) || {},
+              color: (nodeData.color as string) || defaults.color,
+              borderColor: (nodeData.borderColor as string) || '#e5e7eb',
+              borderWidth: (nodeData.borderWidth as number) || 1,
+            };
 
-          return {
-            id: node.nodeId,
-            type: 'aiFlowNode',
-            position: { x: node.positionX, y: node.positionY },
-            data: aiFlowNode,
+            return {
+              id: node.nodeId,
+              type: 'aiFlowNode',
+              position: { x: node.positionX, y: node.positionY },
+              data: aiFlowNode,
+              style: {
+                width: node.width || defaults.width,
+                height: node.height || defaults.height,
+              },
+            };
+          }) || [];
+
+        // Transform edges from GraphQL format to ReactFlow format
+        const transformedEdges: Edge[] =
+          (flow.edges as GraphQLEdge[] | undefined)?.map((edge: GraphQLEdge) => ({
+            id: edge.edgeId,
+            source: edge.sourceNodeId,
+            target: edge.targetNodeId,
+            sourceHandle: edge.sourceHandle || undefined,
+            targetHandle: edge.targetHandle || undefined,
+            type: edge.edgeType || 'default',
+            animated: edge.animated || false,
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              width: 20,
+              height: 20,
+              color: '#9ca3af',
+            },
             style: {
-              width: node.width || defaults.width,
-              height: node.height || defaults.height,
+              stroke: '#9ca3af',
+              strokeWidth: 2,
             },
-          };
-        }) || [];
+            data: edge.data,
+          })) || [];
 
-      // Transform edges from GraphQL format to ReactFlow format
-      const transformedEdges: Edge[] =
-        flow.edges?.map((edge: any) => ({
-          id: edge.edgeId,
-          source: edge.sourceNodeId,
-          target: edge.targetNodeId,
-          sourceHandle: edge.sourceHandle || undefined,
-          targetHandle: edge.targetHandle || undefined,
-          type: edge.edgeType || 'default',
-          animated: edge.animated || false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 20,
-            height: 20,
-            color: '#9ca3af',
-          },
-          style: {
-            stroke: '#9ca3af',
-            strokeWidth: 2,
-          },
-          data: edge.data,
-        })) || [];
+        setNodes(transformedNodes);
+        setEdges(transformedEdges);
+        setInitialViewport({
+          x: flow.viewportX ?? 0,
+          y: flow.viewportY ?? 0,
+          zoom: flow.viewportZoom ?? 1,
+        });
 
-      setNodes(transformedNodes);
-      setEdges(transformedEdges);
-      setInitialViewport({
-        x: (flow.viewportX as number) || 0,
-        y: (flow.viewportY as number) || 0,
-        zoom: (flow.viewportZoom as number) || 1,
-      });
-
-      // Flow data is ready
-      setIsFlowReady(true);
+        // Flow data is ready
+        setIsFlowReady(true);
+      }
     } else {
       // Create new flow via GraphQL
       const createNewFlow = async () => {
@@ -235,7 +304,7 @@ export function useFlowManager(flowId: string | null) {
             },
           });
 
-          if (result.data?.createFlow) {
+          if (result.data?.createFlow && isMounted) {
             const graphqlFlow = result.data.createFlow;
 
             // Convert GraphQL response to FlowRegistryEntry format
@@ -257,17 +326,27 @@ export function useFlowManager(flowId: string | null) {
             setEdges([]);
             setIsFlowReady(true);
             window.history.replaceState(null, '', `/flow/${newFlow.id}`);
+          } else if (!isMounted) {
+            // Component unmounted, don't proceed
+            return;
           } else {
             throw new Error('GraphQL mutation returned no data');
           }
         } catch (error) {
           console.error('Failed to create flow:', error);
-          window.alert('Failed to create flow. Please try again.');
+          if (isMounted) {
+            window.alert('Failed to create flow. Please try again.');
+          }
         }
       };
 
       createNewFlow();
     }
+
+    // Cleanup function to prevent race conditions
+    return () => {
+      isMounted = false;
+    };
   }, [flowId, setNodes, setEdges, createFlowMutation, isLoadingFlow, flowLoadError, flowData]);
 
   // WebSocket connection management
@@ -388,38 +467,9 @@ export function useFlowManager(flowId: string | null) {
       const versionToUse = optimisticVersion.current;
 
       try {
-        // Transform ReactFlow nodes to GraphQL format
-        const graphqlNodes = nodes.map(node => {
-          const data = node.data;
-          return {
-            nodeId: data.id,
-            type: data.type,
-            positionX: node.position.x,
-            positionY: node.position.y,
-            width: data.width,
-            height: data.height,
-            data: JSON.stringify({
-              label: data.label,
-              description: data.description,
-              config: data.config,
-              color: data.color,
-              borderColor: data.borderColor,
-              borderWidth: data.borderWidth,
-            }),
-          };
-        });
-
-        // Transform ReactFlow edges to GraphQL format
-        const graphqlEdges = edges.map(edge => ({
-          edgeId: edge.id,
-          sourceNodeId: edge.source,
-          targetNodeId: edge.target,
-          sourceHandle: edge.sourceHandle || null,
-          targetHandle: edge.targetHandle || null,
-          edgeType: edge.type || 'default',
-          animated: edge.animated || false,
-          data: edge.data || null,
-        }));
+        // Transform ReactFlow nodes and edges to GraphQL format
+        const graphqlNodes = transformNodesToGraphQL(nodes);
+        const graphqlEdges = transformEdgesToGraphQL(edges);
 
         // Save immediately to database
         const result = await updateFlowDataMutation({
@@ -557,38 +607,9 @@ export function useFlowManager(flowId: string | null) {
         const versionToUse = optimisticVersion.current;
 
         try {
-          // Transform ReactFlow nodes to GraphQL format
-          const graphqlNodes = nodes.map(node => {
-            const data = node.data;
-            return {
-              nodeId: data.id,
-              type: data.type,
-              positionX: node.position.x,
-              positionY: node.position.y,
-              width: data.width,
-              height: data.height,
-              data: JSON.stringify({
-                label: data.label,
-                description: data.description,
-                config: data.config,
-                color: data.color,
-                borderColor: data.borderColor,
-                borderWidth: data.borderWidth,
-              }),
-            };
-          });
-
-          // Transform ReactFlow edges to GraphQL format
-          const graphqlEdges = edges.map(edge => ({
-            edgeId: edge.id,
-            sourceNodeId: edge.source,
-            targetNodeId: edge.target,
-            sourceHandle: edge.sourceHandle || null,
-            targetHandle: edge.targetHandle || null,
-            edgeType: edge.type || 'default',
-            animated: edge.animated || false,
-            data: edge.data || null,
-          }));
+          // Transform ReactFlow nodes and edges to GraphQL format
+          const graphqlNodes = transformNodesToGraphQL(nodes);
+          const graphqlEdges = transformEdgesToGraphQL(edges);
 
           // Save to database via GraphQL
           const result = await updateFlowDataMutation({
@@ -993,38 +1014,9 @@ export function useFlowManager(flowId: string | null) {
           const versionToUse = optimisticVersion.current;
 
           try {
-            // Transform ReactFlow nodes to GraphQL format
-            const graphqlNodes = nodes.map(node => {
-              const data = node.data;
-              return {
-                nodeId: data.id,
-                type: data.type,
-                positionX: node.position.x,
-                positionY: node.position.y,
-                width: data.width,
-                height: data.height,
-                data: JSON.stringify({
-                  label: data.label,
-                  description: data.description,
-                  config: data.config,
-                  color: data.color,
-                  borderColor: data.borderColor,
-                  borderWidth: data.borderWidth,
-                }),
-              };
-            });
-
-            // Transform ReactFlow edges to GraphQL format
-            const graphqlEdges = edges.map(edge => ({
-              edgeId: edge.id,
-              sourceNodeId: edge.source,
-              targetNodeId: edge.target,
-              sourceHandle: edge.sourceHandle || null,
-              targetHandle: edge.targetHandle || null,
-              edgeType: edge.type || 'default',
-              animated: edge.animated || false,
-              data: edge.data || null,
-            }));
+            // Transform ReactFlow nodes and edges to GraphQL format
+            const graphqlNodes = transformNodesToGraphQL(nodes);
+            const graphqlEdges = transformEdgesToGraphQL(edges);
 
             // Save viewport changes to database
             const result = await updateFlowDataMutation({
