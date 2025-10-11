@@ -20,7 +20,6 @@ import {
 
 describe('Flow CRUD Operations with GraphQL', () => {
   const mockFlowId = '123e4567-e89b-12d3-a456-426614174000';
-  const mockUserId = '123e4567-e89b-12d3-a456-426614174001';
 
   const mockFlow = {
     id: mockFlowId,
