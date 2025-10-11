@@ -56,7 +56,6 @@ export const FlowNode = memo(function FlowNode({ data, selected }: FlowNodeProps
   const iconColor = getIconColor(data.type);
 
   // Normalize dimensions to ensure they're numeric values
-  const height = typeof data.height === 'number' ? data.height : 50;
 
   const nodeStyle = {
     '--node-bg-color': data.color,
