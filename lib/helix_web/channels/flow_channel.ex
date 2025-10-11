@@ -92,17 +92,30 @@ defmodule HelixWeb.FlowChannel do
   end
 
   @impl true
-  def handle_in("flow_change", %{"changes" => changes}, socket) do
-    flow_id = socket.assigns.flow_id
+  def handle_info({:flow_access_revoked, flow_id}, socket) do
+    # Notify client that they no longer have access to this flow
+    push(socket, "flow_access_revoked", %{
+      flow_id: flow_id,
+      timestamp: System.system_time(:second)
+    })
 
-    # Persist changes to database (asynchronous)
-    Flows.persist_flow_changes(flow_id, changes)
+    # Close the channel since the user no longer has access
+    {:stop, :normal, socket}
+  end
 
-    # Broadcast changes to other clients via the session manager
-    Flows.broadcast_flow_change(flow_id, changes)
+  @impl true
+  def handle_in("flow_change", %{"changes" => _changes}, socket) do
+    # Note: This handler is deprecated and should not be used by clients
+    # Flow changes should be saved via GraphQL mutations which handle
+    # both persistence and broadcasting to prevent version conflicts
+    # Keeping this handler for backwards compatibility only
 
-    # Acknowledge receipt
-    {:reply, {:ok, %{status: "broadcasted"}}, socket}
+    Logger.warning(
+      "Deprecated flow_change message received for flow #{socket.assigns.flow_id}. " <>
+        "Clients should use GraphQL mutations instead."
+    )
+
+    {:reply, {:ok, %{status: "deprecated"}}, socket}
   end
 
   @impl true

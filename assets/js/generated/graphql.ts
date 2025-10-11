@@ -90,6 +90,8 @@ export type Flow = {
   id?: Maybe<Scalars['ID']['output']>;
   /** When the flow was created */
   insertedAt?: Maybe<Scalars['DateTime']['output']>;
+  /** Whether this flow is publicly accessible */
+  isPublic?: Maybe<Scalars['Boolean']['output']>;
   /** Whether this flow is a template */
   isTemplate?: Maybe<Scalars['Boolean']['output']>;
   /** Nodes in this flow */
@@ -299,6 +301,8 @@ export type UpdateFlowDataInput = {
 export type UpdateFlowInput = {
   /** Flow description */
   description?: InputMaybe<Scalars['String']['input']>;
+  /** Whether flow is publicly accessible */
+  isPublic?: InputMaybe<Scalars['Boolean']['input']>;
   /** Flow title */
   title?: InputMaybe<Scalars['String']['input']>;
   /** Viewport X offset */
@@ -401,6 +405,7 @@ export type MyFlowsQuery = {
     viewportZoom?: number | null;
     version?: number | null;
     isTemplate?: boolean | null;
+    isPublic?: boolean | null;
     templateCategory?: string | null;
     insertedAt?: any | null;
     updatedAt?: any | null;
@@ -423,6 +428,7 @@ export type GetFlowQuery = {
     viewportZoom?: number | null;
     version?: number | null;
     isTemplate?: boolean | null;
+    isPublic?: boolean | null;
     templateCategory?: string | null;
     insertedAt?: any | null;
     updatedAt?: any | null;
@@ -472,6 +478,7 @@ export type CreateFlowMutation = {
     viewportZoom?: number | null;
     version?: number | null;
     isTemplate?: boolean | null;
+    isPublic?: boolean | null;
     templateCategory?: string | null;
     insertedAt?: any | null;
     updatedAt?: any | null;
@@ -494,6 +501,7 @@ export type UpdateFlowMutation = {
     viewportY?: number | null;
     viewportZoom?: number | null;
     version?: number | null;
+    isPublic?: boolean | null;
     insertedAt?: any | null;
     updatedAt?: any | null;
   } | null;
@@ -726,6 +734,7 @@ export const MyFlowsDocument = gql`
       viewportZoom
       version
       isTemplate
+      isPublic
       templateCategory
       insertedAt
       updatedAt
@@ -775,6 +784,7 @@ export const GetFlowDocument = gql`
       viewportZoom
       version
       isTemplate
+      isPublic
       templateCategory
       nodes {
         id
@@ -852,6 +862,7 @@ export const CreateFlowDocument = gql`
       viewportZoom
       version
       isTemplate
+      isPublic
       templateCategory
       insertedAt
       updatedAt
@@ -894,6 +905,7 @@ export const UpdateFlowDocument = gql`
       viewportY
       viewportZoom
       version
+      isPublic
       insertedAt
       updatedAt
     }

@@ -111,6 +111,21 @@ defmodule Helix.Flows.SessionServer do
   end
 
   @doc """
+  Broadcast that access to a flow has been revoked.
+
+  Publishes a `{:flow_access_revoked, flow_id}` message to notify clients they no longer have access.
+  This typically happens when a flow changes from public to private.
+  """
+  @spec broadcast_access_revoked(flow_id()) :: :ok
+  def broadcast_access_revoked(flow_id) do
+    Task.Supervisor.start_child(Helix.TaskSupervisor, fn ->
+      Phoenix.PubSub.broadcast(Helix.PubSub, "flow:#{flow_id}", {:flow_access_revoked, flow_id})
+    end)
+
+    :ok
+  end
+
+  @doc """
   Persist flow changes to the database.
 
   Asynchronously persists nodes, edges, and viewport changes to the database
@@ -357,6 +372,18 @@ defmodule Helix.Flows.SessionServer do
           version: new_version
         }
       end
+
+    # Broadcast changes WITH version to all clients for collaborative editing
+    # This ensures all clients stay in sync with the current version
+    changes_with_version = Map.put(changes, :version, new_version)
+
+    Task.Supervisor.start_child(Helix.TaskSupervisor, fn ->
+      Phoenix.PubSub.broadcast(
+        Helix.PubSub,
+        "flow:#{flow_id}",
+        {:flow_change, changes_with_version}
+      )
+    end)
 
     {:noreply,
      %{state | flow_data: updated_flow_data, last_activity: System.system_time(:second)}}

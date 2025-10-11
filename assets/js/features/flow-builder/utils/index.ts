@@ -65,6 +65,12 @@ export function transformNodesToGraphQL(nodes: Node<AIFlowNode>[]) {
  * Transforms a ReactFlow edge to GraphQL edge format
  */
 export function transformEdgeToGraphQL(edge: Edge) {
+  // Convert empty objects to null for GraphQL compatibility
+  const edgeData =
+    edge.data && typeof edge.data === 'object' && Object.keys(edge.data).length > 0
+      ? edge.data
+      : null;
+
   return {
     edgeId: edge.id,
     sourceNodeId: edge.source,
@@ -73,7 +79,7 @@ export function transformEdgeToGraphQL(edge: Edge) {
     targetHandle: edge.targetHandle || null,
     edgeType: edge.type || 'default',
     animated: edge.animated || false,
-    data: edge.data || null,
+    data: edgeData,
   };
 }
 

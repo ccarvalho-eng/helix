@@ -70,6 +70,7 @@ export function useFlowManager(flowId: string | null) {
   const [currentFlow, setCurrentFlow] = useState<FlowRegistryEntry | null>(null);
   const [isNewFlow, setIsNewFlow] = useState(false);
   const [currentVersion, setCurrentVersion] = useState<number>(0);
+  const [isPublic, setIsPublic] = useState<boolean>(false);
   const [initialViewport, setInitialViewport] = useState({
     x: 0,
     y: 0,
@@ -213,6 +214,7 @@ export function useFlowManager(flowId: string | null) {
         const version = flow.version || 0;
         setCurrentVersion(version);
         optimisticVersion.current = version;
+        setIsPublic(flow.isPublic || false);
 
         // Transform nodes from GraphQL format to ReactFlow format
         const transformedNodes: Node<AIFlowNode>[] =
@@ -356,34 +358,52 @@ export function useFlowManager(flowId: string | null) {
       onConnect: () => setIsConnected(true),
       onDisconnect: () => setIsConnected(false),
       onFlowUpdate: (data: FlowChangeData) => {
-        // Prevent infinite loops when receiving our own changes
-        if (isUpdatingFromRemote.current) return;
-
-        // Clear any existing timeout to prevent premature flag reset
-        if (remoteUpdateTimeoutRef.current) {
-          clearTimeout(remoteUpdateTimeoutRef.current);
-        }
-
-        isUpdatingFromRemote.current = true;
-
         try {
-          const changes = data.changes as FlowData;
+          const changes = data.changes as FlowData & { version?: number };
+
+          // Only apply remote updates if they're actually newer
+          // This prevents User A from receiving their own broadcast and resetting their optimistic changes
+          const incomingVersion = changes.version ?? 0;
+          const currentVer = optimisticVersion.current;
+
+          if (incomingVersion <= currentVer) {
+            // This is our own broadcast coming back, or an old update - ignore it
+            console.log(`🔄⏭️ Ignoring broadcast v${incomingVersion} (current: v${currentVer})`);
+            return;
+          }
+
+          console.log(`🔄✅ Applying broadcast v${incomingVersion} (current: v${currentVer})`);
+
+          // Clear any existing timeout to prevent premature flag reset
+          if (remoteUpdateTimeoutRef.current) {
+            clearTimeout(remoteUpdateTimeoutRef.current);
+          }
+
+          isUpdatingFromRemote.current = true;
+
+          // Apply the remote changes
           if (changes.nodes) {
             setNodes(changes.nodes as Node<AIFlowNode>[]);
           }
           if (changes.edges) {
             setEdges(changes.edges as Edge[]);
           }
+
+          // Sync version from broadcast
+          setCurrentVersion(incomingVersion);
+          optimisticVersion.current = incomingVersion;
+
+          // Update prevFlowDataRef to prevent re-saving the remote update
+          prevFlowDataRef.current = data.changes as FlowData;
+
+          // Reset flag after a short delay to prevent re-saving the remote update
+          remoteUpdateTimeoutRef.current = setTimeout(() => {
+            isUpdatingFromRemote.current = false;
+            remoteUpdateTimeoutRef.current = null;
+          }, 100);
         } catch (error) {
           console.error('🔄❌ Failed to apply remote flow changes:', error);
         }
-
-        // Reset flag after a sufficient delay to ensure React state updates complete
-        // and auto-save debounce has time to check the flag
-        remoteUpdateTimeoutRef.current = setTimeout(() => {
-          isUpdatingFromRemote.current = false;
-          remoteUpdateTimeoutRef.current = null;
-        }, 1000); // Longer than auto-save debounce (500ms)
       },
       onClientJoined: data => setConnectedClients(data.client_count),
       onClientLeft: data => setConnectedClients(data.client_count),
@@ -567,12 +587,7 @@ export function useFlowManager(flowId: string | null) {
 
   // Auto-save flow data when nodes or edges change
   useEffect(() => {
-    if (
-      currentFlow &&
-      reactFlowInstance &&
-      hasInitializedRef.current &&
-      !isUpdatingFromRemote.current
-    ) {
+    if (currentFlow && reactFlowInstance && hasInitializedRef.current) {
       const viewport = reactFlowInstance.getViewport();
       const flowData: FlowData = {
         nodes,
@@ -592,6 +607,12 @@ export function useFlowManager(flowId: string | null) {
 
       if (!hasChanges) {
         return; // No actual changes, skip save and broadcast
+      }
+
+      // Skip save if we're currently processing a remote update
+      // This prevents re-saving changes that came from another user
+      if (isUpdatingFromRemote.current) {
+        return;
       }
 
       // Debounce the save and broadcast operations
@@ -632,12 +653,8 @@ export function useFlowManager(flowId: string | null) {
             // Update previous data reference
             prevFlowDataRef.current = JSON.parse(JSON.stringify(flowData));
 
-            // Broadcast changes to other clients (only if not updating from remote)
-            if (!isUpdatingFromRemote.current && websocketService.isConnected()) {
-              websocketService.sendFlowChange(flowData).catch(error => {
-                console.error('📡❌ Failed to broadcast flow changes:', error);
-              });
-            }
+            // Note: Broadcasting is now handled server-side by the GraphQL resolver
+            // to prevent double-broadcasting and version conflicts
           }
         } catch (error) {
           console.error('Failed to save flow to database:', error);
@@ -719,6 +736,29 @@ export function useFlowManager(flowId: string | null) {
     },
     [currentFlow, updateFlowMutation]
   );
+
+  const togglePublish = useCallback(async () => {
+    if (currentFlow) {
+      try {
+        const newPublicState = !isPublic;
+
+        // Update publish state in database via GraphQL
+        await updateFlowMutation({
+          variables: {
+            id: currentFlow.id,
+            input: {
+              isPublic: newPublicState,
+            },
+          },
+        });
+
+        // Update local state
+        setIsPublic(newPublicState);
+      } catch (error) {
+        console.error('Failed to toggle publish state:', error);
+      }
+    }
+  }, [currentFlow, isPublic, updateFlowMutation]);
 
   const addNode = useCallback(
     (type: AIFlowNode['type'], customLabel?: string, customDescription?: string) => {
@@ -963,7 +1003,9 @@ export function useFlowManager(flowId: string | null) {
     // Flow metadata
     currentFlow,
     isNewFlow,
+    isPublic,
     updateFlowTitle,
+    togglePublish,
 
     // React Flow state
     nodes,

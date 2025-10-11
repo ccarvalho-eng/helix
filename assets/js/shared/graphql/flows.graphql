@@ -8,6 +8,7 @@ query MyFlows {
     viewportZoom
     version
     isTemplate
+    isPublic
     templateCategory
     insertedAt
     updatedAt
@@ -24,6 +25,7 @@ query GetFlow($id: ID!) {
     viewportZoom
     version
     isTemplate
+    isPublic
     templateCategory
     nodes {
       id
@@ -65,6 +67,7 @@ mutation CreateFlow($input: CreateFlowInput!) {
     viewportZoom
     version
     isTemplate
+    isPublic
     templateCategory
     insertedAt
     updatedAt
@@ -80,6 +83,7 @@ mutation UpdateFlow($id: ID!, $input: UpdateFlowInput!) {
     viewportY
     viewportZoom
     version
+    isPublic
     insertedAt
     updatedAt
   }
