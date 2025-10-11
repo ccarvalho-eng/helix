@@ -145,7 +145,6 @@ export function useFlowManager(flowId: string | null) {
   const [updateFlowMutation] = useUpdateFlowMutation();
   const [updateFlowDataMutation] = useUpdateFlowDataMutation();
 
-
   // Load flow data from database if flowId is provided
   const {
     data: flowData,
