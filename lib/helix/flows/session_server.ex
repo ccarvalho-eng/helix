@@ -94,27 +94,6 @@ defmodule Helix.Flows.SessionServer do
   end
 
   @doc """
-  Broadcast changes to all clients connected to a flow.
-
-  Publishes a `{:flow_change, changes}` message to all subscribers of the flow's PubSub topic.
-  Updates the flow's last_activity timestamp.
-  """
-  @spec broadcast_flow_change(flow_id(), map()) :: :ok
-  def broadcast_flow_change(flow_id, changes) do
-    case Registry.lookup(FlowsRegistry, flow_id) do
-      [{pid, _}] ->
-        Task.Supervisor.start_child(Helix.TaskSupervisor, fn ->
-          Phoenix.PubSub.broadcast(Helix.PubSub, "flow:#{flow_id}", {:flow_change, changes})
-        end)
-
-        GenServer.cast(pid, {:update_activity})
-
-      [] ->
-        :ok
-    end
-  end
-
-  @doc """
   Broadcast that access to a flow has been revoked.
 
   Publishes a `{:flow_access_revoked, flow_id}` message to notify clients they no longer have access.
@@ -127,30 +106,6 @@ defmodule Helix.Flows.SessionServer do
     end)
 
     :ok
-  end
-
-  @doc """
-  Persist flow changes to the database.
-
-  Asynchronously persists nodes, edges, and viewport changes to the database
-  using optimistic locking via the version field.
-
-  ## Parameters
-    - flow_id: The flow ID
-    - changes: Map containing nodes, edges, and viewport data
-
-  ## Returns
-    - :ok
-  """
-  @spec persist_flow_changes(flow_id(), map()) :: :ok
-  def persist_flow_changes(flow_id, changes) do
-    case Registry.lookup(FlowsRegistry, flow_id) do
-      [{pid, _}] ->
-        GenServer.cast(pid, {:persist_changes, changes})
-
-      [] ->
-        :ok
-    end
   end
 
   @doc """
@@ -405,69 +360,6 @@ defmodule Helix.Flows.SessionServer do
   end
 
   @impl true
-  def handle_cast({:persist_changes, changes}, state) do
-    # Persist changes asynchronously
-    flow_id = state.flow_id
-    current_version = get_in(state.flow_data, [:version]) || 1
-    new_version = current_version + 1
-
-    Task.Supervisor.start_child(Helix.TaskSupervisor, fn ->
-      persist_to_database(flow_id, changes, current_version)
-    end)
-
-    # DESIGN NOTE: Optimistic state updates
-    # We update the in-memory state immediately before database persistence completes.
-    # This is an intentional design decision for collaborative editing systems:
-    #
-    # Trade-offs:
-    # - Pro: Immediate UI feedback and better user experience
-    # - Pro: Standard pattern for collaborative editing (operational transformation)
-    # - Con: Transient inconsistency if persistence fails
-    #
-    # Mitigations:
-    # - Version conflicts prevent writes based on stale state
-    # - Database is always the source of truth on SessionServer restart
-    # - All persistence errors are logged for monitoring
-    # - Atomic transactions prevent partial database updates
-    #
-    # Alternative approach (wait for persistence) would add latency and still have
-    # edge cases (e.g., server crash after DB write but before state update).
-
-    # Update flow_data in state with the new changes
-    updated_flow_data =
-      if state.flow_data do
-        state.flow_data
-        |> Map.put(:nodes, Map.get(changes, :nodes, state.flow_data.nodes))
-        |> Map.put(:edges, Map.get(changes, :edges, state.flow_data.edges))
-        |> update_viewport(changes)
-        |> Map.put(:version, new_version)
-      else
-        # Initialize flow_data if it doesn't exist
-        %{
-          nodes: Map.get(changes, :nodes, []),
-          edges: Map.get(changes, :edges, []),
-          viewport: Map.get(changes, :viewport, %{x: 0, y: 0, zoom: 1.0}),
-          version: new_version
-        }
-      end
-
-    # Broadcast changes WITH version to all clients for collaborative editing
-    # This ensures all clients stay in sync with the current version
-    changes_with_version = Map.put(changes, :version, new_version)
-
-    Task.Supervisor.start_child(Helix.TaskSupervisor, fn ->
-      Phoenix.PubSub.broadcast(
-        Helix.PubSub,
-        "flow:#{flow_id}",
-        {:flow_change, changes_with_version}
-      )
-    end)
-
-    {:noreply,
-     %{state | flow_data: updated_flow_data, last_activity: System.system_time(:second)}}
-  end
-
-  @impl true
   def handle_info(:cleanup_inactive_sessions, state) do
     now = System.system_time(:second)
     # 30 minutes
@@ -679,15 +571,5 @@ defmodule Helix.Flows.SessionServer do
       animated: Map.get(edge, :animated, false),
       data: Map.get(edge, :data, %{})
     }
-  end
-
-  defp update_viewport(flow_data, changes) do
-    case Map.get(changes, :viewport) do
-      nil ->
-        flow_data
-
-      viewport ->
-        Map.put(flow_data, :viewport, viewport)
-    end
   end
 end

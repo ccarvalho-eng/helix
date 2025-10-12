@@ -116,10 +116,15 @@ defmodule Helix.FlowsTest do
     end
   end
 
-  describe "broadcast_flow_change/2" do
-    test "broadcasts to active flow session", %{user: user} do
+  describe "apply_operation/2" do
+    test "broadcasts operations to active flow session", %{user: user} do
       flow = flow_fixture(%{user_id: user.id})
-      changes = %{nodes: [], edges: []}
+      operation = %{
+        type: :node_moved,
+        node_id: "node-1",
+        position: %{x: 100, y: 200},
+        timestamp: System.system_time(:millisecond)
+      }
 
       # Join a client first
       assert {:ok, 1, _id} = Flows.join_flow(flow.id, "client-1")
@@ -127,38 +132,44 @@ defmodule Helix.FlowsTest do
       # Subscribe to PubSub for this flow
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow.id}")
 
-      # Broadcast changes
-      Flows.broadcast_flow_change(flow.id, changes)
+      # Apply operation
+      Flows.apply_operation(flow.id, operation)
 
-      # Should receive the broadcast
-      assert_receive {:flow_change, ^changes}, 1000
+      # Should receive the operation broadcast
+      assert_receive {:flow_operation, ^operation}, 1000
     end
 
-    test "does not broadcast to inactive flow session", %{user: user} do
+    test "does not crash when applying operation to inactive session", %{user: user} do
       flow = flow_fixture(%{user_id: user.id})
-      changes = %{nodes: [], edges: []}
+      operation = %{
+        type: :node_added,
+        node_id: "node-1",
+        node: %{node_id: "node-1", type: "agent", position_x: 0, position_y: 0},
+        timestamp: System.system_time(:millisecond)
+      }
 
-      # Subscribe to PubSub for this flow
-      Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow.id}")
-
-      # Broadcast without joining - should not crash but no message
-      Flows.broadcast_flow_change(flow.id, changes)
-
-      # Should not receive any message
-      refute_receive {:flow_change, ^changes}, 100
+      # Apply operation without joining - should not crash
+      assert :ok = Flows.apply_operation(flow.id, operation)
     end
 
-    test "updates last_activity when broadcasting", %{user: user} do
+    test "updates last_activity when applying operations", %{user: user} do
       flow = flow_fixture(%{user_id: user.id})
-      changes = %{test: "data"}
+      operation = %{
+        type: :viewport_changed,
+        viewport: %{x: 0, y: 0, zoom: 1.5},
+        timestamp: System.system_time(:millisecond)
+      }
 
       # Join client and get initial status
       assert {:ok, 1, _id} = Flows.join_flow(flow.id, "client-1")
       initial_status = Flows.get_flow_status(flow.id)
 
-      # Wait a moment then broadcast
+      # Wait a moment then apply operation
       :timer.sleep(10)
-      Flows.broadcast_flow_change(flow.id, changes)
+      Flows.apply_operation(flow.id, operation)
+
+      # Wait for operation to be processed
+      :timer.sleep(10)
 
       # Status should show updated activity
       updated_status = Flows.get_flow_status(flow.id)

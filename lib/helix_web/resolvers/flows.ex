@@ -3,7 +3,7 @@ defmodule HelixWeb.Resolvers.Flows do
   GraphQL resolvers for Flows context.
   """
 
-  alias Helix.Flows.{SessionServer, Storage}
+  alias Helix.Flows.Storage
   alias HelixWeb.Utils
 
   @doc """
@@ -165,9 +165,8 @@ defmodule HelixWeb.Resolvers.Flows do
   defp update_flow_data_impl(flow, nodes, edges, version) do
     case Storage.update_flow_data(flow, nodes, edges, version) do
       {:ok, updated_flow} ->
-        # Broadcast the update to all connected clients via SessionServer
-        # This ensures real-time collaboration without double-broadcasting
-        broadcast_update_to_clients(updated_flow)
+        # Note: No broadcasting here - SessionServer handles periodic saves
+        # For real-time updates, clients should send operations directly via WebSocket
         {:ok, updated_flow}
 
       {:error, :version_conflict} ->
@@ -177,86 +176,6 @@ defmodule HelixWeb.Resolvers.Flows do
         {:error, Utils.format_changeset_errors(changeset)}
     end
   end
-
-  defp broadcast_update_to_clients(flow) do
-    # Transform Ecto structs to plain maps for JSON serialization
-    # The client expects ReactFlow format, so we need to transform from DB format
-    nodes = Enum.map(flow.nodes, &transform_node_for_broadcast/1)
-    edges = Enum.map(flow.edges, &transform_edge_for_broadcast/1)
-
-    # Prepare flow data for broadcast in ReactFlow format
-    changes = %{
-      nodes: nodes,
-      edges: edges,
-      viewport: %{
-        x: flow.viewport_x,
-        y: flow.viewport_y,
-        zoom: flow.viewport_zoom
-      },
-      version: flow.version
-    }
-
-    # Broadcast to all connected clients via the SessionServer
-    SessionServer.broadcast_flow_change(flow.id, changes)
-  end
-
-  defp transform_node_for_broadcast(node) do
-    %{
-      id: node.node_id,
-      type: "aiFlowNode",
-      position: %{x: node.position_x, y: node.position_y},
-      data: %{
-        id: node.node_id,
-        type: node.type,
-        position: %{x: node.position_x, y: node.position_y},
-        x: node.position_x,
-        y: node.position_y,
-        width: node.width,
-        height: node.height,
-        dimensions: %{width: node.width, height: node.height},
-        label: get_in(node.data, ["label"]) || "",
-        description: get_in(node.data, ["description"]) || "",
-        config: get_in(node.data, ["config"]) || %{},
-        color: get_in(node.data, ["color"]) || "#f0f9ff",
-        borderColor: get_in(node.data, ["borderColor"]) || "#e5e7eb",
-        borderWidth: get_in(node.data, ["borderWidth"]) || 1
-      },
-      style: %{
-        width: node.width,
-        height: node.height
-      }
-    }
-  end
-
-  defp transform_edge_for_broadcast(edge) do
-    # Convert empty maps to nil for proper JSON serialization
-    edge_data = normalize_edge_data(edge.data)
-
-    %{
-      id: edge.edge_id,
-      source: edge.source_node_id,
-      target: edge.target_node_id,
-      sourceHandle: edge.source_handle,
-      targetHandle: edge.target_handle,
-      type: edge.edge_type || "default",
-      animated: edge.animated || false,
-      markerEnd: %{
-        type: "arrowclosed",
-        width: 20,
-        height: 20,
-        color: "#9ca3af"
-      },
-      style: %{
-        stroke: "#9ca3af",
-        strokeWidth: 2
-      },
-      data: edge_data
-    }
-  end
-
-  defp normalize_edge_data(nil), do: nil
-  defp normalize_edge_data(data) when map_size(data) == 0, do: nil
-  defp normalize_edge_data(data), do: data
 
   @doc """
   Deletes a flow (soft delete).

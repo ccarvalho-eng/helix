@@ -245,11 +245,16 @@ defmodule Helix.Flows.SessionServerTest do
     end
   end
 
-  describe "broadcast_flow_change/2" do
-    test "broadcasts to active flow session", %{user: user} do
+  describe "apply_operation/2" do
+    test "broadcasts operations to active flow session", %{user: user} do
       flow = flow_fixture(%{user_id: user.id})
       flow_id = flow.id
-      changes = %{nodes: [], edges: []}
+      operation = %{
+        type: :node_moved,
+        node_id: "node-1",
+        position: %{x: 100, y: 200},
+        timestamp: System.system_time(:millisecond)
+      }
 
       # Join a client first
       assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client-1")
@@ -257,69 +262,85 @@ defmodule Helix.Flows.SessionServerTest do
       # Subscribe to PubSub for this flow
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
 
-      # Broadcast changes
-      SessionServer.broadcast_flow_change(flow_id, changes)
+      # Apply operation
+      SessionServer.apply_operation(flow_id, operation)
 
-      # Should receive the broadcast
-      assert_receive {:flow_change, ^changes}, 1000
+      # Should receive the operation broadcast
+      assert_receive {:flow_operation, ^operation}, 1000
     end
 
-    test "does not broadcast to inactive flow session" do
-      flow_id = "inactive-broadcast-flow"
-      changes = %{nodes: [], edges: []}
+    test "does not crash when applying operation to inactive session" do
+      flow_id = "inactive-operation-flow"
+      operation = %{
+        type: :node_added,
+        node_id: "node-1",
+        node: %{node_id: "node-1", type: "agent", position_x: 0, position_y: 0},
+        timestamp: System.system_time(:millisecond)
+      }
 
-      # Subscribe to PubSub for this flow
-      Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
-
-      # Broadcast without joining - should not crash but no message
-      SessionServer.broadcast_flow_change(flow_id, changes)
-
-      # Should not receive any message
-      refute_receive {:flow_change, ^changes}, 100
+      # Apply operation without joining - should not crash
+      assert :ok = SessionServer.apply_operation(flow_id, operation)
     end
 
-    test "updates last_activity when broadcasting", %{user: user} do
+    test "updates last_activity when applying operations", %{user: user} do
       flow = flow_fixture(%{user_id: user.id})
       flow_id = flow.id
-      changes = %{test: "data"}
+      operation = %{
+        type: :viewport_changed,
+        viewport: %{x: 0, y: 0, zoom: 1.5},
+        timestamp: System.system_time(:millisecond)
+      }
 
       # Join client and get initial status
       assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client-1")
       initial_status = SessionServer.get_flow_status(flow_id)
 
-      # Wait a moment then broadcast
+      # Wait a moment then apply operation
       :timer.sleep(100)
-      before_broadcast = System.system_time(:second)
-      SessionServer.broadcast_flow_change(flow_id, changes)
+      before_operation = System.system_time(:second)
+      SessionServer.apply_operation(flow_id, operation)
+
+      # Wait for operation to be processed
+      :timer.sleep(10)
 
       # Status should show updated activity
       updated_status = SessionServer.get_flow_status(flow_id)
-      assert updated_status.last_activity >= before_broadcast
+      assert updated_status.last_activity >= before_operation
       assert updated_status.last_activity >= initial_status.last_activity
     end
 
-    test "handles complex change payloads", %{user: user} do
+    test "handles complex operation payloads", %{user: user} do
       flow = flow_fixture(%{user_id: user.id})
       flow_id = flow.id
 
-      complex_changes = %{
-        nodes: [
-          %{id: "node-1", type: "agent", position: %{x: 100, y: 200}},
-          %{id: "node-2", type: "sensor", data: %{config: %{timeout: 5000}}}
+      bulk_operation = %{
+        type: :bulk_update,
+        operations: [
+          %{
+            type: :node_added,
+            node_id: "node-1",
+            node: %{node_id: "node-1", type: "agent", position_x: 100, position_y: 200},
+            timestamp: System.system_time(:millisecond)
+          },
+          %{
+            type: :edge_added,
+            edge_id: "edge-1",
+            edge: %{edge_id: "edge-1", source_node_id: "node-1", target_node_id: "node-2"},
+            timestamp: System.system_time(:millisecond)
+          }
         ],
-        edges: [%{id: "edge-1", source: "node-1", target: "node-2"}],
-        viewport: %{x: 0, y: 0, zoom: 1.5}
+        timestamp: System.system_time(:millisecond)
       }
 
       # Join client and subscribe
       SessionServer.join_flow(flow_id, "client-1")
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
 
-      # Broadcast complex changes
-      SessionServer.broadcast_flow_change(flow_id, complex_changes)
+      # Apply bulk operation
+      SessionServer.apply_operation(flow_id, bulk_operation)
 
       # Should receive exact same payload
-      assert_receive {:flow_change, ^complex_changes}, 1000
+      assert_receive {:flow_operation, ^bulk_operation}, 1000
     end
   end
 

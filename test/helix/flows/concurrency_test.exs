@@ -183,7 +183,7 @@ defmodule Helix.Flows.ConcurrencyTest do
       assert %{active: false, client_count: 0} = status
     end
 
-    test "concurrent broadcast operations don't block session state", %{user: user} do
+    test "concurrent operation applications don't block session state", %{user: user} do
       flow = flow_fixture(%{user_id: user.id})
       flow_id = flow.id
 
@@ -191,11 +191,17 @@ defmodule Helix.Flows.ConcurrencyTest do
       assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "client-1")
       assert {:ok, 2, _id2} = SessionServer.join_flow(flow_id, "client-2")
 
-      # Start concurrent broadcast operations
-      broadcast_tasks =
+      # Start concurrent operation applications
+      operation_tasks =
         Enum.map(1..20, fn i ->
           Task.async(fn ->
-            SessionServer.broadcast_flow_change(flow_id, %{change: i})
+            operation = %{
+              type: :node_moved,
+              node_id: "node-#{i}",
+              position: %{x: i * 10, y: i * 20},
+              timestamp: System.system_time(:millisecond)
+            }
+            SessionServer.apply_operation(flow_id, operation)
           end)
         end)
 
@@ -212,7 +218,7 @@ defmodule Helix.Flows.ConcurrencyTest do
         end)
 
       # Wait for all operations
-      _broadcast_results = Enum.map(broadcast_tasks, &Task.await/1)
+      _operation_results = Enum.map(operation_tasks, &Task.await/1)
       session_results = Enum.map(session_tasks, &Task.await/1)
 
       # All session operations should succeed
