@@ -176,32 +176,6 @@ class WebSocketService {
   }
 
   /**
-   * Send flow changes to other clients
-   */
-  sendFlowChange(changes: unknown): Promise<boolean> {
-    if (!this.channel) {
-      // No active channel - cannot send flow changes
-      return Promise.resolve(false);
-    }
-
-    return new Promise(resolve => {
-      this.channel
-        ?.push('flow_change', { changes })
-        .receive('ok', () => {
-          resolve(true);
-        })
-        .receive('error', (error: unknown) => {
-          console.error('📡❌ Failed to send flow changes:', error);
-          resolve(false);
-        })
-        .receive('timeout', () => {
-          console.error('📡⏰ Flow change send timeout - server not responding');
-          resolve(false);
-        });
-    });
-  }
-
-  /**
    * Set event callbacks
    */
   setCallbacks(callbacks: WebSocketCallbacks) {

@@ -133,17 +133,14 @@ sequenceDiagram
     participant PUB as PubSub
     participant C2 as Client 2
 
-    Note over C1,C2: Data Persistence
+    Note over C1,C2: Data Persistence & Broadcasting
     C1->>GQL: updateFlowData mutation
     GQL->>DB: Save to PostgreSQL
     DB-->>GQL: Success
-    GQL-->>C1: Updated data
-
-    Note over C1,C2: Real-time Broadcasting
-    C1->>FC: flow_change event
-    FC->>FSM: get_or_start_session()
+    GQL->>FSM: get_or_start_session()
     FSM->>SS: broadcast_flow_change()
     SS->>PUB: async broadcast
+    GQL-->>C1: Updated data
     PUB->>FC: flow_update event
     FC->>C2: notify other clients
 ```
@@ -181,7 +178,7 @@ sequenceDiagram
 
 **FlowChannel** - Phoenix Channel for WebSocket:
 - Automatic session join/leave on connect/disconnect
-- Flow change event broadcasting (not persistence)
+- Receives flow_update events from PubSub and pushes to clients
 - Error handling for invalid flow IDs
 
 ### Frontend Components
@@ -199,7 +196,7 @@ sequenceDiagram
 
 **WebSocket Service** - Real-time collaboration:
 - Phoenix Channel connection
-- Flow change broadcasting
+- Receives flow_update events from other clients
 - Automatic reconnection with exponential backoff
 
 ## Conflict Resolution

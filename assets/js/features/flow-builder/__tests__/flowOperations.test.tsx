@@ -95,7 +95,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <MockedProvider mocks={mocks} addTypename={false}>
+        <MockedProvider mocks={mocks}>
           {children}
         </MockedProvider>
       );
@@ -138,7 +138,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <MockedProvider mocks={mocks} addTypename={false}>
+        <MockedProvider mocks={mocks}>
           {children}
         </MockedProvider>
       );
@@ -185,7 +185,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <MockedProvider mocks={mocks} addTypename={false}>
+        <MockedProvider mocks={mocks}>
           {children}
         </MockedProvider>
       );
@@ -248,7 +248,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <MockedProvider mocks={mocks} addTypename={false}>
+        <MockedProvider mocks={mocks}>
           {children}
         </MockedProvider>
       );
@@ -279,7 +279,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <MockedProvider mocks={mocks} addTypename={false}>
+        <MockedProvider mocks={mocks}>
           {children}
         </MockedProvider>
       );
@@ -324,7 +324,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <MockedProvider mocks={mocks} addTypename={false}>
+        <MockedProvider mocks={mocks}>
           {children}
         </MockedProvider>
       );
@@ -346,15 +346,13 @@ describe('Flow CRUD Operations with GraphQL', () => {
       });
     });
 
-    it('should update flow data with nodes, edges, and viewport', async () => {
+    it('should update flow data with nodes and edges', async () => {
       const updatedFlowData = {
-        ...mockFlow,
+        id: mockFlowId,
         nodes: [mockNode],
         edges: [mockEdge],
-        viewportX: 100,
-        viewportY: 200,
-        viewportZoom: 1.5,
         version: 2,
+        updatedAt: new Date().toISOString(),
       };
 
       const mocks = [
@@ -387,9 +385,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
                     data: mockEdge.data,
                   },
                 ],
-                viewportX: 100,
-                viewportY: 200,
-                viewportZoom: 1.5,
+                version: 1,
               },
             },
           },
@@ -402,7 +398,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <MockedProvider mocks={mocks} addTypename={false}>
+        <MockedProvider mocks={mocks}>
           {children}
         </MockedProvider>
       );
@@ -439,18 +435,15 @@ describe('Flow CRUD Operations with GraphQL', () => {
                 data: mockEdge.data,
               },
             ],
-            viewportX: 100,
-            viewportY: 200,
-            viewportZoom: 1.5,
+            version: 1,
           },
         },
       });
 
       await waitFor(() => {
-        expect(response.data?.updateFlowData?.viewportX).toBe(100);
-        expect(response.data?.updateFlowData?.viewportY).toBe(200);
-        expect(response.data?.updateFlowData?.viewportZoom).toBe(1.5);
         expect(response.data?.updateFlowData?.version).toBe(2);
+        expect(response.data?.updateFlowData?.nodes).toHaveLength(1);
+        expect(response.data?.updateFlowData?.edges).toHaveLength(1);
       });
     });
 
@@ -471,7 +464,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <MockedProvider mocks={mocks} addTypename={false}>
+        <MockedProvider mocks={mocks}>
           {children}
         </MockedProvider>
       );
@@ -516,7 +509,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <MockedProvider mocks={mocks} addTypename={false}>
+        <MockedProvider mocks={mocks}>
           {children}
         </MockedProvider>
       );
@@ -546,7 +539,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <MockedProvider mocks={mocks} addTypename={false}>
+        <MockedProvider mocks={mocks}>
           {children}
         </MockedProvider>
       );
@@ -590,7 +583,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <MockedProvider mocks={mocks} addTypename={false}>
+        <MockedProvider mocks={mocks}>
           {children}
         </MockedProvider>
       );
@@ -637,7 +630,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
       ];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <MockedProvider mocks={mocks} addTypename={false}>
+        <MockedProvider mocks={mocks}>
           {children}
         </MockedProvider>
       );
@@ -720,7 +713,7 @@ describe('Flow CRUD Operations with GraphQL', () => {
       const mocks = [createMock, updateMock, deleteMock];
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <MockedProvider mocks={mocks} addTypename={false}>
+        <MockedProvider mocks={mocks}>
           {children}
         </MockedProvider>
       );

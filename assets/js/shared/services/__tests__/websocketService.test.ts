@@ -165,13 +165,6 @@ describe('websocketService', () => {
       expect(websocketService.getCurrentFlowId()).toBe(null);
     });
 
-    it('should handle sendFlowChange without active channel', async () => {
-      const changes = { nodes: [], edges: [] };
-      const result = await websocketService.sendFlowChange(changes);
-
-      expect(result).toBe(false);
-    });
-
     it('should handle ping without active channel', async () => {
       const result = await websocketService.ping();
       expect(result).toBe(false);

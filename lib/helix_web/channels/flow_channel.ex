@@ -104,21 +104,6 @@ defmodule HelixWeb.FlowChannel do
   end
 
   @impl true
-  def handle_in("flow_change", %{"changes" => _changes}, socket) do
-    # Note: This handler is deprecated and should not be used by clients
-    # Flow changes should be saved via GraphQL mutations which handle
-    # both persistence and broadcasting to prevent version conflicts
-    # Keeping this handler for backwards compatibility only
-
-    Logger.warning(
-      "Deprecated flow_change message received for flow #{socket.assigns.flow_id}. " <>
-        "Clients should use GraphQL mutations instead."
-    )
-
-    {:reply, {:ok, %{status: "deprecated"}}, socket}
-  end
-
-  @impl true
   def handle_in("ping", _payload, socket) do
     {:reply, {:ok, %{status: "pong"}}, socket}
   end

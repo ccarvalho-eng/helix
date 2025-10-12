@@ -71,59 +71,6 @@ defmodule HelixWeb.FlowChannelTest do
   end
 
   describe "handling flow changes" do
-    test "broadcasts flow changes to other clients", %{socket: socket, user: user} do
-      flow = flow_fixture(%{user_id: user.id})
-      flow_id = flow.id
-
-      changes = %{
-        "nodes" => [%{"id" => "node-1", "type" => "agent"}],
-        "edges" => []
-      }
-
-      # Client 1 joins
-      {:ok, _reply1, socket1} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
-
-      # Client 2 joins
-      socket2 = HelixWeb.ChannelCase.create_authenticated_socket()
-      {:ok, _reply2, _socket2} = subscribe_and_join(socket2, FlowChannel, "flow:#{flow_id}")
-
-      # Clear any join broadcasts
-      assert_broadcast("client_joined", %{client_count: 1})
-      assert_broadcast("client_joined", %{client_count: 2})
-
-      # Client 1 sends flow change
-      ref = push(socket1, "flow_change", %{"changes" => changes})
-
-      # Should get acknowledgment
-      assert_reply ref, :ok, %{status: "broadcasted"}
-
-      # Client 2 should receive the flow update
-      assert_push("flow_update", %{
-        changes: ^changes,
-        timestamp: timestamp
-      })
-
-      assert is_integer(timestamp)
-    end
-
-    test "handles flow_change messages correctly", %{socket: socket, user: user} do
-      flow = flow_fixture(%{user_id: user.id})
-      flow_id = flow.id
-
-      changes = %{
-        "nodes" => [%{"id" => "node-1", "position" => %{"x" => 100, "y" => 200}}],
-        "edges" => [%{"id" => "edge-1", "source" => "node-1", "target" => "node-2"}]
-      }
-
-      {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
-
-      # Send flow change
-      ref = push(socket, "flow_change", %{"changes" => changes})
-
-      # Should receive acknowledgment
-      assert_reply ref, :ok, %{status: "broadcasted"}
-    end
-
     test "receives flow changes from session manager", %{socket: socket, user: user} do
       flow = flow_fixture(%{user_id: user.id})
       flow_id = flow.id
@@ -291,19 +238,6 @@ defmodule HelixWeb.FlowChannelTest do
       assert %{} = Flows.get_active_sessions()
     end
 
-    test "flow changes are properly broadcasted through PubSub", %{socket: socket, user: user} do
-      flow = flow_fixture(%{user_id: user.id})
-      flow_id = flow.id
-      changes = %{"nodes" => [], "edges" => []}
-      # Subscribe to PubSub topic directly
-      Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
-      # Join channel
-      {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
-      # Send flow change through channel
-      _ref = push(socket, "flow_change", %{"changes" => changes})
-      # Should receive PubSub message
-      assert_receive {:flow_change, ^changes}
-    end
   end
 
   describe "flow deletion handling" do
@@ -443,7 +377,7 @@ defmodule HelixWeb.FlowChannelTest do
       assert_receive {:EXIT, _pid, :normal}, 1000
     end
 
-    test "flow_deleted handling with concurrent operations", %{socket: socket, user: user} do
+    test "flow_deleted handling is immediate", %{socket: socket, user: user} do
       flow = flow_fixture(%{user_id: user.id})
       flow_id = flow.id
 
@@ -452,17 +386,10 @@ defmodule HelixWeb.FlowChannelTest do
       # Clear join broadcast
       assert_broadcast("client_joined", %{client_count: 1})
 
-      # Send a flow change and flow_deleted concurrently
-      changes = %{"nodes" => [], "edges" => []}
-
-      # Send flow change
-      _ref = push(socket, "flow_change", %{"changes" => changes})
-
-      # Immediately send flow_deleted
+      # Send flow_deleted
       send(socket.channel_pid, {:flow_deleted, flow_id})
 
-      # We might get the flow_change reply or the channel might close first
-      # Either way, we should get the flow_deleted notification
+      # Should get the flow_deleted notification
       assert_push("flow_deleted", %{flow_id: ^flow_id, timestamp: _})
 
       # Channel should close
@@ -508,16 +435,6 @@ defmodule HelixWeb.FlowChannelTest do
       # doesn't have error cases, but this structure is ready for future error handling
       {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
       assert socket.assigns.flow_id == flow_id
-    end
-
-    test "handles malformed flow change payloads", %{socket: socket, user: user} do
-      flow = flow_fixture(%{user_id: user.id})
-      flow_id = flow.id
-      {:ok, _reply, socket} = subscribe_and_join(socket, FlowChannel, "flow:#{flow_id}")
-      # Send malformed payload (missing changes key)
-      ref = push(socket, "flow_change", %{"invalid" => "payload"})
-      # Should return error for unknown event
-      assert_reply ref, :error, %{reason: "Unknown event"}
     end
   end
 end

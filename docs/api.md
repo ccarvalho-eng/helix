@@ -284,17 +284,6 @@ channel.join()
 
 #### Outgoing (Client → Server)
 
-**flow_change**: Broadcast changes to other clients
-```javascript
-channel.push('flow_change', {
-  changes: {
-    nodes: [...],
-    edges: [...],
-    viewport: { x, y, zoom }
-  }
-});
-```
-
 **ping**: Test connection
 ```javascript
 channel.push('ping', {});
@@ -441,7 +430,7 @@ const updateResult = await client.mutate({
 // 3. Update version for next mutation
 version = updateResult.data.updateFlowData.version;
 
-// 4. Connect WebSocket for real-time updates
+// 4. Connect WebSocket for real-time updates from other clients
 const socket = new Socket('/socket', {
   params: { token: jwt_token }
 });
@@ -450,11 +439,12 @@ socket.connect();
 const channel = socket.channel(`flow:${flowId}`, {});
 channel.join();
 
-// 5. Broadcast changes to other clients
-channel.push('flow_change', {
-  changes: {
-    nodes: [...],
-    edges: [...]
-  }
+// Listen for updates from other clients
+channel.on('flow_update', (data) => {
+  console.log('Another client updated the flow:', data.changes);
+  // Update local state with the received changes
 });
+
+// Note: All flow changes should be made via GraphQL mutations (updateFlowData).
+// The backend automatically broadcasts updates to all connected clients via flow_update events.
 ```
