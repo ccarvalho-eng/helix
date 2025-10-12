@@ -28,7 +28,10 @@ defmodule HelixWeb.Resolvers.Flows do
   @doc """
   Gets a single flow by ID with authorization check.
 
-  Requires authentication and verifies that the current user owns the flow.
+  Allows access if:
+  - User owns the flow, OR
+  - Flow is public (is_public = true)
+
   Preloads nodes and edges.
 
   ## Parameters
@@ -37,16 +40,20 @@ defmodule HelixWeb.Resolvers.Flows do
   ## Returns
     - `{:ok, Flow.t()}` with nodes and edges preloaded
     - `{:error, "Flow not found"}` when flow doesn't exist
-    - `{:error, "Unauthorized"}` when user doesn't own the flow
+    - `{:error, "Unauthorized"}` when user doesn't own the flow and it's not public
     - `{:error, "Not authenticated"}` when not authenticated
   """
   @spec get_flow(any(), map(), Absinthe.Resolution.t()) ::
           {:ok, any()} | {:error, String.t()}
   def get_flow(_parent, %{id: flow_id}, %{context: %{current_user: user}}) do
-    case Storage.get_user_flow_with_data(user.id, flow_id) do
+    with {:error, :unauthorized} <- Storage.get_user_flow_with_data(user.id, flow_id),
+         {:ok, flow} <- Storage.get_flow_with_data(flow_id),
+         true <- flow.is_public do
+      {:ok, flow}
+    else
       {:ok, flow_with_data} -> {:ok, flow_with_data}
       {:error, :not_found} -> {:error, "Flow not found"}
-      {:error, :unauthorized} -> {:error, "Unauthorized"}
+      false -> {:error, "Unauthorized"}
     end
   end
 
@@ -118,7 +125,9 @@ defmodule HelixWeb.Resolvers.Flows do
   @doc """
   Updates flow data (nodes and edges) with optimistic locking.
 
-  Requires authentication and ownership.
+  Allows updates if:
+  - User owns the flow, OR
+  - Flow is public (is_public = true)
 
   ## Parameters
     - id: Flow ID
@@ -137,20 +146,35 @@ defmodule HelixWeb.Resolvers.Flows do
         %{id: flow_id, input: %{nodes: nodes, edges: edges, version: version}},
         %{context: %{current_user: user}}
       ) do
-    # Verify ownership and get flow
-    with {:ok, flow} <- Storage.get_user_flow(user.id, flow_id),
-         {:ok, updated_flow} <- Storage.update_flow_data(flow, nodes, edges, version) do
-      {:ok, updated_flow}
+    with {:error, :unauthorized} <- Storage.get_user_flow(user.id, flow_id),
+         {:ok, flow} <- Storage.get_flow(flow_id),
+         true <- flow.is_public do
+      update_flow_data_impl(flow, nodes, edges, version)
     else
+      {:ok, flow} -> update_flow_data_impl(flow, nodes, edges, version)
       {:error, :not_found} -> {:error, "Flow not found"}
-      {:error, :unauthorized} -> {:error, "Unauthorized"}
-      {:error, :version_conflict} -> {:error, "Version conflict"}
-      {:error, changeset} -> {:error, Utils.format_changeset_errors(changeset)}
+      false -> {:error, "Unauthorized"}
     end
   end
 
   def update_flow_data(_parent, _args, _resolution) do
     {:error, "Not authenticated"}
+  end
+
+  # Helper function to actually perform the update
+  defp update_flow_data_impl(flow, nodes, edges, version) do
+    case Storage.update_flow_data(flow, nodes, edges, version) do
+      {:ok, updated_flow} ->
+        # Note: No broadcasting here - SessionServer handles periodic saves
+        # For real-time updates, clients should send operations directly via WebSocket
+        {:ok, updated_flow}
+
+      {:error, :version_conflict} ->
+        {:error, "Version conflict"}
+
+      {:error, changeset} ->
+        {:error, Utils.format_changeset_errors(changeset)}
+    end
   end
 
   @doc """

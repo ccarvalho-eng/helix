@@ -14,13 +14,15 @@ defmodule Helix.Flows do
       iex> Helix.Flows.get_flow_status("my-flow")
       %{active: true, client_count: 1, last_activity: 1640995200}
 
-      iex> # Broadcast changes to all clients
-      iex> Helix.Flows.broadcast_flow_change("my-flow", %{nodes: [], edges: []})
+      iex> # Apply operations to update flows
+      iex> operation = %{type: :node_moved, node_id: "node-1", position: %{x: 100, y: 200}}
+      iex> Helix.Flows.apply_operation("my-flow", operation)
       :ok
 
   """
 
   alias Helix.Flows.SessionServer
+  alias Helix.Flows.Storage
   alias Helix.Flows.Types
 
   @type flow_id :: Types.flow_id()
@@ -36,6 +38,8 @@ defmodule Helix.Flows do
   @doc """
   Join a flow session.
 
+  Validates that the flow exists in the database before joining the session.
+
   Returns `{:ok, client_count, effective_client_id}` where:
   - client_count is the total number of clients currently connected to the flow
   - effective_client_id is the actual client_id used (may be generated if input was invalid)
@@ -50,7 +54,14 @@ defmodule Helix.Flows do
   """
   @spec join_flow(flow_id(), client_id()) :: {:ok, pos_integer(), client_id()} | {:error, term()}
   def join_flow(flow_id, client_id) do
-    SessionServer.join_flow(flow_id, client_id)
+    # Validate flow exists in database before allowing session join
+    case Storage.get_flow(flow_id) do
+      {:ok, _flow} ->
+        SessionServer.join_flow(flow_id, client_id)
+
+      {:error, :not_found} ->
+        {:error, :flow_not_found}
+    end
   end
 
   @doc """
@@ -92,19 +103,23 @@ defmodule Helix.Flows do
   end
 
   @doc """
-  Broadcast changes to all clients in a flow.
+  Apply a delta operation to a flow.
+
+  This is the new API for updating flows - send small delta operations instead of full state updates.
+  Operations are applied to in-memory state immediately and persisted periodically.
 
   ## Examples
 
-      iex> Helix.Flows.join_flow("broadcast-flow", "client-1")
+      iex> Helix.Flows.join_flow("my-flow", "client-1")
       {:ok, 1, "client-1"}
 
-      iex> Helix.Flows.broadcast_flow_change("broadcast-flow", %{nodes: []})
+      iex> operation = %{type: :node_moved, node_id: "node-1", position: %{x: 100, y: 200}}
+      iex> Helix.Flows.apply_operation("my-flow", operation)
       :ok
   """
-  @spec broadcast_flow_change(flow_id(), map()) :: :ok
-  def broadcast_flow_change(flow_id, changes) do
-    SessionServer.broadcast_flow_change(flow_id, changes)
+  @spec apply_operation(flow_id(), map()) :: :ok
+  def apply_operation(flow_id, operation) do
+    SessionServer.apply_operation(flow_id, operation)
   end
 
   @doc """

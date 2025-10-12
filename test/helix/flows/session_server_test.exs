@@ -1,13 +1,16 @@
 defmodule Helix.Flows.SessionServerTest do
-  use ExUnit.Case, async: false
+  use Helix.DataCase, async: false
 
   alias Helix.Flows.SessionServer
   import Helix.FlowTestHelper
+  import Helix.AccountsFixtures
+  import Helix.FlowsFixtures
 
   setup do
     # Ensure flow services are available
     ensure_flow_services_available()
-    :ok
+    user = user_fixture()
+    {:ok, user: user}
   end
 
   defp retry_get_active_sessions(retries \\ 5) do
@@ -31,28 +34,34 @@ defmodule Helix.Flows.SessionServerTest do
   end
 
   describe "join_flow/2" do
-    test "joins a new client to a new flow" do
-      assert {:ok, 1, "client-1"} = SessionServer.join_flow("test-flow", "client-1")
+    test "joins a new client to a new flow", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
+
+      assert {:ok, 1, "client-1"} = SessionServer.join_flow(flow_id, "client-1")
     end
 
-    test "joins multiple clients to the same flow" do
-      flow_id = "multi-client-flow-#{System.unique_integer([:positive])}"
+    test "joins multiple clients to the same flow", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       assert {:ok, 1, "client-1"} = SessionServer.join_flow(flow_id, "client-1")
       assert {:ok, 2, "client-2"} = SessionServer.join_flow(flow_id, "client-2")
       assert {:ok, 3, "client-3"} = SessionServer.join_flow(flow_id, "client-3")
     end
 
-    test "handles duplicate client joins idempotently" do
-      flow_id = "duplicate-flow"
+    test "handles duplicate client joins idempotently", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       client_id = "duplicate-client"
 
       assert {:ok, 1, ^client_id} = SessionServer.join_flow(flow_id, client_id)
       assert {:ok, 1, ^client_id} = SessionServer.join_flow(flow_id, client_id)
     end
 
-    test "generates anonymous IDs for empty client IDs" do
-      flow_id = "anonymous-flow"
+    test "generates anonymous IDs for empty client IDs", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       assert {:ok, 1, _anon_id1} = SessionServer.join_flow(flow_id, "")
       assert {:ok, 2, _anon_id2} = SessionServer.join_flow(flow_id, nil)
@@ -62,8 +71,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert %{active: true, client_count: 2} = status
     end
 
-    test "generates anonymous IDs for whitespace-only client IDs" do
-      flow_id = "whitespace-flow"
+    test "generates anonymous IDs for whitespace-only client IDs", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       assert {:ok, 1, _anon_id1} = SessionServer.join_flow(flow_id, "   ")
       assert {:ok, 2, _anon_id2} = SessionServer.join_flow(flow_id, "\t\n  ")
@@ -72,8 +82,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert %{active: true, client_count: 2} = status
     end
 
-    test "generates anonymous IDs for non-string client IDs" do
-      flow_id = "non-string-flow"
+    test "generates anonymous IDs for non-string client IDs", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       assert {:ok, 1, _anon_id1} = SessionServer.join_flow(flow_id, 123)
       assert {:ok, 2, _anon_id2} = SessionServer.join_flow(flow_id, :atom)
@@ -84,8 +95,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert %{active: true, client_count: 4} = status
     end
 
-    test "preserves valid client IDs with surrounding whitespace" do
-      flow_id = "preserved-whitespace-flow"
+    test "preserves valid client IDs with surrounding whitespace", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       client_id = "  valid-client  "
 
       assert {:ok, 1, trimmed_client_id} = SessionServer.join_flow(flow_id, client_id)
@@ -96,8 +108,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert %{active: true, client_count: 1} = status
     end
 
-    test "updates last_activity timestamp when joining" do
-      flow_id = "timestamp-join-flow"
+    test "updates last_activity timestamp when joining", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       before_join = System.system_time(:second)
       assert {:ok, 1, "client-1"} = SessionServer.join_flow(flow_id, "client-1")
@@ -108,8 +121,9 @@ defmodule Helix.Flows.SessionServerTest do
   end
 
   describe "leave_flow/2" do
-    test "allows clients to leave a flow" do
-      flow_id = "leave-test-flow"
+    test "allows clients to leave a flow", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       client_id = "leaving-client"
 
       # Join first
@@ -119,8 +133,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert {:ok, 0} = SessionServer.leave_flow(flow_id, client_id)
     end
 
-    test "tracks remaining client count after leaving" do
-      flow_id = "multi-leave-flow"
+    test "tracks remaining client count after leaving", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join multiple clients
       assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "client-1")
@@ -134,11 +149,13 @@ defmodule Helix.Flows.SessionServerTest do
     end
 
     test "handles leaving non-existent flow gracefully" do
-      assert {:ok, 0} = SessionServer.leave_flow("non-existent", "client-1")
+      # Non-existent flows now return an error since flow validation was added
+      assert {:error, _} = SessionServer.leave_flow("non-existent", "client-1")
     end
 
-    test "handles leaving with non-existent client gracefully" do
-      flow_id = "exists-flow"
+    test "handles leaving with non-existent client gracefully", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join one client
       assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "real-client")
@@ -147,8 +164,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert {:ok, 1} = SessionServer.leave_flow(flow_id, "fake-client")
     end
 
-    test "removes session when last client leaves" do
-      flow_id = "remove-session-flow"
+    test "removes session when last client leaves", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       client_id = "only-client"
 
       # Join and verify session exists
@@ -162,8 +180,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert %{active: false} = SessionServer.get_flow_status(flow_id)
     end
 
-    test "updates last_activity timestamp when leaving" do
-      flow_id = "timestamp-leave-flow"
+    test "updates last_activity timestamp when leaving", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join clients
       SessionServer.join_flow(flow_id, "client-1")
@@ -188,8 +207,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert %{active: false, client_count: 0} = status
     end
 
-    test "returns active status for flows with clients" do
-      flow_id = "status-test-flow"
+    test "returns active status for flows with clients", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join clients
       assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "client-1")
@@ -200,8 +220,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert is_integer(last_activity)
     end
 
-    test "reflects real-time client count changes" do
-      flow_id = "realtime-status-flow"
+    test "reflects real-time client count changes", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Initially inactive
       assert %{active: false, client_count: 0} = SessionServer.get_flow_status(flow_id)
@@ -224,10 +245,16 @@ defmodule Helix.Flows.SessionServerTest do
     end
   end
 
-  describe "broadcast_flow_change/2" do
-    test "broadcasts to active flow session" do
-      flow_id = "broadcast-test-flow-#{System.unique_integer([:positive])}"
-      changes = %{nodes: [], edges: []}
+  describe "apply_operation/2" do
+    test "broadcasts operations to active flow session", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
+      operation = %{
+        type: :node_moved,
+        node_id: "node-1",
+        position: %{x: 100, y: 200},
+        timestamp: System.system_time(:millisecond)
+      }
 
       # Join a client first
       assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client-1")
@@ -235,67 +262,85 @@ defmodule Helix.Flows.SessionServerTest do
       # Subscribe to PubSub for this flow
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
 
-      # Broadcast changes
-      SessionServer.broadcast_flow_change(flow_id, changes)
+      # Apply operation
+      SessionServer.apply_operation(flow_id, operation)
 
-      # Should receive the broadcast
-      assert_receive {:flow_change, ^changes}, 1000
+      # Should receive the operation broadcast
+      assert_receive {:flow_operation, ^operation}, 1000
     end
 
-    test "does not broadcast to inactive flow session" do
-      flow_id = "inactive-broadcast-flow"
-      changes = %{nodes: [], edges: []}
+    test "does not crash when applying operation to inactive session" do
+      flow_id = "inactive-operation-flow"
+      operation = %{
+        type: :node_added,
+        node_id: "node-1",
+        node: %{node_id: "node-1", type: "agent", position_x: 0, position_y: 0},
+        timestamp: System.system_time(:millisecond)
+      }
 
-      # Subscribe to PubSub for this flow
-      Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
-
-      # Broadcast without joining - should not crash but no message
-      SessionServer.broadcast_flow_change(flow_id, changes)
-
-      # Should not receive any message
-      refute_receive {:flow_change, ^changes}, 100
+      # Apply operation without joining - should not crash
+      assert :ok = SessionServer.apply_operation(flow_id, operation)
     end
 
-    test "updates last_activity when broadcasting" do
-      flow_id = "activity-broadcast-flow"
-      changes = %{test: "data"}
+    test "updates last_activity when applying operations", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
+      operation = %{
+        type: :viewport_changed,
+        viewport: %{x: 0, y: 0, zoom: 1.5},
+        timestamp: System.system_time(:millisecond)
+      }
 
       # Join client and get initial status
       assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client-1")
       initial_status = SessionServer.get_flow_status(flow_id)
 
-      # Wait a moment then broadcast
+      # Wait a moment then apply operation
       :timer.sleep(100)
-      before_broadcast = System.system_time(:second)
-      SessionServer.broadcast_flow_change(flow_id, changes)
+      before_operation = System.system_time(:second)
+      SessionServer.apply_operation(flow_id, operation)
+
+      # Wait for operation to be processed
+      :timer.sleep(10)
 
       # Status should show updated activity
       updated_status = SessionServer.get_flow_status(flow_id)
-      assert updated_status.last_activity >= before_broadcast
+      assert updated_status.last_activity >= before_operation
       assert updated_status.last_activity >= initial_status.last_activity
     end
 
-    test "handles complex change payloads" do
-      flow_id = "complex-changes-flow"
+    test "handles complex operation payloads", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
-      complex_changes = %{
-        nodes: [
-          %{id: "node-1", type: "agent", position: %{x: 100, y: 200}},
-          %{id: "node-2", type: "sensor", data: %{config: %{timeout: 5000}}}
+      bulk_operation = %{
+        type: :bulk_update,
+        operations: [
+          %{
+            type: :node_added,
+            node_id: "node-1",
+            node: %{node_id: "node-1", type: "agent", position_x: 100, position_y: 200},
+            timestamp: System.system_time(:millisecond)
+          },
+          %{
+            type: :edge_added,
+            edge_id: "edge-1",
+            edge: %{edge_id: "edge-1", source_node_id: "node-1", target_node_id: "node-2"},
+            timestamp: System.system_time(:millisecond)
+          }
         ],
-        edges: [%{id: "edge-1", source: "node-1", target: "node-2"}],
-        viewport: %{x: 0, y: 0, zoom: 1.5}
+        timestamp: System.system_time(:millisecond)
       }
 
       # Join client and subscribe
       SessionServer.join_flow(flow_id, "client-1")
       Phoenix.PubSub.subscribe(Helix.PubSub, "flow:#{flow_id}")
 
-      # Broadcast complex changes
-      SessionServer.broadcast_flow_change(flow_id, complex_changes)
+      # Apply bulk operation
+      SessionServer.apply_operation(flow_id, bulk_operation)
 
       # Should receive exact same payload
-      assert_receive {:flow_change, ^complex_changes}, 1000
+      assert_receive {:flow_operation, ^bulk_operation}, 1000
     end
   end
 
@@ -304,8 +349,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert %{} = SessionServer.get_active_sessions()
     end
 
-    test "returns session information for active flows" do
-      flow_id = "active-sessions-flow"
+    test "returns session information for active flows", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join clients
       assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "client-1")
@@ -316,9 +362,11 @@ defmodule Helix.Flows.SessionServerTest do
       assert %{client_count: 2, last_activity: _} = session_info
     end
 
-    test "includes multiple active flows" do
-      flow_id_1 = "multi-active-flow-1"
-      flow_id_2 = "multi-active-flow-2"
+    test "includes multiple active flows", %{user: user} do
+      flow_1 = flow_fixture(%{user_id: user.id})
+      flow_2 = flow_fixture(%{user_id: user.id})
+      flow_id_1 = flow_1.id
+      flow_id_2 = flow_2.id
 
       # Set up different flows
       SessionServer.join_flow(flow_id_1, "client-1")
@@ -332,8 +380,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert %{client_count: 2} = info2
     end
 
-    test "excludes inactive flows" do
-      flow_id = "temporary-active-flow"
+    test "excludes inactive flows", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join then leave
       SessionServer.join_flow(flow_id, "temp-client")
@@ -349,8 +398,9 @@ defmodule Helix.Flows.SessionServerTest do
   end
 
   describe "force_close_flow_session/1" do
-    test "closes session and returns client count" do
-      flow_id = "force-close-flow"
+    test "closes session and returns client count", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join clients
       assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "client-1")
@@ -371,8 +421,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert {:ok, 0} = SessionServer.force_close_flow_session("non-existent")
     end
 
-    test "broadcasts flow_deleted message" do
-      flow_id = "delete-broadcast-flow"
+    test "broadcasts flow_deleted message", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join client and subscribe to PubSub
       assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client-1")
@@ -385,8 +436,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert_receive {:flow_deleted, ^flow_id}, 1000
     end
 
-    test "cleans up client_flows mappings" do
-      flow_id = "cleanup-mappings-flow"
+    test "cleans up client_flows mappings", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join multiple clients
       SessionServer.join_flow(flow_id, "client-1")
@@ -408,8 +460,9 @@ defmodule Helix.Flows.SessionServerTest do
   end
 
   describe "session cleanup behavior" do
-    test "sessions auto-terminate when inactive" do
-      flow_id = "auto-terminate-flow"
+    test "sessions auto-terminate when inactive", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join a client
       assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client-1")
@@ -427,8 +480,9 @@ defmodule Helix.Flows.SessionServerTest do
   end
 
   describe "concurrent operations" do
-    test "handles concurrent joins to same flow" do
-      flow_id = "concurrent-joins-flow"
+    test "handles concurrent joins to same flow", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Spawn multiple processes joining the same flow
       tasks =
@@ -448,8 +502,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert %{active: true, client_count: 10} = status
     end
 
-    test "handles concurrent joins and leaves" do
-      flow_id = "concurrent-mixed-flow"
+    test "handles concurrent joins and leaves", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join some initial clients
       Enum.each(1..5, fn i ->
@@ -479,8 +534,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert %{active: true, client_count: 7} = status
     end
 
-    test "handles concurrent force closes" do
-      flow_id = "concurrent-close-flow"
+    test "handles concurrent force closes", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join clients
       SessionServer.join_flow(flow_id, "client-1")
@@ -506,8 +562,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert %{active: false, client_count: 0} = SessionServer.get_flow_status(flow_id)
     end
 
-    test "concurrent get_or_start_session/1 calls create no duplicate sessions" do
-      flow_id = "concurrent-start-flow"
+    test "concurrent get_or_start_session/1 calls create no duplicate sessions", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Spawn multiple processes trying to get or start the same session
       tasks =
@@ -536,8 +593,9 @@ defmodule Helix.Flows.SessionServerTest do
       assert length(session_pids_for_flow) == 1
     end
 
-    test "session process crashes and recreates properly with transient restart" do
-      flow_id = "crash-recreate-flow"
+    test "session process crashes and recreates properly with transient restart", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Start a session by joining
       assert {:ok, 1, "client-1"} = SessionServer.join_flow(flow_id, "client-1")
@@ -595,25 +653,28 @@ defmodule Helix.Flows.SessionServerTest do
       assert %{active: false, client_count: 0} = SessionServer.get_flow_status("")
     end
 
-    test "handles extremely long flow and client IDs" do
-      long_flow_id = String.duplicate("a", 1000)
+    test "handles extremely long flow and client IDs", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       long_client_id = String.duplicate("b", 1000)
 
-      assert {:ok, 1, _id} = SessionServer.join_flow(long_flow_id, long_client_id)
-      assert {:ok, 0} = SessionServer.leave_flow(long_flow_id, long_client_id)
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, long_client_id)
+      assert {:ok, 0} = SessionServer.leave_flow(flow_id, long_client_id)
     end
 
-    test "handles unicode flow and client IDs" do
-      unicode_flow = "flow-测试-🚀-τεστ"
+    test "handles unicode flow and client IDs", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       unicode_client = "client-مرحبا-🎉-тест"
 
-      assert {:ok, 1, _id} = SessionServer.join_flow(unicode_flow, unicode_client)
-      assert %{active: true, client_count: 1} = SessionServer.get_flow_status(unicode_flow)
-      assert {:ok, 0} = SessionServer.leave_flow(unicode_flow, unicode_client)
+      assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, unicode_client)
+      assert %{active: true, client_count: 1} = SessionServer.get_flow_status(flow_id)
+      assert {:ok, 0} = SessionServer.leave_flow(flow_id, unicode_client)
     end
 
-    test "generates unique anonymous IDs" do
-      flow_id = "unique-anon-flow"
+    test "generates unique anonymous IDs", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Generate many anonymous clients
       results =

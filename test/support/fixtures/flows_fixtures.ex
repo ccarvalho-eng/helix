@@ -4,6 +4,7 @@ defmodule Helix.FlowsFixtures do
   """
 
   alias Helix.Flows.{FlowEdge, FlowNode}
+  alias Helix.Flows.Storage
   alias Helix.Repo
 
   @doc """
@@ -29,7 +30,7 @@ defmodule Helix.FlowsFixtures do
         viewport_y: 0.0,
         viewport_zoom: 1.0
       })
-      |> Helix.Flows.Storage.create_flow()
+      |> Storage.create_flow()
 
     flow
   end

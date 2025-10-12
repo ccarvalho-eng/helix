@@ -1,17 +1,21 @@
 defmodule Helix.Flows.SupervisionTest do
-  use ExUnit.Case, async: false
+  use Helix.DataCase, async: false
 
   alias Helix.Flows.SessionServer
   import Helix.FlowTestHelper
+  import Helix.AccountsFixtures
+  import Helix.FlowsFixtures
 
   setup do
     ensure_flow_services_available()
-    :ok
+    user = user_fixture()
+    {:ok, user: user}
   end
 
   describe "process crash recovery" do
-    test "session process restart loses all state after crash" do
-      flow_id = "crash-recovery-test-#{System.unique_integer([:positive])}"
+    test "session process restart loses all state after crash", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join clients to create state
       assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id, "client-1")
@@ -37,8 +41,9 @@ defmodule Helix.Flows.SupervisionTest do
       assert %{active: true, client_count: 1} = SessionServer.get_flow_status(flow_id)
     end
 
-    test "supervisor handles burst of crashes gracefully" do
-      flow_ids = Enum.map(1..3, &"crash-burst-#{&1}-#{System.unique_integer([:positive])}")
+    test "supervisor handles burst of crashes gracefully", %{user: user} do
+      flows = Enum.map(1..3, fn _ -> flow_fixture(%{user_id: user.id}) end)
+      flow_ids = Enum.map(flows, & &1.id)
 
       # Start multiple sessions
       Enum.each(flow_ids, fn flow_id ->
@@ -65,8 +70,9 @@ defmodule Helix.Flows.SupervisionTest do
       end)
     end
 
-    test "registry cleanup on abnormal termination" do
-      flow_id = "registry-cleanup-test-#{System.unique_integer([:positive])}"
+    test "registry cleanup on abnormal termination", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
       assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client")
 
       # Verify registry entry exists
@@ -87,8 +93,9 @@ defmodule Helix.Flows.SupervisionTest do
       assert %{active: true, client_count: 1} = SessionServer.get_flow_status(flow_id)
     end
 
-    test "sessions handle supervisor restarts correctly" do
-      flow_id = "supervisor-restart-test-#{System.unique_integer([:positive])}"
+    test "sessions handle supervisor restarts correctly", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Create active session
       assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client")
@@ -112,9 +119,11 @@ defmodule Helix.Flows.SupervisionTest do
       end
     end
 
-    test "crashed sessions do not affect other sessions" do
-      flow_id_1 = "isolation-test-1-#{System.unique_integer([:positive])}"
-      flow_id_2 = "isolation-test-2-#{System.unique_integer([:positive])}"
+    test "crashed sessions do not affect other sessions", %{user: user} do
+      flow_1 = flow_fixture(%{user_id: user.id})
+      flow_2 = flow_fixture(%{user_id: user.id})
+      flow_id_1 = flow_1.id
+      flow_id_2 = flow_2.id
 
       # Start two independent sessions
       assert {:ok, 1, _id1} = SessionServer.join_flow(flow_id_1, "client-1")
@@ -149,8 +158,9 @@ defmodule Helix.Flows.SupervisionTest do
   end
 
   describe "resource limits" do
-    test "enforces max clients per flow limit" do
-      flow_id = "max-clients-test-#{System.unique_integer([:positive])}"
+    test "enforces max clients per flow limit", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join up to the limit (1000 is too many for test, so we'll test the logic)
       # We'll need to temporarily lower the limit for testing
@@ -167,8 +177,9 @@ defmodule Helix.Flows.SupervisionTest do
   end
 
   describe "basic session lifecycle" do
-    test "sessions terminate when no clients remain" do
-      flow_id = "termination-test-#{System.unique_integer([:positive])}"
+    test "sessions terminate when no clients remain", %{user: user} do
+      flow = flow_fixture(%{user_id: user.id})
+      flow_id = flow.id
 
       # Join and then leave a client
       assert {:ok, 1, _id} = SessionServer.join_flow(flow_id, "client")

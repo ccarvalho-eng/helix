@@ -92,14 +92,15 @@ defmodule HelixWeb.FlowChannel do
   end
 
   @impl true
-  def handle_in("flow_change", %{"changes" => changes}, socket) do
-    flow_id = socket.assigns.flow_id
+  def handle_info({:flow_access_revoked, flow_id}, socket) do
+    # Notify client that they no longer have access to this flow
+    push(socket, "flow_access_revoked", %{
+      flow_id: flow_id,
+      timestamp: System.system_time(:second)
+    })
 
-    # Broadcast changes to other clients via the session manager
-    Flows.broadcast_flow_change(flow_id, changes)
-
-    # Acknowledge receipt
-    {:reply, {:ok, %{status: "broadcasted"}}, socket}
+    # Close the channel since the user no longer has access
+    {:stop, :normal, socket}
   end
 
   @impl true

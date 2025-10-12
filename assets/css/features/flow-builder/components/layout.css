@@ -242,6 +242,83 @@ body:has(.flow-builder) {
   box-shadow: var(--theme-shadow);
 }
 
+/* Publish Button */
+.flow-builder__publish-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: 36px;
+  background: var(--flow-builder-button-bg);
+  border: 1px solid var(--flow-builder-button-border);
+  border-radius: 8px;
+  color: var(--flow-builder-button-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .flow-builder__publish-btn {
+  background: var(--theme-bg-tertiary);
+  border-color: var(--theme-border-primary);
+  color: var(--theme-text-primary);
+}
+
+.flow-builder__publish-btn:hover {
+  background: var(--flow-builder-button-hover-bg);
+  border-color: var(--flow-builder-button-hover-border);
+  color: var(--flow-builder-button-hover-text);
+  transform: translateY(-1px);
+  box-shadow: var(--flow-builder-shadow);
+}
+
+[data-theme="dark"] .flow-builder__publish-btn:hover {
+  background: var(--theme-border-primary);
+  border-color: var(--theme-syntax-green);
+  color: var(--theme-syntax-green);
+  transform: translateY(-1px);
+  box-shadow: var(--theme-shadow);
+}
+
+/* Public state - green accent */
+.flow-builder__publish-btn--public {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #16a34a;
+}
+
+[data-theme="dark"] .flow-builder__publish-btn--public {
+  background: rgba(152, 195, 121, 0.15);
+  border-color: rgba(152, 195, 121, 0.4);
+  color: var(--theme-syntax-green);
+}
+
+.flow-builder__publish-btn--public:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.5);
+  color: #15803d;
+}
+
+[data-theme="dark"] .flow-builder__publish-btn--public:hover {
+  background: rgba(152, 195, 121, 0.25);
+  border-color: var(--theme-syntax-green);
+  color: var(--theme-syntax-green);
+}
+
+/* Hide text on smaller screens */
+@media (max-width: 1024px) {
+  .flow-builder__publish-btn-text {
+    display: none;
+  }
+
+  .flow-builder__publish-btn {
+    width: 36px;
+    padding: 0;
+  }
+}
+
 .flow-builder__stats {
   display: flex;
   align-items: center;

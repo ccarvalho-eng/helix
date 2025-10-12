@@ -16,7 +16,7 @@
 		"test:e2e:debug": "playwright test --debug",
 		"test:e2e:headed": "playwright test --headed",
 		"test:all": "npm run test && npm run test:e2e",
-		"codegen": "graphql-codegen --config codegen.ts",
+		"codegen": "graphql-codegen --config codegen.ts && node fix-graphql-imports.js",
 		"codegen:watch": "graphql-codegen --config codegen.ts --watch"
 	},
 	"dependencies": {
