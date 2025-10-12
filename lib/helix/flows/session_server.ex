@@ -6,6 +6,9 @@ defmodule Helix.Flows.SessionServer do
   use GenServer
   require Logger
 
+  alias Helix.Flows.FlowSessionManager
+  alias Helix.Flows.Registry, as: FlowsRegistry
+  alias Helix.Flows.Storage
   alias Helix.Flows.Types
 
   @type flow_id :: Types.flow_id()
@@ -54,7 +57,7 @@ defmodule Helix.Flows.SessionServer do
   """
   @spec join_flow(flow_id(), client_id()) :: {:ok, pos_integer(), client_id()} | {:error, term()}
   def join_flow(flow_id, client_id) do
-    case Helix.Flows.FlowSessionManager.get_or_start_session(flow_id) do
+    case FlowSessionManager.get_or_start_session(flow_id) do
       {:ok, pid} -> GenServer.call(pid, {:join_flow, client_id}, 5000)
       error -> error
     end
@@ -68,7 +71,7 @@ defmodule Helix.Flows.SessionServer do
   """
   @spec leave_flow(flow_id(), client_id()) :: operation_result()
   def leave_flow(flow_id, client_id) do
-    case Helix.Flows.FlowSessionManager.get_or_start_session(flow_id) do
+    case FlowSessionManager.get_or_start_session(flow_id) do
       {:ok, pid} -> GenServer.call(pid, {:leave_flow, client_id}, 5000)
       error -> error
     end
@@ -83,7 +86,7 @@ defmodule Helix.Flows.SessionServer do
   """
   @spec get_flow_status(flow_id()) :: flow_status()
   def get_flow_status(flow_id) do
-    case Registry.lookup(Helix.Flows.Registry, flow_id) do
+    case Registry.lookup(FlowsRegistry, flow_id) do
       [{pid, _}] -> GenServer.call(pid, :get_flow_status, 5000)
       [] -> %{active: false, client_count: 0}
     end
@@ -97,7 +100,7 @@ defmodule Helix.Flows.SessionServer do
   """
   @spec broadcast_flow_change(flow_id(), map()) :: :ok
   def broadcast_flow_change(flow_id, changes) do
-    case Registry.lookup(Helix.Flows.Registry, flow_id) do
+    case Registry.lookup(FlowsRegistry, flow_id) do
       [{pid, _}] ->
         Task.Supervisor.start_child(Helix.TaskSupervisor, fn ->
           Phoenix.PubSub.broadcast(Helix.PubSub, "flow:#{flow_id}", {:flow_change, changes})
@@ -140,7 +143,7 @@ defmodule Helix.Flows.SessionServer do
   """
   @spec persist_flow_changes(flow_id(), map()) :: :ok
   def persist_flow_changes(flow_id, changes) do
-    case Registry.lookup(Helix.Flows.Registry, flow_id) do
+    case Registry.lookup(FlowsRegistry, flow_id) do
       [{pid, _}] ->
         GenServer.cast(pid, {:persist_changes, changes})
 
@@ -157,7 +160,7 @@ defmodule Helix.Flows.SessionServer do
   """
   @spec get_active_sessions() :: sessions_map()
   def get_active_sessions do
-    Registry.select(Helix.Flows.Registry, [{{:"$1", :"$2", :_}, [], [{{:"$1", :"$2"}}]}])
+    Registry.select(FlowsRegistry, [{{:"$1", :"$2", :_}, [], [{{:"$1", :"$2"}}]}])
     |> Enum.reduce(%{}, fn {flow_id, pid}, acc ->
       try do
         case GenServer.call(pid, :get_flow_status, 1_000) do
@@ -197,7 +200,7 @@ defmodule Helix.Flows.SessionServer do
   def force_close_flow_session(_), do: {:error, :invalid_flow_id}
 
   defp do_force_close_flow_session(flow_id) do
-    case Registry.lookup(Helix.Flows.Registry, flow_id) do
+    case Registry.lookup(FlowsRegistry, flow_id) do
       [{pid, _}] ->
         client_count =
           try do
@@ -207,7 +210,7 @@ defmodule Helix.Flows.SessionServer do
             _ -> 0
           end
 
-        Helix.Flows.FlowSessionManager.stop_session(flow_id)
+        FlowSessionManager.stop_session(flow_id)
 
         Task.Supervisor.start_child(Helix.TaskSupervisor, fn ->
           Phoenix.PubSub.broadcast(Helix.PubSub, "flow:#{flow_id}", {:flow_deleted, flow_id})
@@ -226,7 +229,7 @@ defmodule Helix.Flows.SessionServer do
   def init(%{flow_id: flow_id}) do
     # Load flow data from database
     flow_data =
-      case Helix.Flows.Storage.get_flow_with_data(flow_id) do
+      case Storage.get_flow_with_data(flow_id) do
         {:ok, flow} ->
           %{
             nodes: flow.nodes,
@@ -450,30 +453,26 @@ defmodule Helix.Flows.SessionServer do
   end
 
   defp persist_to_database(flow_id, changes, current_version) do
-    try do
-      case Helix.Flows.Storage.get_flow(flow_id) do
-        {:ok, flow} ->
-          persist_flow_data(flow_id, flow, changes, current_version)
+    case Storage.get_flow(flow_id) do
+      {:ok, flow} ->
+        persist_flow_data(flow_id, flow, changes, current_version)
 
-        {:error, :not_found} ->
-          Logger.debug(
-            "Flow #{flow_id} not found when attempting to persist changes (likely deleted)"
-          )
-      end
-    rescue
-      Ecto.NoResultsError ->
-        Logger.debug("Flow #{flow_id} was deleted before persistence could complete")
-
-      error in [DBConnection.ConnectionError] ->
+      {:error, :not_found} ->
         Logger.debug(
-          "Database connection error during persistence for flow #{flow_id}: #{inspect(error.message)}"
-        )
-
-      error ->
-        Logger.warning(
-          "Unexpected error during persistence for flow #{flow_id}: #{inspect(error)}"
+          "Flow #{flow_id} not found when attempting to persist changes (likely deleted)"
         )
     end
+  rescue
+    Ecto.NoResultsError ->
+      Logger.debug("Flow #{flow_id} was deleted before persistence could complete")
+
+    error in [DBConnection.ConnectionError] ->
+      Logger.debug(
+        "Database connection error during persistence for flow #{flow_id}: #{inspect(error.message)}"
+      )
+
+    error ->
+      Logger.warning("Unexpected error during persistence for flow #{flow_id}: #{inspect(error)}")
   end
 
   defp persist_flow_data(flow_id, flow, changes, current_version) do
@@ -503,7 +502,7 @@ defmodule Helix.Flows.SessionServer do
       end
 
     # Update flow data with optimistic locking in a single transaction
-    case Helix.Flows.Storage.update_flow_data_with_viewport(
+    case Storage.update_flow_data_with_viewport(
            flow,
            nodes_attrs,
            edges_attrs,

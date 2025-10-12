@@ -1041,7 +1041,7 @@ export function useFlowManager(flowId: string | null) {
     // Viewport change handler for onMoveEnd
     onMoveEnd: useCallback(() => {
       if (currentFlow && reactFlowInstance) {
-        const viewport = reactFlowInstance.getViewport();
+        const _viewport = reactFlowInstance.getViewport();
 
         // Debounced save
         const timeoutId = setTimeout(async () => {

@@ -51,14 +51,17 @@ export function HomePage() {
 
   // Transform GraphQL data to FlowRegistryEntry format
   const flows: FlowRegistryEntry[] =
-    flowsData?.myFlows?.map((flow: any) => ({
-      id: flow.id,
-      title: flow.title,
-      lastModified: flow.updatedAt,
-      createdAt: flow.insertedAt,
-      nodeCount: 0, // We don't have node count in the list query, can add if needed
-      connectionCount: 0,
-    })) || [];
+    flowsData?.myFlows
+      ?.filter(flow => flow != null && flow.id != null)
+      .map(flow => ({
+        // Safe to use non-null assertions here because we filtered above
+        id: flow!.id as string,
+        title: flow!.title ?? 'Untitled Flow',
+        lastModified: flow!.updatedAt ?? new Date().toISOString(),
+        createdAt: flow!.insertedAt ?? new Date().toISOString(),
+        nodeCount: 0, // We don't have node count in the list query, can add if needed
+        connectionCount: 0,
+      })) || [];
 
   const handleLogout = () => {
     logout();

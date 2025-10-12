@@ -21,6 +21,7 @@ defmodule Helix.Flows do
   """
 
   alias Helix.Flows.SessionServer
+  alias Helix.Flows.Storage
   alias Helix.Flows.Types
 
   @type flow_id :: Types.flow_id()
@@ -53,7 +54,7 @@ defmodule Helix.Flows do
   @spec join_flow(flow_id(), client_id()) :: {:ok, pos_integer(), client_id()} | {:error, term()}
   def join_flow(flow_id, client_id) do
     # Validate flow exists in database before allowing session join
-    case Helix.Flows.Storage.get_flow(flow_id) do
+    case Storage.get_flow(flow_id) do
       {:ok, _flow} ->
         SessionServer.join_flow(flow_id, client_id)
 

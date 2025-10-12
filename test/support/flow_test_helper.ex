@@ -26,32 +26,28 @@ defmodule Helix.FlowTestHelper do
   end
 
   defp check_services do
-    try do
-      # Check Registry is available
-      Registry.lookup(Helix.Flows.Registry, "test")
+    # Check Registry is available
+    Registry.lookup(Helix.Flows.Registry, "test")
 
-      # Check SessionSupervisor is available
-      DynamicSupervisor.count_children(Helix.Flows.SessionSupervisor)
+    # Check SessionSupervisor is available
+    DynamicSupervisor.count_children(Helix.Flows.SessionSupervisor)
 
-      # Check FlowSessionManager is available
-      Process.whereis(Helix.Flows.FlowSessionManager)
+    # Check FlowSessionManager is available
+    Process.whereis(Helix.Flows.FlowSessionManager)
 
-      :ok
-    rescue
-      _ -> :error
-    catch
-      :exit, _ -> :error
-    end
+    :ok
+  rescue
+    _ -> :error
+  catch
+    :exit, _ -> :error
   end
 
   defp try_restart_services do
-    try do
-      # Try to ensure the application is started
-      Application.ensure_all_started(:helix)
-    rescue
-      _ -> :ok
-    catch
-      :exit, _ -> :ok
-    end
+    # Try to ensure the application is started
+    Application.ensure_all_started(:helix)
+  rescue
+    _ -> :ok
+  catch
+    :exit, _ -> :ok
   end
 end
