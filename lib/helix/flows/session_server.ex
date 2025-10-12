@@ -7,6 +7,7 @@ defmodule Helix.Flows.SessionServer do
   require Logger
 
   alias Helix.Flows.FlowSessionManager
+  alias Helix.Flows.Operations
   alias Helix.Flows.Registry, as: FlowsRegistry
   alias Helix.Flows.Storage
   alias Helix.Flows.Types
@@ -199,6 +200,37 @@ defmodule Helix.Flows.SessionServer do
 
   def force_close_flow_session(_), do: {:error, :invalid_flow_id}
 
+  @doc """
+  Apply a delta operation to the flow and broadcast it to all clients.
+
+  This is the new preferred way to update flows - send small delta operations
+  instead of full state updates. Operations are applied to in-memory state
+  immediately and persisted periodically.
+
+  ## Parameters
+    - flow_id: The flow ID
+    - operation: A delta operation (see Helix.Flows.Operations)
+
+  ## Returns
+    - :ok
+
+  ## Examples
+
+      iex> operation = Operations.node_moved("node-1", 100, 200, "user-123")
+      iex> SessionServer.apply_operation("flow-id", operation)
+      :ok
+  """
+  @spec apply_operation(flow_id(), map()) :: :ok
+  def apply_operation(flow_id, operation) do
+    case Registry.lookup(FlowsRegistry, flow_id) do
+      [{pid, _}] ->
+        GenServer.cast(pid, {:apply_operation, operation})
+
+      [] ->
+        :ok
+    end
+  end
+
   defp do_force_close_flow_session(flow_id) do
     case Registry.lookup(FlowsRegistry, flow_id) do
       [{pid, _}] ->
@@ -249,8 +281,9 @@ defmodule Helix.Flows.SessionServer do
           nil
       end
 
-    # Schedule periodic cleanup
+    # Schedule periodic cleanup and saves
     cleanup_timer = schedule_cleanup()
+    save_timer = schedule_periodic_save()
 
     {:ok,
      %{
@@ -258,7 +291,10 @@ defmodule Helix.Flows.SessionServer do
        flow_data: flow_data,
        clients: MapSet.new(),
        last_activity: System.system_time(:second),
-       cleanup_timer: cleanup_timer
+       last_save: System.system_time(:second),
+       has_unsaved_changes: false,
+       cleanup_timer: cleanup_timer,
+       save_timer: save_timer
      }}
   end
 
@@ -327,6 +363,45 @@ defmodule Helix.Flows.SessionServer do
   @impl true
   def handle_cast({:update_activity}, state) do
     {:noreply, %{state | last_activity: System.system_time(:second)}}
+  end
+
+  @impl true
+  def handle_cast({:apply_operation, operation}, state) do
+    # Apply operation to in-memory state
+    updated_flow_data =
+      if state.flow_data do
+        Operations.apply_operation(state.flow_data, operation)
+      else
+        # Initialize flow_data if it doesn't exist
+        Operations.apply_operation(
+          %{
+            nodes: [],
+            edges: [],
+            viewport: %{x: 0, y: 0, zoom: 1.0},
+            version: 1
+          },
+          operation
+        )
+      end
+
+    # Broadcast operation to all clients immediately (hot path - no DB)
+    Task.Supervisor.start_child(Helix.TaskSupervisor, fn ->
+      Phoenix.PubSub.broadcast(
+        Helix.PubSub,
+        "flow:#{state.flow_id}",
+        {:flow_operation, operation}
+      )
+    end)
+
+    now = System.system_time(:second)
+
+    {:noreply,
+     %{
+       state
+       | flow_data: updated_flow_data,
+         last_activity: now,
+         has_unsaved_changes: true
+     }}
   end
 
   @impl true
@@ -409,10 +484,47 @@ defmodule Helix.Flows.SessionServer do
   end
 
   @impl true
+  def handle_info(:periodic_save, state) do
+    now = System.system_time(:second)
+
+    # Check if we need to save
+    # 10s idle
+    # or 30s since last save
+    should_save =
+      state.has_unsaved_changes &&
+        (now - Map.get(state, :last_activity, 0) >= 10 ||
+           now - Map.get(state, :last_save, 0) >= 30)
+
+    new_state =
+      if should_save && state.flow_data do
+        # Save to database asynchronously
+        persist_flow_state(state.flow_id, state.flow_data)
+
+        %{state | last_save: now, has_unsaved_changes: false}
+      else
+        state
+      end
+
+    # Schedule next save check
+    new_save_timer = schedule_periodic_save()
+    {:noreply, %{new_state | save_timer: new_save_timer}}
+  end
+
+  @impl true
   def terminate(reason, state) do
-    # Cancel cleanup timer to prevent timer leaks
+    # Cancel timers to prevent timer leaks
     if state.cleanup_timer do
       Process.cancel_timer(state.cleanup_timer)
+    end
+
+    if Map.get(state, :save_timer) do
+      Process.cancel_timer(state.save_timer)
+    end
+
+    # Final save if there are unsaved changes
+    if Map.get(state, :has_unsaved_changes, false) && state.flow_data do
+      Logger.info("Performing final save for flow #{state.flow_id} before termination")
+      persist_flow_state(state.flow_id, state.flow_data)
     end
 
     # Notify PubSub of session termination if clients exist
@@ -450,6 +562,26 @@ defmodule Helix.Flows.SessionServer do
   defp schedule_cleanup do
     # 10 minutes
     Process.send_after(self(), :cleanup_inactive_sessions, 10 * 60 * 1000)
+  end
+
+  defp schedule_periodic_save do
+    # 5 seconds - check frequently but only save when needed
+    Process.send_after(self(), :periodic_save, 5_000)
+  end
+
+  defp persist_flow_state(flow_id, flow_data) do
+    # Convert flow_data to changes format for existing persist logic
+    changes = %{
+      nodes: Map.get(flow_data, :nodes, []),
+      edges: Map.get(flow_data, :edges, []),
+      viewport: Map.get(flow_data, :viewport, %{x: 0, y: 0, zoom: 1.0})
+    }
+
+    current_version = Map.get(flow_data, :version, 0)
+
+    Task.Supervisor.start_child(Helix.TaskSupervisor, fn ->
+      persist_to_database(flow_id, changes, current_version)
+    end)
   end
 
   defp persist_to_database(flow_id, changes, current_version) do
